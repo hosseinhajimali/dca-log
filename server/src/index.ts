@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import passport from './services/passport';
 import { router } from './routes';
 import { errorHandler } from './middleware/errorHandler';
 import { startCronJobs } from './services/cronService';
@@ -13,6 +14,9 @@ const allowedOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
 app.use(cors({ origin: allowedOrigin, credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Passport (no sessions — JWT only)
+app.use(passport.initialize());
 
 // Routes
 app.use('/api', router);
