@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User } from '@/types';
+import { queryClient } from '@/lib/queryClient';
 
 interface AppState {
   user: User | null;
@@ -30,6 +31,7 @@ export const useStore = create<AppState>()(
       logout: () => {
         localStorage.removeItem('dca_token');
         localStorage.removeItem('dca_user');
+        queryClient.clear(); // clear cached data so next user starts fresh
         set({ user: null, token: null });
       },
 
