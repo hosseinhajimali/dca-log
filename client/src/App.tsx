@@ -7,7 +7,6 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import Dashboard from '@/pages/Dashboard';
 import DcaPlans from '@/pages/DcaPlans';
 import Transactions from '@/pages/Transactions';
-import Analytics from '@/pages/Analytics';
 import SettingsLayout from '@/pages/settings/SettingsLayout';
 import General from '@/pages/settings/General';
 import ProfilePage from '@/pages/settings/Profile';
@@ -37,7 +36,6 @@ export default function App() {
             <Route index element={<Dashboard />} />
             <Route path="plans" element={<DcaPlans />} />
             <Route path="transactions" element={<Transactions />} />
-            <Route path="analytics" element={<Analytics />} />
             <Route path="settings" element={<SettingsLayout />}>
               <Route index element={<General />} />
               <Route path="profile" element={<ProfilePage />} />
