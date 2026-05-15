@@ -53,6 +53,10 @@ export async function login(req: Request, res: Response, next: NextFunction) {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return next(new AppError(401, 'Invalid credentials'));
 
+    if (!user.passwordHash) {
+      return next(new AppError(401, 'This account uses Google sign-in. Please continue with Google.'));
+    }
+
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) return next(new AppError(401, 'Invalid credentials'));
 
@@ -111,6 +115,10 @@ export async function changePassword(req: Request & { userId?: string }, res: Re
 
     const user = await prisma.user.findUnique({ where: { id: req.userId } });
     if (!user) return next(new AppError(404, 'User not found'));
+
+    if (!user.passwordHash) {
+      return next(new AppError(400, 'Your account uses Google sign-in and has no password.'));
+    }
 
     const valid = await bcrypt.compare(body.data.currentPassword, user.passwordHash);
     if (!valid) return next(new AppError(400, 'Current password is incorrect'));
