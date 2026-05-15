@@ -1,6 +1,27 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { DcaPlan, BuyingRule, ApiResponse } from '@/types';
+import { DcaPlan, BuyingRule, ApiResponse, AssetStats } from '@/types';
+
+export interface PlanStats {
+  plan: DcaPlan;
+  portfolio: { totalInvested: number; totalCurrentValue: number; totalPnl: number; totalPnlPercent: number };
+  assetStats: (AssetStats & { allocationPct: number })[];
+  monthlyData: { month: string; invested: number }[];
+  recentTransactions: import('@/types').Transaction[];
+  lastUpdated: string;
+}
+
+export function usePlanStats(id: string) {
+  return useQuery<PlanStats>({
+    queryKey: ['plan-stats', id],
+    queryFn: async () => {
+      const res = await api.get<ApiResponse<PlanStats>>(`/dca-plans/${id}/stats`);
+      return res.data.data;
+    },
+    enabled: !!id,
+    staleTime: 60_000,
+  });
+}
 
 export function useDcaPlans() {
   return useQuery({
