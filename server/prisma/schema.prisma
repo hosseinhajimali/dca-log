@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AssetType {
+  CRYPTO
+  METAL
+  STOCK
+  ETF
+  OTHER
+}
+
+enum DcaFrequency {
+  DAILY
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  CUSTOM
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  passwordHash String        @map("password_hash")
+  name         String?
+  currency     String        @default("USD")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  assets       Asset[]
+  dcaPlans     DcaPlan[]
+  transactions Transaction[]
+
+  @@map("users")
+}
+
+model Asset {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  symbol    String    // e.g. "BTC", "ETH", "XAU"
+  name      String    // e.g. "Bitcoin", "Gold"
+  assetType AssetType @map("asset_type")
+  coingeckoId String? @map("coingecko_id") // for crypto price lookup
+  color       String? // optional hex color, e.g. "#f7931a"
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dcaPlans     DcaPlan[]
+  transactions Transaction[]
+
+  @@unique([userId, symbol])
+  @@map("assets")
+}
+
+model DcaPlan {
+  id               String       @id @default(cuid())
+  userId           String       @map("user_id")
+  assetId          String       @map("asset_id")
+  name             String?      // optional label, e.g. "Monthly BTC stack"
+  amountUsd        Float        @map("amount_usd")  // how much USD to buy each time
+  frequency        DcaFrequency
+  intervalDays     Int?         @map("interval_days") // only for CUSTOM frequency
+  isActive         Boolean      @default(true) @map("is_active")
+  startDate        DateTime     @map("start_date")
+  endDate          DateTime?    @map("end_date")
+  nextPurchaseDate DateTime?    @map("next_purchase_date")
+  notes            String?
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset        Asset         @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  buyingRules  BuyingRule[]
+
+  @@map("dca_plans")
+}
+
+model BuyingRule {
+  id          String  @id @default(cuid())
+  dcaPlanId   String  @map("dca_plan_id")
+  minDrawdown Float   @map("min_drawdown") // e.g. 20  (positive %, price is this far below ATH)
+  maxDrawdown Float   @map("max_drawdown") // e.g. 40
+  buyAmount   Float   @map("buy_amount")   // USD to buy when drawdown is in this range
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  dcaPlan DcaPlan @relation(fields: [dcaPlanId], references: [id], onDelete: Cascade)
+
+  @@map("buying_rules")
+}
+
+model Transaction {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  assetId      String   @map("asset_id")
+  dcaPlanId    String?  @map("dca_plan_id") // null = manual purchase outside a plan
+  amountUsd    Float    @map("amount_usd")  // how much USD was spent
+  quantity     Float                         // how much of the asset was received
+  pricePerUnit Float    @map("price_per_unit") // price at time of purchase (USD)
+  purchasedAt  DateTime @map("purchased_at")
+  exchange     String?
+  notes        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset   Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  dcaPlan DcaPlan? @relation(fields: [dcaPlanId], references: [id], onDelete: SetNull)
+
+  @@map("transactions")
+}
+
+model PriceCache {
+  id         String    @id @default(cuid())
+  symbol     String    @unique
+  priceUsd   Float     @map("price_usd")
+  change24h  Float?    @map("change_24h")   // 24h change %
+  marketCap  Float?    @map("market_cap")
+  ath        Float?                          // all-time high in USD
+  athDate    DateTime? @map("ath_date")
+  fetchedAt  DateTime  @map("fetched_at")
+
+  @@map("price_cache")
+}
+
+model ExchangeRate {
+  id         String   @id @default(cuid())
+  fromCurrency String @map("from_currency") // always USD
+  toCurrency   String @map("to_currency")
+  rate         Float
+  fetchedAt    DateTime @map("fetched_at")
+
+  @@unique([fromCurrency, toCurrency])
+  @@map("exchange_rates")
+}
