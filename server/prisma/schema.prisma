@@ -52,9 +52,10 @@ model Asset {
   color       String? // optional hex color, e.g. "#f7931a"
   createdAt DateTime  @default(now()) @map("created_at")
 
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  dcaPlans     DcaPlan[]
-  transactions Transaction[]
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dcaPlans        DcaPlan[]        // legacy: single-asset plans
+  planAllocations PlanAllocation[]
+  transactions    Transaction[]
 
   @@unique([userId, symbol])
   @@map("assets")
@@ -63,12 +64,13 @@ model Asset {
 model DcaPlan {
   id               String       @id @default(cuid())
   userId           String       @map("user_id")
-  assetId          String       @map("asset_id")
+  assetId          String?      @map("asset_id")   // nullable — kept for legacy plans only
   name             String?      // optional label, e.g. "Monthly BTC stack"
-  amountUsd        Float        @map("amount_usd")  // how much USD to buy each time
+  amountUsd        Float        @map("amount_usd")  // total USD to buy each time
   frequency        DcaFrequency
   intervalDays     Int?         @map("interval_days") // only for CUSTOM frequency
   isActive         Boolean      @default(true) @map("is_active")
+  perAssetRules    Boolean      @default(false) @map("per_asset_rules") // true = evaluate rules per-asset; false = weighted group average
   startDate        DateTime     @map("start_date")
   endDate          DateTime?    @map("end_date")
   nextPurchaseDate DateTime?    @map("next_purchase_date")
@@ -76,12 +78,28 @@ model DcaPlan {
   createdAt        DateTime     @default(now()) @map("created_at")
   updatedAt        DateTime     @updatedAt @map("updated_at")
 
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  asset        Asset         @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset        Asset?           @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  allocations  PlanAllocation[]
   transactions Transaction[]
   buyingRules  BuyingRule[]
 
   @@map("dca_plans")
+}
+
+// Each row is one asset's share in a plan. Pcts across a plan must sum to 100.
+model PlanAllocation {
+  id            String   @id @default(cuid())
+  planId        String   @map("plan_id")
+  assetId       String   @map("asset_id")
+  allocationPct Float    @map("allocation_pct") // 0–100
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  plan  DcaPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  asset Asset   @relation(fields: [assetId], references: [id], onDelete: Restrict)
+
+  @@unique([planId, assetId])
+  @@map("plan_allocations")
 }
 
 model BuyingRule {
