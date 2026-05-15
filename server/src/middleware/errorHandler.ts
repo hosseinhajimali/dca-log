@@ -22,5 +22,9 @@ export function errorHandler(
   }
 
   console.error('[Server Error]', err);
-  res.status(500).json({ success: false, error: 'Internal server error' });
+  const isDev = process.env.NODE_ENV !== 'production';
+  res.status(500).json({
+    success: false,
+    error: isDev ? String((err as Error).message ?? 'Internal server error') : 'Internal server error',
+  });
 }

@@ -31,25 +31,42 @@ export interface BuyingRule {
   createdAt: string;
 }
 
+export interface PlanAllocation {
+  id: string;
+  planId: string;
+  assetId: string;
+  asset: Asset;
+  allocationPct: number; // 0–100, sums to 100 per plan
+}
+
+export interface SuggestedAllocation {
+  assetId: string;
+  symbol: string;
+  color?: string | null;
+  allocationPct: number;
+  amount: number; // USD portion for this asset
+}
+
 export interface DcaPlan {
   id: string;
   userId: string;
-  assetId: string;
-  asset: Asset;
   name?: string;
   amountUsd: number;
   frequency: DcaFrequency;
   intervalDays?: number;
   isActive: boolean;
+  perAssetRules: boolean;   // false = weighted-group method; true = per-asset method
   startDate: string;
   endDate?: string | null;
   nextPurchaseDate?: string;
   notes?: string;
   createdAt: string;
   updatedAt: string;
+  allocations: PlanAllocation[];          // assets + their % shares
   buyingRules: BuyingRule[];
-  drawdownFromAth: number | null;   // computed by server, negative = below ATH
-  suggestedAmount: number;          // computed by server based on active rules
+  drawdownFromAth: number | null;         // weighted average, negative = below ATH
+  suggestedAmount: number;               // total suggested buy
+  suggestedAllocations: SuggestedAllocation[]; // per-asset breakdown
 }
 
 export interface Transaction {
