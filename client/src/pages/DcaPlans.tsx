@@ -117,175 +117,337 @@ function PlanFields({ form, setForm, assets, lockAsset }: {
   );
 }
 
-// ─── rule add row (shared between both modals) ────────────────────────────────
-// NOTE: intentionally NOT a <form> — this component is often nested inside
-// another <form> (create plan), and nested forms are invalid HTML.
-function RuleAddRow({ onAdd }: {
-  onAdd: (min: number, max: number, amount: number) => void;
+// ─── shared multiplier rule form (used for add + inline edit) ────────────────
+// NOTE: intentionally NOT a <form> — nested inside another <form>.
+const MULT_PRESETS = [0.25, 0.5, 1, 1.5, 2, 3, 5];
+
+function RuleEditForm({
+  initialMin = '', initialMax = '', initialMult = '1', initialRawAmount = '',
+  baseAmount, onSave, onCancel, submitLabel = 'Add rule',
+}: {
+  initialMin?: string; initialMax?: string;
+  initialMult?: string; initialRawAmount?: string;
+  baseAmount?: number;
+  onSave: (min: number, max: number, amount: number) => void;
+  onCancel?: () => void;
+  submitLabel?: string;
 }) {
-  const [f, setF] = useState({ min: '', max: '', amount: '' });
+  const [min, setMin] = useState(initialMin);
+  const [max, setMax] = useState(initialMax);
+  const [mult, setMult] = useState(initialMult);
+  const [rawAmount, setRawAmount] = useState(initialRawAmount);
   const [err, setErr] = useState('');
+
+  const base = baseAmount && baseAmount > 0 ? baseAmount : null;
+  const multNum = parseFloat(mult);
+  const computedAmount = base && !isNaN(multNum) && multNum > 0
+    ? +(multNum * base).toFixed(2) : null;
+
+  const applyPreset = (p: number) => setMult(String(p));
 
   const handle = () => {
     setErr('');
-    const min = parseFloat(f.min), max = parseFloat(f.max), amount = parseFloat(f.amount);
-    if (isNaN(min) || isNaN(max) || isNaN(amount)) return setErr('All fields are required.');
-    if (min < 0 || max > 100) return setErr('Values must be 0–100.');
-    if (max <= min) return setErr('Max must be greater than min.');
-    if (amount <= 0) return setErr('Buy amount must be positive.');
-    onAdd(min, max, amount);
-    setF({ min: '', max: '', amount: '' });
+    const minV = parseFloat(min), maxV = parseFloat(max);
+    if (isNaN(minV) || isNaN(maxV)) return setErr('Drawdown range is required.');
+    if (minV < 0 || maxV > 100) return setErr('Drawdown must be 0–100%.');
+    if (maxV <= minV) return setErr('Max must be greater than min.');
+    const amtV = base ? computedAmount! : parseFloat(rawAmount);
+    if (isNaN(amtV) || amtV <= 0) return setErr('Buy amount must be positive.');
+    onSave(minV, maxV, amtV);
   };
 
   return (
-    <div className="space-y-2 pt-1">
-      <div className="grid grid-cols-3 gap-2">
+    <div className="space-y-3">
+      {/* drawdown range */}
+      <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Min drawdown %</label>
+          <label className="block text-xs text-gray-500 mb-1">
+            Drop from ATH <span className="text-red-400/70">− min %</span>
+          </label>
           <input type="number" min="0" max="99" step="1"
-            value={f.min} onChange={e => setF(p => ({ ...p, min: e.target.value }))}
+            value={min} onChange={e => setMin(e.target.value)}
             placeholder="20" className={INPUT_SM} />
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Max drawdown %</label>
+          <label className="block text-xs text-gray-500 mb-1">
+            Drop from ATH <span className="text-red-400/70">− max %</span>
+          </label>
           <input type="number" min="1" max="100" step="1"
-            value={f.max} onChange={e => setF(p => ({ ...p, max: e.target.value }))}
+            value={max} onChange={e => setMax(e.target.value)}
             placeholder="40" className={INPUT_SM} />
         </div>
-        <div>
-          <label className="block text-xs text-gray-500 mb-1">Buy amount $</label>
-          <input type="number" min="0.01" step="0.01"
-            value={f.amount} onChange={e => setF(p => ({ ...p, amount: e.target.value }))}
-            placeholder="400" className={INPUT_SM} />
+      </div>
+
+      {/* multiplier */}
+      <div>
+        <label className="block text-xs text-gray-500 mb-2">Multiplier</label>
+        {/* preset chips */}
+        <div className="flex items-center gap-1.5 flex-wrap mb-2">
+          {MULT_PRESETS.map(p => {
+            const active = multNum === p;
+            return (
+              <button key={p} type="button" onClick={() => applyPreset(p)}
+                className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${
+                  active
+                    ? 'border-brand-500/60 text-brand-400 bg-brand-500/10'
+                    : 'border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-300'
+                }`}>
+                {p}×
+              </button>
+            );
+          })}
+        </div>
+        {/* custom input + computed result */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <input
+              type="number" min="0.01" step="0.01"
+              value={mult} onChange={e => setMult(e.target.value)}
+              placeholder="1"
+              className="bg-gray-800 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-gray-100 w-20 focus:outline-none focus:border-brand-500 placeholder-gray-600"
+            />
+            <span className="text-sm text-gray-500">×</span>
+          </div>
+          {base && computedAmount !== null ? (
+            <span className="text-sm text-gray-500">
+              = <span className="font-mono font-semibold text-gray-200">${computedAmount}</span>
+            </span>
+          ) : !base && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-gray-600">= $</span>
+              <input
+                type="number" min="0.01" step="0.01"
+                value={rawAmount} onChange={e => setRawAmount(e.target.value)}
+                placeholder="amount"
+                className="bg-gray-800 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-gray-100 w-24 focus:outline-none focus:border-brand-500 placeholder-gray-600"
+              />
+            </div>
+          )}
         </div>
       </div>
+
       {err && <p className="text-xs text-red-400">{err}</p>}
-      <button type="button" onClick={handle}
-        className="text-xs text-brand-400 hover:text-brand-300 border border-brand-500/30 hover:border-brand-500/60 px-3 py-1.5 rounded-lg transition-colors">
-        + Add Rule
-      </button>
+      <div className="flex items-center gap-2 pt-0.5">
+        <button type="button" onClick={handle}
+          className="text-xs bg-brand-600 hover:bg-brand-500 text-white font-medium px-3 py-1.5 rounded-lg transition-colors">
+          {submitLabel}
+        </button>
+        {onCancel && (
+          <button type="button" onClick={onCancel}
+            className="text-xs text-gray-500 hover:text-gray-300 border border-gray-700 px-3 py-1.5 rounded-lg transition-colors">
+            Cancel
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── pending rule row (create form — editable inline) ────────────────────────
+function PendingRuleRow({ rule, baseAmount, onUpdate, onRemove }: {
+  rule: PendingRule;
+  baseAmount?: number;
+  onUpdate: (key: number, min: number, max: number, amount: number) => void;
+  onRemove: (key: number) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const base = baseAmount && baseAmount > 0 ? baseAmount : null;
+  const mult = base ? +(rule.buyAmount / base).toFixed(2) : null;
+
+  return (
+    <div className={`rounded-lg border overflow-hidden transition-colors ${
+      editing ? 'border-brand-500/40 bg-gray-900' : 'border-gray-700/50 bg-gray-800/50'
+    }`}>
+      <div className="flex items-center justify-between px-3 py-2 text-sm">
+        <span className="font-mono flex items-center gap-2">
+          <span className="text-red-400/80">−{rule.minDrawdown}% – −{rule.maxDrawdown}%</span>
+          <span className="text-gray-600">→</span>
+          {mult !== null
+            ? <><span className="font-semibold text-gray-200">{mult}×</span>
+                <span className="text-gray-500 text-xs ml-0.5">(${rule.buyAmount})</span></>
+            : <span className="font-semibold text-gray-200">${rule.buyAmount}</span>
+          }
+        </span>
+        <div className="flex items-center gap-1.5 ml-3 shrink-0">
+          <button type="button" onClick={() => setEditing(e => !e)}
+            className={`text-xs px-2 py-0.5 border rounded-md transition-colors ${
+              editing
+                ? 'border-brand-500/50 text-brand-400 bg-brand-500/10'
+                : 'border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-300'
+            }`}>
+            {editing ? 'cancel' : 'edit'}
+          </button>
+          <button type="button" onClick={() => onRemove(rule.key)}
+            className="text-gray-600 hover:text-red-400 w-6 h-6 flex items-center justify-center rounded transition-colors text-sm">×</button>
+        </div>
+      </div>
+      {editing && (
+        <div className="px-3 py-3 border-t border-gray-700/60 bg-gray-900/60">
+          <RuleEditForm
+            initialMin={String(rule.minDrawdown)}
+            initialMax={String(rule.maxDrawdown)}
+            initialMult={mult !== null ? String(mult) : '1'}
+            initialRawAmount={String(rule.buyAmount)}
+            baseAmount={base ?? undefined}
+            onSave={(min, max, amount) => { onUpdate(rule.key, min, max, amount); setEditing(false); }}
+            onCancel={() => setEditing(false)}
+            submitLabel="Update rule"
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── draft rule row (edit modal — editable inline) ───────────────────────────
+function DraftRuleRow({ rule, baseAmount, drawdownPct, onUpdate, onRemove }: {
+  rule: DraftRule;
+  baseAmount?: number;
+  drawdownPct: number | null;
+  onUpdate: (key: number, min: number, max: number, amount: number) => void;
+  onRemove: (key: number) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const base = baseAmount && baseAmount > 0 ? baseAmount : null;
+  const mult = base ? +(rule.buyAmount / base).toFixed(2) : null;
+  const active = drawdownPct !== null && drawdownPct >= rule.minDrawdown && drawdownPct <= rule.maxDrawdown;
+  const isNew = !rule.id;
+
+  return (
+    <div className={`rounded-lg border overflow-hidden transition-colors ${
+      editing
+        ? 'border-brand-500/40 bg-gray-900'
+        : active
+        ? 'border-brand-500/30 bg-brand-500/10'
+        : isNew
+        ? 'border-dashed border-gray-600/60 bg-gray-800/80'
+        : 'border-gray-700/50 bg-gray-800/50'
+    }`}>
+      <div className="flex items-center justify-between px-3 py-2 text-sm">
+        <div className="flex items-center gap-2 flex-wrap">
+          {active && <span className="w-1.5 h-1.5 rounded-full bg-brand-400 shrink-0" />}
+          <span className="font-mono text-red-400/80">−{rule.minDrawdown}% – −{rule.maxDrawdown}%</span>
+          <span className="text-gray-600">→</span>
+          {mult !== null
+            ? <><span className={`font-semibold font-mono ${active ? 'text-brand-300' : 'text-gray-200'}`}>{mult}×</span>
+                <span className="text-gray-500 text-xs ml-0.5">(${rule.buyAmount})</span></>
+            : <span className={`font-semibold font-mono ${active ? 'text-brand-300' : 'text-gray-200'}`}>${rule.buyAmount}</span>
+          }
+          {active && <Badge variant="green">active</Badge>}
+          {isNew && <span className="text-xs text-gray-500 italic">unsaved</span>}
+        </div>
+        <div className="flex items-center gap-1.5 ml-3 shrink-0">
+          <button type="button" onClick={() => setEditing(e => !e)}
+            className={`text-xs px-2 py-0.5 border rounded-md transition-colors ${
+              editing
+                ? 'border-brand-500/50 text-brand-400 bg-brand-500/10'
+                : 'border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-300'
+            }`}>
+            {editing ? 'cancel' : 'edit'}
+          </button>
+          <button type="button" onClick={() => onRemove(rule.key)}
+            className="text-gray-600 hover:text-red-400 w-6 h-6 flex items-center justify-center rounded transition-colors text-sm">×</button>
+        </div>
+      </div>
+      {editing && (
+        <div className="px-3 py-3 border-t border-gray-700/60 bg-gray-900/60">
+          <RuleEditForm
+            initialMin={String(rule.minDrawdown)}
+            initialMax={String(rule.maxDrawdown)}
+            initialMult={mult !== null ? String(mult) : '1'}
+            initialRawAmount={String(rule.buyAmount)}
+            baseAmount={base ?? undefined}
+            onSave={(min, max, amount) => { onUpdate(rule.key, min, max, amount); setEditing(false); }}
+            onCancel={() => setEditing(false)}
+            submitLabel="Update rule"
+          />
+        </div>
+      )}
     </div>
   );
 }
 
 // ─── draft rules panel (edit modal — local state, applied only on save) ──────
-function DraftRulesPanel({ drawdownFromAth, rules, onAdd, onRemove }: {
+function DraftRulesPanel({ drawdownFromAth, rules, onAdd, onUpdate, onRemove, baseAmount }: {
   drawdownFromAth: number | null;
   rules: DraftRule[];
   onAdd: (min: number, max: number, amount: number) => void;
+  onUpdate: (key: number, min: number, max: number, amount: number) => void;
   onRemove: (key: number) => void;
+  baseAmount?: number;
 }) {
-  const { format } = useCurrencyFormatter();
   const drawdownPct = drawdownFromAth !== null ? Math.abs(drawdownFromAth) : null;
   const sorted = [...rules].sort((a, b) => b.minDrawdown - a.minDrawdown);
-  const [confirmKey, setConfirmKey] = useState<number | null>(null);
-
-  const handleRemove = (key: number) => {
-    if (confirmKey === key) {
-      onRemove(key);
-      setConfirmKey(null);
-    } else {
-      setConfirmKey(key);
-    }
-  };
 
   return (
     <div className="space-y-3">
-      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Buying Rules</p>
-      <p className="text-xs text-gray-500">
-        Changes apply when you click Save changes.
+      <div className="flex items-center gap-2 flex-wrap">
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Buying Rules</p>
         {drawdownPct !== null && (
-          <span className="ml-1 text-brand-400 font-medium">
-            Current drawdown: {drawdownPct.toFixed(1)}%
-          </span>
+          <span className="text-xs text-red-400/80 font-medium">· −{drawdownPct.toFixed(1)}% from ATH</span>
         )}
-      </p>
+      </div>
+      <p className="text-xs text-gray-500">Changes apply when you click Save changes.</p>
 
-      {sorted.length === 0 ? (
-        <p className="text-xs text-gray-600 italic">No rules yet.</p>
-      ) : (
-        <div className="space-y-1.5">
-          {sorted.map(rule => {
-            const active = drawdownPct !== null &&
-              drawdownPct >= rule.minDrawdown && drawdownPct <= rule.maxDrawdown;
-            const isNew = !rule.id;
-            const confirming = confirmKey === rule.key;
-            return (
-              <div key={rule.key}
-                className={`flex items-center justify-between px-3 py-2 rounded-lg border text-sm ${
-                  active
-                    ? 'bg-brand-500/10 border-brand-500/30'
-                    : isNew
-                    ? 'bg-gray-800/80 border-dashed border-gray-600/60'
-                    : 'bg-gray-800/50 border-gray-700/50'
-                }`}>
-                <div className="flex items-center gap-3">
-                  {active && <span className="w-1.5 h-1.5 rounded-full bg-brand-400 shrink-0" />}
-                  <span className="font-mono text-gray-300">{rule.minDrawdown}% – {rule.maxDrawdown}%</span>
-                  <span className="text-gray-600">→</span>
-                  <span className={`font-mono font-semibold ${active ? 'text-brand-300' : 'text-gray-200'}`}>
-                    {format(rule.buyAmount)}
-                  </span>
-                  {active && <Badge variant="green">active</Badge>}
-                  {isNew && <span className="text-xs text-gray-500 italic">unsaved</span>}
-                </div>
-                <div className="flex items-center gap-1.5 ml-3 shrink-0">
-                  {confirming ? (
-                    <>
-                      <span className="text-xs text-gray-400">Remove?</span>
-                      <button type="button" onClick={() => handleRemove(rule.key)}
-                        className="text-xs text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-500/60 px-2 py-0.5 rounded transition-colors">
-                        Yes
-                      </button>
-                      <button type="button" onClick={() => setConfirmKey(null)}
-                        className="text-xs text-gray-500 hover:text-gray-300 border border-gray-700 px-2 py-0.5 rounded transition-colors">
-                        No
-                      </button>
-                    </>
-                  ) : (
-                    <button type="button" onClick={() => handleRemove(rule.key)}
-                      className="text-gray-600 hover:text-red-400 text-sm transition-colors">×</button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {sorted.length === 0
+        ? <p className="text-xs text-gray-600 italic">No rules yet.</p>
+        : (
+          <div className="space-y-1.5">
+            {sorted.map(rule => (
+              <DraftRuleRow
+                key={rule.key} rule={rule}
+                baseAmount={baseAmount} drawdownPct={drawdownPct}
+                onUpdate={onUpdate} onRemove={onRemove}
+              />
+            ))}
+          </div>
+        )
+      }
 
-      <RuleAddRow onAdd={onAdd} />
+      {/* visually separated add-rule section */}
+      <div className="rounded-xl border border-dashed border-gray-700 bg-gray-800/30 p-4 mt-2">
+        <p className="text-xs font-medium text-gray-500 mb-3">Add a rule</p>
+        <RuleEditForm baseAmount={baseAmount} onSave={onAdd} submitLabel="Add rule" />
+      </div>
     </div>
   );
 }
 
 // ─── pending rules list (create form — plan doesn't exist yet) ────────────────
-function PendingRulesList({ rules, onAdd, onRemove }: {
+function PendingRulesList({ rules, onAdd, onUpdate, onRemove, baseAmount }: {
   rules: PendingRule[];
   onAdd: (min: number, max: number, amount: number) => void;
+  onUpdate: (key: number, min: number, max: number, amount: number) => void;
   onRemove: (key: number) => void;
+  baseAmount?: number;
 }) {
   const sorted = [...rules].sort((a, b) => b.minDrawdown - a.minDrawdown);
+
   return (
     <div className="space-y-3">
-      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Buying Rules (optional)</p>
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Buying Rules <span className="font-normal normal-case text-gray-600">(optional)</span></p>
       <p className="text-xs text-gray-500">
-        Define how much to buy at different drawdown levels. These will be saved with the plan.
+        Buy extra at drawdown thresholds.
+        {!baseAmount && <span className="text-gray-600"> Fill the plan amount above to use multipliers.</span>}
       </p>
+
       {sorted.length > 0 && (
         <div className="space-y-1.5">
           {sorted.map(rule => (
-            <div key={rule.key}
-              className="flex items-center justify-between px-3 py-2 rounded-lg border border-gray-700/50 bg-gray-800/50 text-sm">
-              <span className="font-mono text-gray-300">
-                {rule.minDrawdown}% – {rule.maxDrawdown}% → <span className="text-gray-200 font-semibold">${rule.buyAmount}</span>
-              </span>
-              <button type="button" onClick={() => onRemove(rule.key)}
-                className="text-gray-600 hover:text-red-400 text-sm transition-colors ml-3">×</button>
-            </div>
+            <PendingRuleRow
+              key={rule.key} rule={rule}
+              baseAmount={baseAmount}
+              onUpdate={onUpdate} onRemove={onRemove}
+            />
           ))}
         </div>
       )}
-      <RuleAddRow onAdd={onAdd} />
+
+      {/* visually separated add-rule section */}
+      <div className="rounded-xl border border-dashed border-gray-700 bg-gray-800/30 p-4 mt-2">
+        <p className="text-xs font-medium text-gray-500 mb-3">Add a rule</p>
+        <RuleEditForm baseAmount={baseAmount} onSave={onAdd} submitLabel="Add rule" />
+      </div>
     </div>
   );
 }
@@ -313,6 +475,8 @@ function CreateModal({ assets, initialForm, initialRules, onClose }: {
     setPendingRules(r => [...r, { key: ruleKey, minDrawdown: min, maxDrawdown: max, buyAmount: amount }]);
     setRuleKey(k => k + 1);
   };
+  const updateRule = (key: number, min: number, max: number, amount: number) =>
+    setPendingRules(r => r.map(x => x.key === key ? { ...x, minDrawdown: min, maxDrawdown: max, buyAmount: amount } : x));
   const removeRule = (key: number) => setPendingRules(r => r.filter(x => x.key !== key));
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -363,7 +527,13 @@ function CreateModal({ assets, initialForm, initialRules, onClose }: {
           </form>
 
           <div className="border-t border-gray-800 pt-5">
-            <PendingRulesList rules={pendingRules} onAdd={addRule} onRemove={removeRule} />
+            <PendingRulesList
+              rules={pendingRules}
+              onAdd={addRule}
+              onUpdate={updateRule}
+              onRemove={removeRule}
+              baseAmount={parseFloat(form.amountUsd) || undefined}
+            />
           </div>
         </div>
 
@@ -408,7 +578,8 @@ function EditModal({ plan, assets, onClose }: {
     setDraftRules(r => [...r, { key: draftKey, minDrawdown: min, maxDrawdown: max, buyAmount: amount }]);
     setDraftKey(k => k + 1);
   };
-
+  const updateDraftRule = (key: number, min: number, max: number, amount: number) =>
+    setDraftRules(r => r.map(x => x.key === key ? { ...x, minDrawdown: min, maxDrawdown: max, buyAmount: amount } : x));
   const removeDraftRule = (key: number) =>
     setDraftRules(r => r.filter(x => x.key !== key));
 
@@ -491,7 +662,9 @@ function EditModal({ plan, assets, onClose }: {
               drawdownFromAth={plan.drawdownFromAth}
               rules={draftRules}
               onAdd={addDraftRule}
+              onUpdate={updateDraftRule}
               onRemove={removeDraftRule}
+              baseAmount={parseFloat(form.amountUsd) || undefined}
             />
           </div>
         </div>
@@ -535,7 +708,7 @@ function SuggestedBadge({ plan }: { plan: DcaPlan }) {
         {hasPrice ? format(plan.suggestedAmount) : '—'}
       </span>
       {hasPrice && drawdownPct !== null && (
-        <span className="text-gray-500">· {drawdownPct.toFixed(1)}% drawdown</span>
+        <span className="text-red-400/70">· −{drawdownPct.toFixed(1)}% ATH</span>
       )}
     </div>
   );
