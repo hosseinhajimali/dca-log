@@ -49,7 +49,7 @@ export default function Login() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-brand-400">myDCA</h1>
-          <p className="text-gray-500 text-sm mt-2">Dollar Cost Averaging Tracker</p>
+          <p className="text-gray-500 text-sm mt-2">Think in years, not months</p>
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl space-y-5">
