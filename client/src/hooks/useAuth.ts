@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
 import { useStore } from '@/store/useStore';
+import { queryClient } from '@/lib/queryClient';
 import { ApiResponse, AuthResponse } from '@/types';
 
 export function useLogin() {
@@ -14,6 +15,7 @@ export function useLogin() {
       return res.data.data;
     },
     onSuccess: ({ user, token }) => {
+      queryClient.clear(); // wipe any stale cache before loading new user's data
       setAuth(user, token);
       navigate('/');
     },
@@ -30,6 +32,7 @@ export function useRegister() {
       return res.data.data;
     },
     onSuccess: ({ user, token }) => {
+      queryClient.clear(); // wipe any stale cache before loading new user's data
       setAuth(user, token);
       navigate('/');
     },
