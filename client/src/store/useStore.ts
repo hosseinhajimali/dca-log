@@ -10,6 +10,7 @@ interface AppState {
   exchangeRates: Record<string, number>;
 
   setAuth: (user: User, token: string) => void;
+  setUser: (user: User) => void;
   logout: () => void;
   setCurrency: (currency: string) => void;
   setExchangeRates: (rates: Record<string, number>) => void;
@@ -27,6 +28,8 @@ export const useStore = create<AppState>()(
         localStorage.setItem('dca_token', token);
         set({ user, token, currency: user.currency || 'USD' });
       },
+
+      setUser: (user) => set({ user }),
 
       logout: () => {
         localStorage.removeItem('dca_token');

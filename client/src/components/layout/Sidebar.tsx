@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useStore } from '@/store/useStore';
+import { Avatar } from '@/components/ui/Avatar';
 
 const NAV = [
   { to: '/',             label: 'Dashboard',    icon: '▦' },
@@ -85,10 +86,16 @@ export function Sidebar() {
         {/* User */}
         <div className="px-4 py-4 border-t border-gray-800">
           <div className="flex items-center justify-between">
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-gray-200 truncate">{user?.name || 'You'}</p>
-              <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-            </div>
+            <NavLink
+              to="/settings/profile"
+              className="flex items-center gap-2.5 min-w-0 group flex-1 mr-2"
+            >
+              <Avatar id={user?.avatar} size={32} className="group-hover:ring-2 group-hover:ring-brand-500/50 group-hover:ring-offset-1 group-hover:ring-offset-gray-900 transition-all" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-gray-200 truncate group-hover:text-brand-400 transition-colors">{user?.name || 'You'}</p>
+                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+              </div>
+            </NavLink>
             <button
               onClick={() => setShowLogoutConfirm(true)}
               className="ml-2 flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
