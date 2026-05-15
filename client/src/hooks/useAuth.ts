@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
 import { useStore } from '@/store/useStore';
 import { queryClient } from '@/lib/queryClient';
-import { ApiResponse, AuthResponse } from '@/types';
+import { ApiResponse, AuthResponse, User } from '@/types';
 
 export function useLogin() {
   const { setAuth } = useStore();
@@ -35,6 +35,25 @@ export function useRegister() {
       queryClient.clear(); // wipe any stale cache before loading new user's data
       setAuth(user, token);
       navigate('/');
+    },
+  });
+}
+
+export function useUpdateProfile() {
+  const { setUser } = useStore();
+  return useMutation({
+    mutationFn: async (data: { name?: string; avatar?: string | null }) => {
+      const res = await api.patch<ApiResponse<User>>('/auth/me', data);
+      return res.data.data;
+    },
+    onSuccess: (user) => setUser(user),
+  });
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: async (data: { currentPassword: string; newPassword: string }) => {
+      await api.post('/auth/change-password', data);
     },
   });
 }

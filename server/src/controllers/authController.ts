@@ -31,7 +31,7 @@ export async function register(req: Request, res: Response, next: NextFunction) 
     const passwordHash = await bcrypt.hash(password, 12);
     const user = await prisma.user.create({
       data: { email, passwordHash, name },
-      select: { id: true, email: true, name: true, currency: true, createdAt: true },
+      select: { id: true, email: true, name: true, currency: true, avatar: true, createdAt: true },
     });
 
     const token = signToken(user.id);
@@ -68,7 +68,7 @@ export async function getMe(req: Request & { userId?: string }, res: Response, n
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.userId },
-      select: { id: true, email: true, name: true, currency: true, createdAt: true },
+      select: { id: true, email: true, name: true, currency: true, avatar: true, createdAt: true },
     });
     if (!user) return next(new AppError(404, 'User not found'));
     res.json({ success: true, data: user });
@@ -82,6 +82,7 @@ export async function updateMe(req: Request & { userId?: string }, res: Response
     const schema = z.object({
       name: z.string().optional(),
       currency: z.string().length(3).optional(),
+      avatar: z.string().optional().nullable(),
     });
 
     const body = schema.safeParse(req.body);
@@ -90,9 +91,34 @@ export async function updateMe(req: Request & { userId?: string }, res: Response
     const user = await prisma.user.update({
       where: { id: req.userId },
       data: body.data,
-      select: { id: true, email: true, name: true, currency: true, updatedAt: true },
+      select: { id: true, email: true, name: true, currency: true, avatar: true, updatedAt: true },
     });
     res.json({ success: true, data: user });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function changePassword(req: Request & { userId?: string }, res: Response, next: NextFunction) {
+  try {
+    const schema = z.object({
+      currentPassword: z.string().min(1, 'Current password is required'),
+      newPassword: z.string().min(8, 'New password must be at least 8 characters'),
+    });
+
+    const body = schema.safeParse(req.body);
+    if (!body.success) return next(new AppError(400, body.error.errors[0].message));
+
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    if (!user) return next(new AppError(404, 'User not found'));
+
+    const valid = await bcrypt.compare(body.data.currentPassword, user.passwordHash);
+    if (!valid) return next(new AppError(400, 'Current password is incorrect'));
+
+    const passwordHash = await bcrypt.hash(body.data.newPassword, 12);
+    await prisma.user.update({ where: { id: req.userId }, data: { passwordHash } });
+
+    res.json({ success: true, message: 'Password updated' });
   } catch (err) {
     next(err);
   }
