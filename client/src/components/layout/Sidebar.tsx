@@ -59,7 +59,7 @@ export function Sidebar() {
         {/* Logo */}
         <div className="px-6 py-5 border-b border-gray-800">
           <span className="text-xl font-bold text-brand-400 tracking-tight">myDCA</span>
-          <p className="text-xs text-gray-500 mt-0.5">Dollar Cost Averaging</p>
+          <p className="text-xs text-gray-500 mt-0.5">Think in years, not months</p>
         </div>
 
         {/* Nav */}
