@@ -7,7 +7,6 @@ const NAV = [
   { to: '/',             label: 'Dashboard',    icon: '▦' },
   { to: '/plans',        label: 'DCA Plans',    icon: '♻' },
   { to: '/transactions', label: 'Transactions', icon: '↕' },
-  { to: '/analytics',   label: 'Analytics',    icon: '∿' },
   { to: '/settings',    label: 'Settings',     icon: '⚙' },
 ];
 
