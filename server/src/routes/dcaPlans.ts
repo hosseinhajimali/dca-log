@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getDcaPlans, createDcaPlan, updateDcaPlan, deleteDcaPlan } from '../controllers/dcaPlansController';
+import { getDcaPlans, createDcaPlan, updateDcaPlan, deleteDcaPlan, getPlanStats } from '../controllers/dcaPlansController';
 import { createBuyingRule } from '../controllers/buyingRulesController';
 import { requireAuth } from '../middleware/auth';
 
@@ -8,6 +8,7 @@ router.use(requireAuth);
 
 router.get('/', getDcaPlans);
 router.post('/', createDcaPlan);
+router.get('/:id/stats', getPlanStats);
 router.patch('/:id', updateDcaPlan);
 router.delete('/:id', deleteDcaPlan);
 
