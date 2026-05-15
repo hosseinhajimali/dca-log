@@ -3,12 +3,12 @@ version: "3.9"
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: mydca_postgres
+    container_name: dcalog_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: mydca
-      POSTGRES_PASSWORD: mydca_secret
-      POSTGRES_DB: mydca_db
+      POSTGRES_USER: dcalog
+      POSTGRES_PASSWORD: dcalog_secret
+      POSTGRES_DB: dcalog_db
     ports:
       - "5432:5432"
     volumes:

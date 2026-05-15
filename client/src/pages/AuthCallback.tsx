@@ -25,7 +25,7 @@ export default function AuthCallback() {
     }
 
     // Temporarily store so the axios interceptor can attach it
-    localStorage.setItem('dca_token', token);
+    localStorage.setItem('dcalog_token', token);
 
     api
       .get<ApiResponse<User>>('/auth/me')
@@ -35,7 +35,7 @@ export default function AuthCallback() {
         navigate('/', { replace: true });
       })
       .catch(() => {
-        localStorage.removeItem('dca_token');
+        localStorage.removeItem('dcalog_token');
         navigate('/login?error=auth_failed', { replace: true });
       });
   }, []);

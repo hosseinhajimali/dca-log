@@ -25,15 +25,15 @@ export const useStore = create<AppState>()(
       exchangeRates: {},
 
       setAuth: (user, token) => {
-        localStorage.setItem('dca_token', token);
+        localStorage.setItem('dcalog_token', token);
         set({ user, token, currency: user.currency || 'USD' });
       },
 
       setUser: (user) => set({ user }),
 
       logout: () => {
-        localStorage.removeItem('dca_token');
-        localStorage.removeItem('dca_user');
+        localStorage.removeItem('dcalog_token');
+        localStorage.removeItem('dcalog_user');
         queryClient.clear(); // clear cached data so next user starts fresh
         set({ user: null, token: null });
       },
@@ -43,7 +43,7 @@ export const useStore = create<AppState>()(
       setExchangeRates: (rates) => set({ exchangeRates: rates }),
     }),
     {
-      name: 'mydca-store',
+      name: 'dcalog-store',
       partialize: (state) => ({ user: state.user, token: state.token, currency: state.currency }),
     }
   )

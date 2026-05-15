@@ -58,7 +58,7 @@ export function Sidebar() {
       <aside className="fixed inset-y-0 left-0 w-60 bg-gray-900 border-r border-gray-800 flex flex-col z-30">
         {/* Logo */}
         <div className="px-6 py-5 border-b border-gray-800">
-          <span className="text-xl font-bold text-brand-400 tracking-tight">myDCA</span>
+          <span className="text-xl font-bold text-brand-400 tracking-tight">DCAlog</span>
           <p className="text-xs text-gray-500 mt-0.5">Think in years, not months</p>
         </div>
 
