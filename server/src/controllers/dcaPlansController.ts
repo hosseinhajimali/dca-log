@@ -294,6 +294,93 @@ export async function updateDcaPlan(req: AuthRequest, res: Response, next: NextF
   }
 }
 
+export async function getPlanStats(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params as { id: string };
+    const userId = req.userId!;
+
+    const plan = await prisma.dcaPlan.findFirst({
+      where: { id, userId },
+      include: {
+        allocations: { include: { asset: true }, orderBy: { allocationPct: 'desc' as const } },
+        buyingRules: true,
+      },
+    });
+    if (!plan) return next(new AppError(404, 'Plan not found'));
+
+    const assetIds  = plan.allocations.map((a) => a.assetId);
+    const symbols   = plan.allocations.map((a) => a.asset.symbol);
+
+    const [transactions, prices] = await Promise.all([
+      prisma.transaction.findMany({
+        where: { userId, assetId: { in: assetIds } },
+        include: { asset: true },
+        orderBy: { purchasedAt: 'asc' },
+      }),
+      prisma.priceCache.findMany({ where: { symbol: { in: symbols } } }),
+    ]);
+
+    const priceMap = new Map(prices.map((p) => [p.symbol, p.priceUsd]));
+    const athMap   = new Map(prices.map((p) => [p.symbol, p.ath ?? null]));
+
+    const assetStats = plan.allocations.map((alloc) => {
+      const { asset } = alloc;
+      const txs          = transactions.filter((t) => t.assetId === asset.id);
+      const totalInvested  = txs.reduce((s, t) => s + t.amountUsd, 0);
+      const totalQuantity  = txs.reduce((s, t) => s + t.quantity, 0);
+      const avgCost        = totalQuantity > 0 ? totalInvested / totalQuantity : 0;
+      const currentPrice   = priceMap.get(asset.symbol) ?? 0;
+      const currentValue   = totalQuantity * currentPrice;
+      const pnl            = currentValue - totalInvested;
+      const pnlPercent     = totalInvested > 0 ? (pnl / totalInvested) * 100 : 0;
+      const ath            = athMap.get(asset.symbol) ?? null;
+      const drawdownFromAth =
+        ath && ath > 0 && currentPrice > 0 ? ((currentPrice - ath) / ath) * 100 : null;
+
+      return { asset, allocationPct: alloc.allocationPct, totalInvested, totalQuantity, avgCost, currentPrice, currentValue, pnl, pnlPercent, txCount: txs.length, ath, drawdownFromAth };
+    });
+
+    const totalInvested    = assetStats.reduce((s, a) => s + a.totalInvested, 0);
+    const totalCurrentValue = assetStats.reduce((s, a) => s + a.currentValue, 0);
+    const totalPnl         = totalCurrentValue - totalInvested;
+    const totalPnlPercent  = totalInvested > 0 ? (totalPnl / totalInvested) * 100 : 0;
+
+    // Monthly chart — last 12 months
+    const twelveMonthsAgo = new Date();
+    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11);
+    twelveMonthsAgo.setDate(1);
+    twelveMonthsAgo.setHours(0, 0, 0, 0);
+
+    const monthlyMap = new Map<string, number>();
+    transactions
+      .filter((t) => t.purchasedAt >= twelveMonthsAgo)
+      .forEach((t) => {
+        const key = t.purchasedAt.toISOString().slice(0, 7);
+        monthlyMap.set(key, (monthlyMap.get(key) ?? 0) + t.amountUsd);
+      });
+    const monthlyData = Array.from(monthlyMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, invested]) => ({ month, invested }));
+
+    // Recent transactions (newest first, capped at 50)
+    const recentTransactions = [...transactions].reverse().slice(0, 50);
+
+    res.json({
+      success: true,
+      data: {
+        plan,
+        portfolio: { totalInvested, totalCurrentValue, totalPnl, totalPnlPercent },
+        assetStats,
+        monthlyData,
+        recentTransactions,
+        lastUpdated: new Date().toISOString(),
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function deleteDcaPlan(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const { id } = req.params as { id: string };
