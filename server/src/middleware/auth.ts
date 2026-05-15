@@ -23,6 +23,16 @@ export function requireAuth(req: AuthRequest, _res: Response, next: NextFunction
   }
 }
 
+export async function requireAdmin(req: AuthRequest, _res: Response, next: NextFunction): Promise<void> {
+  if (!req.userId) return next(new AppError(401, 'Not authenticated'));
+
+  const { prisma } = await import('../lib/prisma');
+  const user = await prisma.user.findUnique({ where: { id: req.userId }, select: { isAdmin: true } });
+
+  if (!user?.isAdmin) return next(new AppError(403, 'Admin access required'));
+  next();
+}
+
 export function signToken(userId: string): string {
   return jwt.sign({ userId }, JWT_SECRET, {
     expiresIn: (process.env.JWT_EXPIRES_IN || '7d') as jwt.SignOptions['expiresIn'],
