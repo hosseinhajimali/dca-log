@@ -10,7 +10,7 @@ import buyingRulesRoutes from './buyingRules';
 export const router = Router();
 
 router.get('/health', (_req: Request, res: Response) => {
-  res.json({ success: true, message: 'myDCA API is running 🚀', timestamp: new Date().toISOString() });
+  res.json({ success: true, message: 'DCAlog API is running 🚀', timestamp: new Date().toISOString() });
 });
 
 router.use('/auth', authRoutes);

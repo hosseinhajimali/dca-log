@@ -25,7 +25,7 @@ app.use('/api', router);
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`\n🚀 myDCA server running on http://localhost:${PORT}`);
+  console.log(`\n🚀 DCAlog server running on http://localhost:${PORT}`);
   console.log(`   Environment: ${process.env.NODE_ENV || 'development'}\n`);
   startCronJobs();
 });
