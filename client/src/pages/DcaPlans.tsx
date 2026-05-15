@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   useDcaPlans, useCreateDcaPlan, useUpdateDcaPlan, useDeleteDcaPlan,
 } from '@/hooks/useDcaPlans';
@@ -1026,6 +1027,7 @@ export default function DcaPlans() {
   const updatePlan = useUpdateDcaPlan();
   const deletePlan = useDeleteDcaPlan();
   const { format } = useCurrencyFormatter();
+  const navigate = useNavigate();
 
   // null = closed, object = open (empty = new, filled = duplicate)
   const [createModal, setCreateModal] = useState<{
@@ -1157,13 +1159,21 @@ export default function DcaPlans() {
                 </div>
 
                 {/* actions */}
-                <PlanMenu
-                  plan={plan}
-                  onEdit={() => setEditingPlan(plan)}
-                  onDuplicate={() => openDuplicate(plan)}
-                  onToggleActive={() => updatePlan.mutate({ id: plan.id, data: { isActive: !plan.isActive } })}
-                  onDelete={() => deletePlan.mutate(plan.id)}
-                />
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => navigate(`/plans/${plan.id}`)}
+                    className="text-xs text-gray-500 hover:text-brand-400 border border-gray-700 hover:border-brand-500/50 px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    View
+                  </button>
+                  <PlanMenu
+                    plan={plan}
+                    onEdit={() => setEditingPlan(plan)}
+                    onDuplicate={() => openDuplicate(plan)}
+                    onToggleActive={() => updatePlan.mutate({ id: plan.id, data: { isActive: !plan.isActive } })}
+                    onDelete={() => deletePlan.mutate(plan.id)}
+                  />
+                </div>
               </div>
             </div>
           ))}
