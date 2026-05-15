@@ -26,7 +26,8 @@ enum DcaFrequency {
 model User {
   id           String        @id @default(cuid())
   email        String        @unique
-  passwordHash String        @map("password_hash")
+  passwordHash String?       @map("password_hash")   // null for Google-only accounts
+  googleId     String?       @unique @map("google_id")
   name         String?
   currency     String        @default("USD")
   avatar       String?       @map("avatar")

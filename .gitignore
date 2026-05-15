@@ -12,6 +12,7 @@ build/
 .env.production
 .env.staging
 .env.test
+# Keep .env.example if you create one — it documents required variables without secrets
 
 # Prisma
 server/prisma/dev.db

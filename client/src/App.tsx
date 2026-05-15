@@ -12,6 +12,7 @@ import SettingsLayout from '@/pages/settings/SettingsLayout';
 import General from '@/pages/settings/General';
 import ProfilePage from '@/pages/settings/Profile';
 import Login from '@/pages/Login';
+import AuthCallback from '@/pages/AuthCallback';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { token } = useStore();
@@ -24,6 +25,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route
             path="/"
             element={
