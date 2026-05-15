@@ -9,10 +9,17 @@ build/
 .env
 .env.local
 .env.*.local
+.env.production
+.env.staging
+.env.test
 
 # Prisma
 server/prisma/dev.db
 server/prisma/dev.db-journal
+# Note: server/prisma/migrations/ should be committed — it's migration history
+
+# Uploaded files (avatars, attachments stored on disk)
+server/uploads/
 
 # Logs
 *.log
@@ -30,3 +37,9 @@ Thumbs.db
 
 # TypeScript
 *.tsbuildinfo
+
+# Test coverage
+coverage/
+
+# Vite cache (usually inside node_modules/.vite, but just in case)
+.vite/
