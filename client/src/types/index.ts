@@ -7,6 +7,7 @@ export interface User {
   name?: string;
   currency: string;
   avatar?: string | null;
+  isAdmin: boolean;
   createdAt: string;
 }
 
