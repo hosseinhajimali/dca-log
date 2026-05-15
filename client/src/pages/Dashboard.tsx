@@ -6,6 +6,7 @@ import { useDashboard } from '@/hooks/useDashboard';
 import { StatCard } from '@/components/ui/StatCard';
 import { Badge } from '@/components/ui/Badge';
 import { useCurrencyFormatter, formatDate, formatQuantity } from '@/lib/format';
+import FearGreedWidget from '@/components/ui/FearGreedWidget';
 
 const COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#a78bfa', '#06b6d4', '#f97316'];
 
@@ -70,6 +71,9 @@ export default function Dashboard() {
         />
         <StatCard label="Active Plans" value={String(activePlans)} />
       </div>
+
+      {/* Fear & Greed */}
+      <FearGreedWidget />
 
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
