@@ -106,6 +106,19 @@ export interface AssetStats {
   drawdownFromAth: number | null; // 0 = at ATH, negative = below ATH, null = no data
 }
 
+export interface ActivePlanSummary {
+  id:               string;
+  name:             string | null;
+  amountUsd:        number;
+  suggestedAmount:  number;
+  frequency:        string;
+  nextPurchaseDate: string | null;
+  allocations: {
+    allocationPct: number;
+    asset: { symbol: string; color: string | null };
+  }[];
+}
+
 export interface DashboardStats {
   portfolio: {
     totalInvested: number;
@@ -115,6 +128,7 @@ export interface DashboardStats {
   };
   assetStats: AssetStats[];
   activePlans: number;
+  activePlanList: ActivePlanSummary[];
   monthlyData: { month: string; invested: number }[];
   lastUpdated: string;
 }
