@@ -9,6 +9,7 @@ const NAV = [
   { to: '/transactions', label: 'Transactions', icon: '↕' },
   { to: '/simulator',   label: 'Simulator',    icon: '⏱' },
   { to: '/projection',  label: 'Projection',   icon: '🔮' },
+  { to: '/goals',       label: 'Goals',        icon: '🎯' },
   { to: '/tax',         label: 'Tax Report',   icon: '🧾' },
   { to: '/settings',    label: 'Settings',     icon: '⚙' },
 ];
