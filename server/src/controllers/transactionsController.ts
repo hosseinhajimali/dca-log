@@ -7,6 +7,7 @@ import { AppError } from '../middleware/errorHandler';
 const txSchema = z.object({
   assetId: z.string().cuid(),
   dcaPlanId: z.string().cuid().optional().nullable(),
+  type: z.enum(['BUY', 'SELL']).optional(),
   amountUsd: z.number().positive(),
   quantity: z.number().positive(),
   pricePerUnit: z.number().positive(),

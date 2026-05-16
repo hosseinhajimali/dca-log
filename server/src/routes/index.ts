@@ -9,6 +9,7 @@ import buyingRulesRoutes from './buyingRules';
 import simulatorRoutes from './simulator';
 import goalsRoutes from './goals';
 import backupRoutes from './backup';
+import sellRulesRoutes from './sellRules';
 
 export const router = Router();
 
@@ -26,3 +27,4 @@ router.use('/dashboard', dashboardRoutes);
 router.use('/simulator', simulatorRoutes);
 router.use('/goals', goalsRoutes);
 router.use('/backup', backupRoutes);
+router.use('/sell-rules', sellRulesRoutes);
