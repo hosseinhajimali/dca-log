@@ -40,7 +40,7 @@ export async function updateSellRule(req: AuthRequest, res: Response, next: Next
     const { minProfit, maxProfit, sellAmount, sellAmountType } = req.body;
 
     const existing = await prisma.sellRule.findFirst({
-      where: { id, dcaPlan: { userId } },
+      where: { id: id as string, dcaPlan: { userId } },
     });
     if (!existing) {
       res.status(404).json({ success: false, error: 'Rule not found' });
@@ -48,7 +48,7 @@ export async function updateSellRule(req: AuthRequest, res: Response, next: Next
     }
 
     const rule = await prisma.sellRule.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         ...(minProfit      !== undefined && { minProfit:      Number(minProfit) }),
         ...(maxProfit      !== undefined && { maxProfit:      Number(maxProfit) }),
@@ -71,14 +71,14 @@ export async function deleteSellRule(req: AuthRequest, res: Response, next: Next
     const { id } = req.params;
 
     const existing = await prisma.sellRule.findFirst({
-      where: { id, dcaPlan: { userId } },
+      where: { id: id as string, dcaPlan: { userId } },
     });
     if (!existing) {
       res.status(404).json({ success: false, error: 'Rule not found' });
       return;
     }
 
-    await prisma.sellRule.delete({ where: { id } });
+    await prisma.sellRule.delete({ where: { id: id as string } });
     res.json({ success: true });
   } catch (err) {
     next(err);
