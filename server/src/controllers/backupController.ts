@@ -8,11 +8,12 @@ export async function downloadBackup(req: AuthRequest, res: Response, next: Next
   try {
     const userId = req.userId!;
 
-    const [assets, dcaPlans, allocations, buyingRules, goals, transactions] = await Promise.all([
+    const [assets, dcaPlans, allocations, buyingRules, sellRules, goals, transactions] = await Promise.all([
       prisma.asset.findMany({ where: { userId } }),
       prisma.dcaPlan.findMany({ where: { userId } }),
       prisma.planAllocation.findMany({ where: { plan: { userId } } }),
       prisma.buyingRule.findMany({ where: { dcaPlan: { userId } } }),
+      prisma.sellRule.findMany({ where: { dcaPlan: { userId } } }),
       prisma.goal.findMany({ where: { userId } }),
       prisma.transaction.findMany({ where: { userId } }),
     ]);
@@ -21,7 +22,7 @@ export async function downloadBackup(req: AuthRequest, res: Response, next: Next
       version: 1,
       exportedAt: new Date().toISOString(),
       userId,
-      data: { assets, dcaPlans, allocations, buyingRules, goals, transactions },
+      data: { assets, dcaPlans, allocations, buyingRules, sellRules, goals, transactions },
     };
 
     const filename = `dcalog_backup_${new Date().toISOString().slice(0, 10)}.json`;
@@ -46,13 +47,14 @@ export async function restoreBackup(req: AuthRequest, res: Response, next: NextF
       return;
     }
 
-    const { assets = [], dcaPlans = [], allocations = [], buyingRules = [], goals = [], transactions = [] } = backup.data;
+    const { assets = [], dcaPlans = [], allocations = [], buyingRules = [], sellRules = [], goals = [], transactions = [] } = backup.data;
 
     // Run everything in a transaction — all or nothing
     await prisma.$transaction(async (tx) => {
       // 1. Wipe existing data in reverse FK order
       await tx.transaction.deleteMany({ where: { userId } });
       await tx.goal.deleteMany({ where: { userId } });
+      await tx.sellRule.deleteMany({ where: { dcaPlan: { userId } } });
       await tx.buyingRule.deleteMany({ where: { dcaPlan: { userId } } });
       await tx.planAllocation.deleteMany({ where: { plan: { userId } } });
       await tx.dcaPlan.deleteMany({ where: { userId } });
@@ -82,6 +84,9 @@ export async function restoreBackup(req: AuthRequest, res: Response, next: NextF
       if (buyingRules.length) {
         await tx.buyingRule.createMany({ data: buyingRules.map((r: Record<string, unknown>) => clean(r)) });
       }
+      if (sellRules.length) {
+        await tx.sellRule.createMany({ data: sellRules.map((r: Record<string, unknown>) => clean(r)) });
+      }
       if (goals.length) {
         await tx.goal.createMany({ data: goals.map((r: Record<string, unknown>) => clean(r, { userId })) });
       }
@@ -98,6 +103,7 @@ export async function restoreBackup(req: AuthRequest, res: Response, next: NextF
           dcaPlans: dcaPlans.length,
           allocations: allocations.length,
           buyingRules: buyingRules.length,
+          sellRules: sellRules.length,
           goals: goals.length,
           transactions: transactions.length,
         },
