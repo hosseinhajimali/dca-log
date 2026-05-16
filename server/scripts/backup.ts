@@ -14,11 +14,12 @@ async function backup() {
   const dcaPlans     = await prisma.dcaPlan.findMany();
   const allocations  = await prisma.planAllocation.findMany();
   const buyingRules  = await prisma.buyingRule.findMany();
+  const sellRules    = await prisma.sellRule.findMany();
   const transactions = await prisma.transaction.findMany();
   const priceCache   = await prisma.priceCache.findMany();
   const exchangeRates = await prisma.exchangeRate.findMany();
 
-  const tables = { users, assets, dcaPlans, allocations, buyingRules, transactions, priceCache, exchangeRates };
+  const tables = { users, assets, dcaPlans, allocations, buyingRules, sellRules, transactions, priceCache, exchangeRates };
 
   for (const [name, rows] of Object.entries(tables)) {
     writeFileSync(join(dir, `${name}.json`), JSON.stringify(rows, null, 2));

@@ -28,10 +28,11 @@ async function main() {
   const dcaPlans     = read('dcaPlans.json');
   const allocations  = read('allocations.json');
   const buyingRules  = read('buyingRules.json');
+  const sellRules    = fs.existsSync(path.join(BACKUP, 'sellRules.json')) ? read('sellRules.json') : [];
   const transactions = read('transactions.json');
   const priceCache   = read('priceCache.json');
 
-  console.log(`Restoring: ${users.length} users | ${assets.length} assets | ${dcaPlans.length} plans | ${allocations.length} allocations | ${buyingRules.length} buying rules | ${transactions.length} txs`);
+  console.log(`Restoring: ${users.length} users | ${assets.length} assets | ${dcaPlans.length} plans | ${allocations.length} allocations | ${buyingRules.length} buying rules | ${sellRules.length} sell rules | ${transactions.length} txs`);
 
   await prisma.$transaction(async (tx) => {
     console.log('\nClearing existing data...');
@@ -103,6 +104,17 @@ async function main() {
         id: r.id, dcaPlanId: r.dcaPlanId,
         minDrawdown: r.minDrawdown, maxDrawdown: r.maxDrawdown,
         buyAmount: r.buyAmount,
+        createdAt: d(r.createdAt),
+      }});
+    }
+
+    console.log('Restoring sell rules...');
+    for (const r of sellRules) {
+      await tx.sellRule.create({ data: {
+        id: r.id, dcaPlanId: r.dcaPlanId,
+        minProfit: r.minProfit, maxProfit: r.maxProfit,
+        sellAmount: r.sellAmount,
+        sellAmountType: r.sellAmountType ?? 'USD',
         createdAt: d(r.createdAt),
       }});
     }
