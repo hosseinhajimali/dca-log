@@ -4,6 +4,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { queryClient } from '@/lib/queryClient';
 import { useStore } from '@/store/useStore';
 import { AppLayout } from '@/components/layout/AppLayout';
+import Landing from '@/pages/Landing';
 import Dashboard from '@/pages/Dashboard';
 import DcaPlans from '@/pages/DcaPlans';
 import PlanDetail from '@/pages/PlanDetail';
@@ -30,10 +31,14 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+
+          {/* Authenticated app */}
           <Route
-            path="/"
+            path="/app"
             element={
               <RequireAuth>
                 <AppLayout />
@@ -55,6 +60,8 @@ export default function App() {
             <Route path="help" element={<Help />} />
             <Route path="admin" element={<Admin />} />
           </Route>
+
+          {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

@@ -9,15 +9,15 @@ import { useStore } from '@/store/useStore';
 import { useTheme } from '@/hooks/useTheme';
 
 const NAV: { to: string; label: string; Icon: LucideIcon }[] = [
-  { to: '/',             label: 'Dashboard',    Icon: LayoutDashboard },
-  { to: '/plans',        label: 'DCA Plans',    Icon: RefreshCw },
-  { to: '/transactions', label: 'Transactions', Icon: ArrowLeftRight },
-  { to: '/simulator',   label: 'Simulator',    Icon: FlaskConical },
-  { to: '/projection',  label: 'Projection',   Icon: TrendingUp },
-  { to: '/goals',       label: 'Goals',        Icon: Target },
-  { to: '/tax',         label: 'Tax Report',   Icon: FileText },
-  { to: '/settings',    label: 'Settings',     Icon: Settings },
-  { to: '/help',        label: 'Help',         Icon: HelpCircle },
+  { to: '/app',              label: 'Dashboard',    Icon: LayoutDashboard },
+  { to: '/app/plans',        label: 'DCA Plans',    Icon: RefreshCw },
+  { to: '/app/transactions', label: 'Transactions', Icon: ArrowLeftRight },
+  { to: '/app/simulator',    label: 'Simulator',    Icon: FlaskConical },
+  { to: '/app/projection',   label: 'Projection',   Icon: TrendingUp },
+  { to: '/app/goals',        label: 'Goals',        Icon: Target },
+  { to: '/app/tax',          label: 'Tax Report',   Icon: FileText },
+  { to: '/app/settings',     label: 'Settings',     Icon: Settings },
+  { to: '/app/help',         label: 'Help',         Icon: HelpCircle },
 ];
 
 function LogoutConfirmModal({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
@@ -83,7 +83,7 @@ export function Sidebar() {
             <NavLink
               key={to}
               to={to}
-              end={to === '/'}
+              end={to === '/app'}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   isActive
@@ -98,7 +98,7 @@ export function Sidebar() {
           ))}
           {user?.isAdmin && (
             <NavLink
-              to="/admin"
+              to="/app/admin"
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   isActive
