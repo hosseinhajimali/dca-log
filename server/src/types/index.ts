@@ -20,6 +20,7 @@ export interface TransactionQuery extends PaginationQuery {
   assetId?: string;
   from?: string;
   to?: string;
+  type?: 'BUY' | 'SELL';
   sortBy?: 'purchasedAt' | 'amountUsd' | 'quantity' | 'pricePerUnit';
   sortOrder?: 'asc' | 'desc';
 }
