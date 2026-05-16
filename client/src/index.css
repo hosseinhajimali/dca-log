@@ -25,3 +25,78 @@
     background: #4b5563;
   }
 }
+
+/* =====================================================
+   Date input calendar icon
+   ===================================================== */
+
+html.dark input[type="date"]::-webkit-calendar-picker-indicator,
+html.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+html.dark input[type="date"]::-webkit-calendar-picker-indicator:hover,
+html.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* =====================================================
+   Light Mode Theme Overrides
+   ===================================================== */
+
+html.light {
+  color-scheme: light;
+}
+
+html.light body {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+/* Backgrounds */
+html.light .bg-gray-950   { background-color: #f1f5f9; }
+html.light .bg-gray-900   { background-color: #ffffff; }
+html.light .bg-gray-800   { background-color: #f1f5f9; }
+html.light .bg-gray-700   { background-color: #e2e8f0; }
+html.light .bg-gray-600   { background-color: #cbd5e1; }
+
+/* Opacity backgrounds — top bar, modals etc. */
+html.light .bg-gray-900\/80  { background-color: rgba(255,255,255,0.88) !important; }
+html.light .bg-gray-800\/50  { background-color: rgba(241,245,249,0.7) !important; }
+html.light .bg-gray-900\/50  { background-color: rgba(255,255,255,0.6) !important; }
+
+/* Text */
+html.light .text-gray-100 { color: #0f172a; }
+html.light .text-gray-200 { color: #1e293b; }
+html.light .text-gray-300 { color: #334155; }
+html.light .text-gray-400 { color: #64748b; }
+html.light .text-gray-500 { color: #94a3b8; }
+html.light .text-gray-600 { color: #cbd5e1; }
+
+/* Borders */
+html.light .border-gray-800 { border-color: #e2e8f0; }
+html.light .border-gray-700 { border-color: #cbd5e1; }
+html.light .border-gray-600 { border-color: #94a3b8; }
+
+/* Hover backgrounds */
+html.light .hover\:bg-gray-800:hover { background-color: #f1f5f9; }
+html.light .hover\:bg-gray-700:hover { background-color: #e2e8f0; }
+
+/* Hover text */
+html.light .hover\:text-gray-100:hover { color: #0f172a; }
+html.light .hover\:text-gray-200:hover { color: #1e293b; }
+
+/* Focus ring offset */
+html.light .ring-offset-gray-900 { --tw-ring-offset-color: #ffffff; }
+
+/* Divide lines */
+html.light .divide-gray-800 > * + * { border-color: #e2e8f0; }
+
+/* Placeholder text */
+html.light .placeholder\:text-gray-600::placeholder { color: #94a3b8; }
+
+/* Scrollbar */
+html.light ::-webkit-scrollbar-thumb       { background: #cbd5e1; }
+html.light ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
