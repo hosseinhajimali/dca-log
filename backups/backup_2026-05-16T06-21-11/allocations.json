@@ -1,0 +1,30 @@
+[
+  {
+    "id": "cmp7x6ssk0008117rv9lv0tce",
+    "planId": "cmp76if9w001giofuqn8mutu1",
+    "assetId": "cmp75q60i0003qa28q0htx4j5",
+    "allocationPct": 100,
+    "createdAt": "2026-05-16T05:42:56.324Z"
+  },
+  {
+    "id": "cmp7x75e3000a117r55q2wmf4",
+    "planId": "cmp76gbbv000viofuw8805sih",
+    "assetId": "cmp75q6040001qa28ocxc551q",
+    "allocationPct": 100,
+    "createdAt": "2026-05-16T05:43:12.652Z"
+  },
+  {
+    "id": "cmp7x7ddy000c117r9u1llytd",
+    "planId": "cmp76echm000giofu422khl9r",
+    "assetId": "cmp75q6040001qa28ocxc551q",
+    "allocationPct": 50,
+    "createdAt": "2026-05-16T05:43:23.015Z"
+  },
+  {
+    "id": "cmp7x7ddy000d117r5yiq4a5f",
+    "planId": "cmp76echm000giofu422khl9r",
+    "assetId": "cmp75q60i0003qa28q0htx4j5",
+    "allocationPct": 50,
+    "createdAt": "2026-05-16T05:43:23.015Z"
+  }
+]

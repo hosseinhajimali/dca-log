@@ -1,0 +1,53 @@
+[
+  {
+    "id": "cmp76if9w001giofuqn8mutu1",
+    "userId": "cmp756q100000bjf65g11okaw",
+    "assetId": null,
+    "name": null,
+    "amountUsd": 50,
+    "frequency": "WEEKLY",
+    "intervalDays": null,
+    "isActive": true,
+    "perAssetRules": false,
+    "startDate": "2026-05-12T00:00:00.000Z",
+    "endDate": null,
+    "nextPurchaseDate": "2026-05-19T00:00:00.000Z",
+    "notes": null,
+    "createdAt": "2026-05-15T17:16:09.044Z",
+    "updatedAt": "2026-05-16T05:42:56.310Z"
+  },
+  {
+    "id": "cmp76gbbv000viofuw8805sih",
+    "userId": "cmp756q100000bjf65g11okaw",
+    "assetId": null,
+    "name": null,
+    "amountUsd": 50,
+    "frequency": "WEEKLY",
+    "intervalDays": null,
+    "isActive": true,
+    "perAssetRules": false,
+    "startDate": "2026-05-12T00:00:00.000Z",
+    "endDate": null,
+    "nextPurchaseDate": "2026-05-19T00:00:00.000Z",
+    "notes": null,
+    "createdAt": "2026-05-15T17:14:30.620Z",
+    "updatedAt": "2026-05-16T05:43:12.643Z"
+  },
+  {
+    "id": "cmp76echm000giofu422khl9r",
+    "userId": "cmp756q100000bjf65g11okaw",
+    "assetId": null,
+    "name": null,
+    "amountUsd": 100,
+    "frequency": "WEEKLY",
+    "intervalDays": null,
+    "isActive": true,
+    "perAssetRules": true,
+    "startDate": "2025-08-05T00:00:00.000Z",
+    "endDate": "2030-08-06T00:00:00.000Z",
+    "nextPurchaseDate": "2026-05-19T00:00:00.000Z",
+    "notes": null,
+    "createdAt": "2026-05-15T17:12:58.810Z",
+    "updatedAt": "2026-05-16T05:43:23.005Z"
+  }
+]

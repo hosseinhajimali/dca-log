@@ -1,0 +1,37 @@
+[
+  {
+    "id": "cmp75r8yj0002147bp7tak8hw",
+    "fromCurrency": "USD",
+    "toCurrency": "CHF",
+    "rate": 0.78638,
+    "fetchedAt": "2026-05-16T06:20:00.801Z"
+  },
+  {
+    "id": "cmp75r8ys0003147biximcpci",
+    "fromCurrency": "USD",
+    "toCurrency": "CZK",
+    "rate": 20.926,
+    "fetchedAt": "2026-05-16T06:20:00.809Z"
+  },
+  {
+    "id": "cmp75r8yv0004147byrjpt3cw",
+    "fromCurrency": "USD",
+    "toCurrency": "EUR",
+    "rate": 0.85999,
+    "fetchedAt": "2026-05-16T06:20:00.814Z"
+  },
+  {
+    "id": "cmp75r8yy0005147b82j2x81u",
+    "fromCurrency": "USD",
+    "toCurrency": "GBP",
+    "rate": 0.74862,
+    "fetchedAt": "2026-05-16T06:20:00.817Z"
+  },
+  {
+    "id": "cmp75r8z10006147bjkup7503",
+    "fromCurrency": "USD",
+    "toCurrency": "JPY",
+    "rate": 158.55,
+    "fetchedAt": "2026-05-16T06:20:00.820Z"
+  }
+]

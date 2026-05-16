@@ -1,0 +1,14 @@
+[
+  {
+    "id": "cmp756q100000bjf65g11okaw",
+    "email": "hossein.hajimali@gmail.com",
+    "passwordHash": null,
+    "googleId": "104936893355773457475",
+    "name": "Hossein Hajimali",
+    "currency": "USD",
+    "avatar": "bitcoin",
+    "isAdmin": false,
+    "createdAt": "2026-05-15T16:39:03.493Z",
+    "updatedAt": "2026-05-15T21:29:24.357Z"
+  }
+]

@@ -1,0 +1,22 @@
+[
+  {
+    "id": "cmp75q6040001qa28ocxc551q",
+    "userId": "cmp756q100000bjf65g11okaw",
+    "symbol": "BTC",
+    "name": "Bitcoin",
+    "assetType": "CRYPTO",
+    "coingeckoId": "bitcoin",
+    "color": "#f7931a",
+    "createdAt": "2026-05-15T16:54:10.660Z"
+  },
+  {
+    "id": "cmp75q60i0003qa28q0htx4j5",
+    "userId": "cmp756q100000bjf65g11okaw",
+    "symbol": "ETH",
+    "name": "Ethereum",
+    "assetType": "CRYPTO",
+    "coingeckoId": "ethereum",
+    "color": "#627eea",
+    "createdAt": "2026-05-15T16:54:10.674Z"
+  }
+]
