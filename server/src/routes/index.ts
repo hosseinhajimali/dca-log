@@ -8,6 +8,7 @@ import dashboardRoutes from './dashboard';
 import buyingRulesRoutes from './buyingRules';
 import simulatorRoutes from './simulator';
 import goalsRoutes from './goals';
+import backupRoutes from './backup';
 
 export const router = Router();
 
@@ -24,3 +25,4 @@ router.use('/prices', pricesRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/simulator', simulatorRoutes);
 router.use('/goals', goalsRoutes);
+router.use('/backup', backupRoutes);
