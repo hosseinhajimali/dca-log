@@ -272,6 +272,14 @@ export async function updateDcaPlan(req: AuthRequest, res: Response, next: NextF
         updateData.endDate = planData.endDate ? new Date(planData.endDate as string) : null;
       }
 
+      // Recalculate nextPurchaseDate whenever start date, frequency or interval changes
+      if (planData.startDate !== undefined || planData.frequency !== undefined || planData.intervalDays !== undefined) {
+        const base         = updateData.startDate  ?? plan.startDate;
+        const freq         = (updateData.frequency ?? plan.frequency) as import('@prisma/client').DcaFrequency;
+        const intervalDays = updateData.intervalDays !== undefined ? updateData.intervalDays : plan.intervalDays;
+        updateData.nextPurchaseDate = computeNextPurchaseDate(base, freq, intervalDays);
+      }
+
       await tx.dcaPlan.update({ where: { id }, data: updateData });
 
       if (allocations && allocations.length > 0) {
