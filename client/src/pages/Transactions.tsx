@@ -9,6 +9,7 @@ import { toCSVString, downloadFile, downloadXLSX, parseImportCSV, ParsedImportRo
 
 // ─── shared field shape ───────────────────────────────────────────────────────
 interface TxFormValues {
+  type: 'BUY' | 'SELL';
   assetId: string;
   amountUsd: string;
   quantity: string;
@@ -19,6 +20,7 @@ interface TxFormValues {
 }
 
 const emptyForm = (): TxFormValues => ({
+  type: 'BUY',
   assetId: '', amountUsd: '', quantity: '', pricePerUnit: '',
   purchasedAt: new Date().toISOString().slice(0, 16),
   exchange: '', notes: '',
@@ -26,6 +28,7 @@ const emptyForm = (): TxFormValues => ({
 
 function txToForm(tx: Transaction): TxFormValues {
   return {
+    type: tx.type ?? 'BUY',
     assetId: tx.assetId,
     amountUsd: String(tx.amountUsd),
     quantity: String(tx.quantity),
@@ -46,6 +49,7 @@ interface TxFieldsProps {
 
 function TxFields({ form, setForm, assets, lockAsset }: TxFieldsProps) {
   const cls = 'w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-brand-500 disabled:opacity-50';
+  const isSell = form.type === 'SELL';
 
   const recalcAmount = (qty: string, price: string) => {
     const q = parseFloat(qty), p = parseFloat(price);
@@ -53,6 +57,27 @@ function TxFields({ form, setForm, assets, lockAsset }: TxFieldsProps) {
   };
 
   return (
+    <div className="space-y-4">
+      {/* BUY / SELL toggle */}
+      <div className="flex gap-2">
+        {(['BUY', 'SELL'] as const).map(t => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setForm(f => ({ ...f, type: t }))}
+            className={`px-5 py-2 rounded-lg text-sm font-semibold border transition-colors ${
+              form.type === t
+                ? t === 'BUY'
+                  ? 'bg-green-600 border-green-500 text-white'
+                  : 'bg-red-600 border-red-500 text-white'
+                : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'
+            }`}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <div>
         <label className="block text-xs text-gray-400 mb-1.5">Asset *</label>
@@ -65,7 +90,7 @@ function TxFields({ form, setForm, assets, lockAsset }: TxFieldsProps) {
       </div>
 
       <div>
-        <label className="block text-xs text-gray-400 mb-1.5">Quantity received *</label>
+        <label className="block text-xs text-gray-400 mb-1.5">{isSell ? 'Quantity sold *' : 'Quantity received *'}</label>
         <input type="number" required min="0" step="any" value={form.quantity}
           onChange={e => {
             const qty = e.target.value;
@@ -85,7 +110,7 @@ function TxFields({ form, setForm, assets, lockAsset }: TxFieldsProps) {
       </div>
 
       <div>
-        <label className="block text-xs text-gray-400 mb-1.5">Amount spent (USD)</label>
+        <label className="block text-xs text-gray-400 mb-1.5">{isSell ? 'Amount received (USD)' : 'Amount spent (USD)'}</label>
         <input type="number" min="0" step="0.01" value={form.amountUsd}
           onChange={e => setForm(f => ({ ...f, amountUsd: e.target.value }))}
           placeholder="100" className={cls} />
@@ -114,8 +139,9 @@ function TxFields({ form, setForm, assets, lockAsset }: TxFieldsProps) {
         <label className="block text-xs text-gray-400 mb-1.5">Notes (optional)</label>
         <input type="text" value={form.notes}
           onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
-          placeholder="Any notes about this purchase..." className={cls} />
+          placeholder={isSell ? 'e.g. Taking 20% profit at ATH...' : 'Any notes about this purchase...'} className={cls} />
       </div>
+    </div>
     </div>
   );
 }
@@ -137,6 +163,7 @@ function CreateModal({ assets, onClose }: {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await createTx.mutateAsync({
+      type: form.type,
       assetId: form.assetId,
       amountUsd: parseFloat(form.amountUsd),
       quantity: parseFloat(form.quantity),
@@ -211,6 +238,7 @@ function EditModal({ tx, assets, onClose }: EditModalProps) {
     await updateTx.mutateAsync({
       id: tx.id,
       data: {
+        type: form.type,
         amountUsd: parseFloat(form.amountUsd),
         quantity: parseFloat(form.quantity),
         pricePerUnit: parseFloat(form.pricePerUnit),
@@ -859,6 +887,7 @@ export default function Transactions() {
               <thead>
                 <tr className="border-b border-gray-800">
                   <SortHeader label="Date"     field="purchasedAt" current={sortBy} order={sortOrder} onSort={handleSort} />
+                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
                   <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asset</th>
                   <SortHeader label="Amount"   field="amountUsd"   current={sortBy} order={sortOrder} onSort={handleSort} />
                   <SortHeader label="Quantity" field="quantity"     current={sortBy} order={sortOrder} onSort={handleSort} />
@@ -871,6 +900,11 @@ export default function Transactions() {
                 {transactions.map(tx => (
                   <tr key={tx.id} className="hover:bg-gray-800/50 transition-colors group">
                     <td className="px-5 py-3.5 text-gray-400 whitespace-nowrap">{formatDate(tx.purchasedAt)}</td>
+                    <td className="px-5 py-3.5">
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded font-mono ${tx.type === 'SELL' ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400'}`}>
+                        {tx.type ?? 'BUY'}
+                      </span>
+                    </td>
                     <td className="px-5 py-3.5">
                       <span className="font-bold font-mono"
                         style={tx.asset.color ? { color: tx.asset.color } : { color: '#f3f4f6' }}

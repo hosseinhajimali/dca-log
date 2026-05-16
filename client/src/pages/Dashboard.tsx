@@ -85,13 +85,23 @@ function ActivePlanCard({ plan, onClick }: { plan: ActivePlanSummary; onClick: (
           )}
         </div>
 
-        <div className="text-right">
-          <p className="text-xs text-gray-500 mb-0.5">Suggested amount</p>
-          <p className={`text-sm font-bold font-mono ${isBoosted ? 'text-brand-400' : 'text-gray-200'}`}>
-            {format(plan.suggestedAmount)}
-          </p>
-          {isBoosted && (
-            <p className="text-xs text-gray-500 line-through">{format(plan.amountUsd)}</p>
+        <div className="text-right space-y-1.5">
+          <div>
+            <p className="text-xs text-gray-500 mb-0.5">Suggested buy</p>
+            <p className={`text-sm font-bold font-mono ${isBoosted ? 'text-brand-400' : 'text-gray-200'}`}>
+              {format(plan.suggestedAmount)}
+            </p>
+            {isBoosted && (
+              <p className="text-xs text-gray-500 line-through">{format(plan.amountUsd)}</p>
+            )}
+          </div>
+          {plan.suggestedSellAmount != null && (
+            <div>
+              <p className="text-xs text-gray-500 mb-0.5">Suggested sell</p>
+              <p className="text-sm font-bold font-mono text-amber-400">
+                {format(plan.suggestedSellAmount)}
+              </p>
+            </div>
           )}
         </div>
       </div>

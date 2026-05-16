@@ -37,14 +37,17 @@ export async function listGoals(req: AuthRequest, res: Response, next: NextFunct
     // Total portfolio value
     const assetValueMap = new Map<string, number>();
     for (const asset of assets) {
-      const qty = transactions.filter((t) => t.assetId === asset.id).reduce((s, t) => s + t.quantity, 0);
-      assetValueMap.set(asset.id, qty * (priceMap.get(asset.symbol) ?? 0));
+      const qty = transactions
+        .filter((t) => t.assetId === asset.id)
+        .reduce((s, t) => t.type === 'SELL' ? s - t.quantity : s + t.quantity, 0);
+      assetValueMap.set(asset.id, Math.max(qty, 0) * (priceMap.get(asset.symbol) ?? 0));
     }
     const totalPortfolioValue = Array.from(assetValueMap.values()).reduce((s, v) => s + v, 0);
 
-    // Monthly investment totals (last 24 months)
+    // Monthly investment totals — buys only
     const monthlyInvested = new Map<string, number>();
     for (const tx of transactions) {
+      if (tx.type !== 'BUY') continue;
       const key = tx.purchasedAt.toISOString().slice(0, 7);
       monthlyInvested.set(key, (monthlyInvested.get(key) ?? 0) + tx.amountUsd);
     }
@@ -56,11 +59,10 @@ export async function listGoals(req: AuthRequest, res: Response, next: NextFunct
       let monthlyHistory: { month: string; invested: number }[] | null = null;
 
       if (goal.type === 'ACCUMULATION' && goal.assetId && goal.targetQty) {
-        const qty = transactions
-          .filter((t) => t.assetId === goal.assetId)
-          .reduce((s, t) => s + t.quantity, 0);
-        currentValue = qty;
-        progressPct = Math.min((qty / goal.targetQty) * 100, 100);
+        const assetTxs = transactions.filter((t) => t.assetId === goal.assetId);
+        const qty = assetTxs.reduce((s, t) => t.type === 'SELL' ? s - t.quantity : s + t.quantity, 0);
+        currentValue = Math.max(qty, 0);
+        progressPct = Math.min((currentValue / goal.targetQty) * 100, 100);
       }
 
       if (goal.type === 'PORTFOLIO_VALUE' && goal.targetValue) {

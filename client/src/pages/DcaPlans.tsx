@@ -4,11 +4,13 @@ import {
   useDcaPlans, useCreateDcaPlan, useUpdateDcaPlan, useDeleteDcaPlan,
 } from '@/hooks/useDcaPlans';
 import { useAssets } from '@/hooks/useAssets';
+import { useDashboard } from '@/hooks/useDashboard';
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/Badge';
 import { useCurrencyFormatter, formatDate } from '@/lib/format';
 import { api } from '@/lib/api';
-import { DcaFrequency, DcaPlan } from '@/types';
+import { DcaFrequency, DcaPlan, SellRule } from '@/types';
+import { useCreateSellRule, useUpdateSellRule, useDeleteSellRule } from '@/hooks/useSellRules';
 import { toast } from '@/lib/toast';
 
 const FREQ_LABELS: Record<DcaFrequency, string> = {
@@ -31,13 +33,12 @@ interface AllocDraft {
   allocationPct: number;
 }
 
-// Used in create form (no plan id yet)
-interface PendingRule {
-  key: number;
+interface SourceRule {
   minDrawdown: number; maxDrawdown: number; buyAmount: number;
 }
-
-
+interface SourceSellRule {
+  minProfit: number; maxProfit: number; sellAmount: number;
+}
 
 const emptyForm = (): PlanFormValues => ({
   name: '', amountUsd: '', frequency: 'MONTHLY',
@@ -419,130 +420,26 @@ function RuleEditForm({
   );
 }
 
-// ─── pending rule row (create form — editable inline) ────────────────────────
-function PendingRuleRow({ rule, baseAmount, onUpdate, onRemove }: {
-  rule: PendingRule;
-  baseAmount?: number;
-  onUpdate: (key: number, min: number, max: number, amount: number) => void;
-  onRemove: (key: number) => void;
-}) {
-  const [editing, setEditing] = useState(false);
-  const base = baseAmount && baseAmount > 0 ? baseAmount : null;
-  const mult = base ? +(rule.buyAmount / base).toFixed(2) : null;
-
-  return (
-    <div className={`rounded-lg border overflow-hidden transition-colors ${
-      editing ? 'border-brand-500/40 bg-gray-900' : 'border-gray-700/50 bg-gray-800/50'
-    }`}>
-      <div className="flex items-center justify-between px-3 py-2 text-sm">
-        <span className="font-mono flex items-center gap-2">
-          <span className="text-red-400/80">−{rule.minDrawdown}% – −{rule.maxDrawdown}%</span>
-          <span className="text-gray-600">→</span>
-          {mult !== null
-            ? <><span className="font-semibold text-gray-200">{mult}×</span>
-                <span className="text-gray-500 text-xs ml-0.5">(${rule.buyAmount})</span></>
-            : <span className="font-semibold text-gray-200">${rule.buyAmount}</span>
-          }
-        </span>
-        <div className="flex items-center gap-1.5 ml-3 shrink-0">
-          <button type="button" onClick={() => setEditing(e => !e)}
-            className={`text-xs px-2 py-0.5 border rounded-md transition-colors ${
-              editing
-                ? 'border-brand-500/50 text-brand-400 bg-brand-500/10'
-                : 'border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-300'
-            }`}>
-            {editing ? 'cancel' : 'edit'}
-          </button>
-          <button type="button" onClick={() => onRemove(rule.key)}
-            className="text-gray-600 hover:text-red-400 w-6 h-6 flex items-center justify-center rounded transition-colors text-sm">×</button>
-        </div>
-      </div>
-      {editing && (
-        <div className="px-3 py-3 border-t border-gray-700/60 bg-gray-900/60">
-          <RuleEditForm
-            initialMin={String(rule.minDrawdown)}
-            initialMax={String(rule.maxDrawdown)}
-            initialMult={mult !== null ? String(mult) : '1'}
-            initialRawAmount={String(rule.buyAmount)}
-            baseAmount={base ?? undefined}
-            onSave={(min, max, amount) => { onUpdate(rule.key, min, max, amount); setEditing(false); }}
-            onCancel={() => setEditing(false)}
-            submitLabel="Update rule"
-          />
-        </div>
-      )}
-    </div>
-  );
-}
-
-
-// ─── pending rules list (create form — plan doesn't exist yet) ────────────────
-function PendingRulesList({ rules, onAdd, onUpdate, onRemove, baseAmount }: {
-  rules: PendingRule[];
-  onAdd: (min: number, max: number, amount: number) => void;
-  onUpdate: (key: number, min: number, max: number, amount: number) => void;
-  onRemove: (key: number) => void;
-  baseAmount?: number;
-}) {
-  const sorted = [...rules].sort((a, b) => b.minDrawdown - a.minDrawdown);
-
-  return (
-    <div className="space-y-3">
-      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Buying Rules <span className="font-normal normal-case text-gray-600">(optional)</span></p>
-      <p className="text-xs text-gray-500">
-        Buy extra at drawdown thresholds.
-        {!baseAmount && <span className="text-gray-600"> Fill the plan amount above to use multipliers.</span>}
-      </p>
-
-      {sorted.length > 0 && (
-        <div className="space-y-1.5">
-          {sorted.map(rule => (
-            <PendingRuleRow
-              key={rule.key} rule={rule}
-              baseAmount={baseAmount}
-              onUpdate={onUpdate} onRemove={onRemove}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* visually separated add-rule section */}
-      <div className="rounded-xl border border-dashed border-gray-700 bg-gray-800/30 p-4 mt-2">
-        <p className="text-xs font-medium text-gray-500 mb-3">Add a rule</p>
-        <RuleEditForm baseAmount={baseAmount} onSave={onAdd} submitLabel="Add rule" />
-      </div>
-    </div>
-  );
-}
-
 // ─── create modal (new plan + duplicate) ─────────────────────────────────────
-function CreateModal({ assets, initialForm, initialAllocs, initialRules, onClose }: {
+function CreateModal({ assets, initialForm, initialAllocs, sourceRules, sourceSellRules, onClose }: {
   assets: { id: string; symbol: string; name: string; color?: string | null }[];
   initialForm?: PlanFormValues;
   initialAllocs?: AllocDraft[];
-  initialRules?: PendingRule[];
+  sourceRules?: SourceRule[];
+  sourceSellRules?: SourceSellRule[];
   onClose: () => void;
 }) {
   const createPlan = useCreateDcaPlan();
   const qc = useQueryClient();
   const [form, setForm] = useState<PlanFormValues>(initialForm ?? emptyForm());
   const [allocations, setAllocations] = useState<AllocDraft[]>(initialAllocs ?? []);
-  const [pendingRules, setPendingRules] = useState<PendingRule[]>(initialRules ?? []);
-  const [ruleKey, setRuleKey] = useState(initialRules?.length ?? 0);
+  const [copyRules, setCopyRules] = useState(true);
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
   }, [onClose]);
-
-  const addRule = (min: number, max: number, amount: number) => {
-    setPendingRules(r => [...r, { key: ruleKey, minDrawdown: min, maxDrawdown: max, buyAmount: amount }]);
-    setRuleKey(k => k + 1);
-  };
-  const updateRule = (key: number, min: number, max: number, amount: number) =>
-    setPendingRules(r => r.map(x => x.key === key ? { ...x, minDrawdown: min, maxDrawdown: max, buyAmount: amount } : x));
-  const removeRule = (key: number) => setPendingRules(r => r.filter(x => x.key !== key));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -562,15 +459,31 @@ function CreateModal({ assets, initialForm, initialAllocs, initialRules, onClose
       allocations: allocations.map(a => ({ assetId: a.assetId, allocationPct: a.allocationPct })),
     } as Parameters<typeof createPlan.mutateAsync>[0]);
 
-    for (const rule of pendingRules) {
-      await api.post(`/dca-plans/${plan.id}/rules`, {
-        minDrawdown: rule.minDrawdown,
-        maxDrawdown: rule.maxDrawdown,
-        buyAmount: rule.buyAmount,
-      });
+    if (copyRules) {
+      if (sourceRules && sourceRules.length > 0) {
+        for (const rule of sourceRules) {
+          await api.post(`/dca-plans/${plan.id}/rules`, {
+            minDrawdown: rule.minDrawdown,
+            maxDrawdown: rule.maxDrawdown,
+            buyAmount: rule.buyAmount,
+          });
+        }
+      }
+      if (sourceSellRules && sourceSellRules.length > 0) {
+        for (const rule of sourceSellRules) {
+          await api.post('/sell-rules', {
+            dcaPlanId: plan.id,
+            minProfit: rule.minProfit,
+            maxProfit: rule.maxProfit,
+            sellAmount: rule.sellAmount,
+          });
+        }
+      }
+      if ((sourceRules?.length ?? 0) + (sourceSellRules?.length ?? 0) > 0) {
+        qc.invalidateQueries({ queryKey: ['dca-plans'] });
+      }
     }
 
-    if (pendingRules.length > 0) qc.invalidateQueries({ queryKey: ['dca-plans'] });
     onClose();
   };
 
@@ -598,38 +511,51 @@ function CreateModal({ assets, initialForm, initialAllocs, initialRules, onClose
         </div>
 
         {/* scrollable body */}
-        <div className="overflow-y-auto flex-1 px-6 py-5 space-y-6">
+        <div className="overflow-y-auto flex-1 px-6 py-5">
           <form id="create-plan-form" onSubmit={handleSubmit}>
             <PlanFields form={form} setForm={setForm} assets={assets}
               allocations={allocations} setAllocations={setAllocations} />
           </form>
-
-          <div className="border-t border-gray-800 pt-5">
-            <PendingRulesList
-              rules={pendingRules}
-              onAdd={addRule}
-              onUpdate={updateRule}
-              onRemove={removeRule}
-              baseAmount={parseFloat(form.amountUsd) || undefined}
-            />
-          </div>
         </div>
 
         {/* footer */}
-        <div className="px-6 py-4 border-t border-gray-800 shrink-0 flex gap-3 flex-wrap">
-          {(createPlan.isError || allocError) && (
-            <p className="text-xs text-red-400 self-center mr-2 w-full">
-              {allocError || 'Failed to create. Try again.'}
-            </p>
-          )}
-          <button type="submit" form="create-plan-form" disabled={createPlan.isPending || !!allocError}
-            className="bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors">
-            {createPlan.isPending ? 'Creating...' : isDuplicate ? 'Create duplicate' : 'Create plan'}
-          </button>
-          <button type="button" onClick={onClose}
-            className="text-gray-400 hover:text-gray-200 text-sm px-4 py-2.5 border border-gray-700 rounded-lg transition-colors">
-            Cancel
-          </button>
+        <div className="px-6 py-4 border-t border-gray-800 shrink-0 space-y-3">
+          {((sourceRules?.length ?? 0) + (sourceSellRules?.length ?? 0) > 0) && (() => {
+            const buyCount  = sourceRules?.length ?? 0;
+            const sellCount = sourceSellRules?.length ?? 0;
+            const parts = [
+              buyCount  > 0 ? `${buyCount} buying rule${buyCount  !== 1 ? 's' : ''}` : '',
+              sellCount > 0 ? `${sellCount} sell rule${sellCount !== 1 ? 's' : ''}`   : '',
+            ].filter(Boolean).join(' + ');
+            return (
+              <label className="flex items-center gap-2.5 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={copyRules}
+                  onChange={e => setCopyRules(e.target.checked)}
+                  className="accent-brand-500"
+                />
+                <span className="text-xs text-gray-400 group-hover:text-gray-200 transition-colors">
+                  Copy {parts} from original plan
+                </span>
+              </label>
+            );
+          })()}
+          <div className="flex gap-3 flex-wrap">
+            {(createPlan.isError || allocError) && (
+              <p className="text-xs text-red-400 self-center mr-2 w-full">
+                {allocError || 'Failed to create. Try again.'}
+              </p>
+            )}
+            <button type="submit" form="create-plan-form" disabled={createPlan.isPending || !!allocError}
+              className="bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors">
+              {createPlan.isPending ? 'Creating...' : isDuplicate ? 'Create duplicate' : 'Create plan'}
+            </button>
+            <button type="button" onClick={onClose}
+              className="text-gray-400 hover:text-gray-200 text-sm px-4 py-2.5 border border-gray-700 rounded-lg transition-colors">
+              Cancel
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -784,7 +710,7 @@ function PlanRulesPanel({ plan, baseAmount }: { plan: DcaPlan; baseAmount?: numb
           ? 'Add buying rules'
           : `${plan.buyingRules.length} buying rule${plan.buyingRules.length !== 1 ? 's' : ''}`}
         {drawdownPct !== null && plan.buyingRules.length > 0 && (
-          <span className="text-red-400/70 ml-1">· −{drawdownPct.toFixed(1)}% ATH</span>
+          <span className="text-red-400/70 ml-1">−{drawdownPct.toFixed(1)}% ATH</span>
         )}
       </button>
 
@@ -817,17 +743,13 @@ function PlanRulesPanel({ plan, baseAmount }: { plan: DcaPlan; baseAmount?: numb
                     {isActive && <Badge variant="green">active</Badge>}
                   </div>
                   <div className="flex items-center gap-1.5 ml-3 shrink-0">
-                    {confirmingId !== rule.id && (
+                    {confirmingId !== rule.id && !isEditing && (
                       <button
                         type="button"
-                        onClick={() => { setEditingId(isEditing ? null : rule.id); setConfirmingId(null); }}
-                        className={`text-xs px-2 py-0.5 border rounded-md transition-colors ${
-                          isEditing
-                            ? 'border-brand-500/50 text-brand-400 bg-brand-500/10'
-                            : 'border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-300'
-                        }`}
+                        onClick={() => { setEditingId(rule.id); setConfirmingId(null); }}
+                        className="text-xs px-2 py-0.5 border rounded-md transition-colors border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-300"
                       >
-                        {isEditing ? 'cancel' : 'edit'}
+                        edit
                       </button>
                     )}
                     {confirmingId === rule.id ? (
@@ -1020,22 +942,231 @@ function PlanMenu({ plan, onEdit, onDuplicate, onToggleActive, onDelete }: {
   );
 }
 
+// ─── sell rule inline edit form ───────────────────────────────────────────────
+function SellRuleEditForm({ rule, isPending, onSave, onCancel }: {
+  rule: SellRule;
+  isPending: boolean;
+  onSave: (min: number, max: number, amt: number, type: 'USD' | 'PCT') => void;
+  onCancel: () => void;
+}) {
+  const [eMin, setEMin] = useState(String(rule.minProfit));
+  const [eMax, setEMax] = useState(String(rule.maxProfit));
+  const [eAmt, setEAmt] = useState(String(rule.sellAmount));
+  const [eType, setEType] = useState<'USD' | 'PCT'>(rule.sellAmountType ?? 'USD');
+
+  return (
+    <div className="px-3 py-3 border-t border-gray-700/60 bg-gray-900/60 space-y-2">
+      <div className="flex items-center gap-2 flex-wrap">
+        <input type="number" value={eMin} onChange={e => setEMin(e.target.value)} placeholder="Min %"
+          className="w-20 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-amber-500" />
+        <span className="text-gray-600 text-xs">% –</span>
+        <input type="number" value={eMax} onChange={e => setEMax(e.target.value)} placeholder="Max %"
+          className="w-20 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-amber-500" />
+        <span className="text-gray-600 text-xs">% profit → sell</span>
+        <div className="flex items-center gap-1">
+          <input type="number" value={eAmt} onChange={e => setEAmt(e.target.value)} placeholder={eType === 'USD' ? 'USD' : '%'}
+            className="w-20 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-amber-500" />
+          <div className="flex rounded overflow-hidden border border-gray-700 text-xs">
+            {(['USD', 'PCT'] as const).map(t => (
+              <button key={t} type="button" onClick={() => setEType(t)}
+                className={`px-2 py-1 transition-colors ${eType === t ? 'bg-brand-600 text-white' : 'bg-gray-800 text-gray-500 hover:text-gray-300'}`}>
+                {t === 'USD' ? '$' : '%'}
+              </button>
+            ))}
+          </div>
+          {eType === 'PCT' && <span className="text-gray-600 text-xs">of holdings</span>}
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <button type="button" disabled={isPending}
+          onClick={() => onSave(Number(eMin), Number(eMax), Number(eAmt), eType)}
+          className="text-xs bg-brand-600 hover:bg-brand-500 text-white font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40">
+          {isPending ? 'Saving…' : 'Update rule'}
+        </button>
+        <button type="button" onClick={onCancel}
+          className="text-xs px-3 py-1.5 border border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-300 rounded-lg transition-colors">
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── sell rules panel (on plan card) ─────────────────────────────────────────
+function SellRulesPanel({ plan, pnlPercent }: { plan: DcaPlan; pnlPercent: number | null }) {
+  const createRule = useCreateSellRule();
+  const updateRule = useUpdateSellRule();
+  const deleteRule = useDeleteSellRule();
+  const { format } = useCurrencyFormatter();
+  const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [addMin, setAddMin] = useState('');
+  const [addMax, setAddMax] = useState('');
+  const [addAmount, setAddAmount] = useState('');
+  const [addAmtType, setAddAmtType] = useState<'USD' | 'PCT'>('USD');
+  const [addKey, setAddKey] = useState(0);
+
+  const sorted = [...(plan.sellRules ?? [])].sort((a, b) => a.minProfit - b.minProfit);
+
+  const handleAdd = async () => {
+    if (!addMin || !addMax || !addAmount) return;
+    await createRule.mutateAsync({
+      dcaPlanId: plan.id,
+      minProfit: Number(addMin),
+      maxProfit: Number(addMax),
+      sellAmount: Number(addAmount),
+      sellAmountType: addAmtType,
+    });
+    setAddMin(''); setAddMax(''); setAddAmount(''); setAddAmtType('USD');
+    setAddKey(k => k + 1);
+    toast('Sell rule added');
+  };
+
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 transition-colors"
+      >
+        <span className={`transition-transform ${open ? 'rotate-90' : ''}`}>▶</span>
+        {sorted.length === 0
+          ? 'Add take profit rules'
+          : `${sorted.length} take profit rule${sorted.length !== 1 ? 's' : ''}`}
+        {pnlPercent !== null && sorted.length > 0 && (
+          <span className={`ml-1 ${pnlPercent >= 0 ? 'text-brand-400/70' : 'text-red-400/70'}`}>
+            {pnlPercent >= 0 ? '+' : ''}{pnlPercent.toFixed(1)}% P&L
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div className="mt-3 space-y-2 pl-1">
+          {sorted.map((rule: SellRule) => {
+            const isEditing = editingId === rule.id;
+            return (
+              <div key={rule.id} className={`rounded-lg border overflow-hidden transition-colors ${
+                isEditing ? 'border-amber-500/40 bg-gray-900' : 'border-gray-700/50 bg-gray-800/50'
+              }`}>
+                <div className="flex items-center justify-between px-3 py-2 text-sm">
+                  <span className="font-mono flex items-center gap-2">
+                    <span className="text-amber-400/80">+{rule.minProfit}% – +{rule.maxProfit}%</span>
+                    <span className="text-gray-600">→ sell</span>
+                    <span className="font-semibold text-gray-200">
+                      {rule.sellAmountType === 'PCT' ? `${rule.sellAmount}%` : format(rule.sellAmount)}
+                    </span>
+                    {rule.sellAmountType === 'PCT' && <span className="text-gray-600 text-xs font-normal">of holdings</span>}
+                  </span>
+                  <div className="flex items-center gap-1.5 ml-3 shrink-0">
+                    {confirmingId !== rule.id && !isEditing && (
+                      <button
+                        type="button"
+                        onClick={() => { setEditingId(rule.id); setConfirmingId(null); }}
+                        className="text-xs px-2 py-0.5 border rounded-md transition-colors border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-300"
+                      >
+                        edit
+                      </button>
+                    )}
+                    {confirmingId === rule.id ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs text-gray-400">Delete?</span>
+                        <button type="button" onClick={() => { deleteRule.mutate(rule.id); setConfirmingId(null); }}
+                          className="text-xs text-red-400 hover:text-red-300 border border-red-500/30 px-2 py-0.5 rounded-md">Yes</button>
+                        <button type="button" onClick={() => setConfirmingId(null)}
+                          className="text-xs text-gray-500 hover:text-gray-300 border border-gray-700 px-2 py-0.5 rounded-md">No</button>
+                      </div>
+                    ) : (
+                      <button type="button"
+                        onClick={() => { setConfirmingId(rule.id); setEditingId(null); }}
+                        className="text-gray-600 hover:text-red-400 w-6 h-6 flex items-center justify-center rounded transition-colors text-sm">×</button>
+                    )}
+                  </div>
+                </div>
+                {isEditing && (
+                  <SellRuleEditForm
+                    rule={rule}
+                    isPending={updateRule.isPending}
+                    onSave={async (eMin, eMax, eAmt, eType) => {
+                      await updateRule.mutateAsync({ id: rule.id, minProfit: eMin, maxProfit: eMax, sellAmount: eAmt, sellAmountType: eType });
+                      setEditingId(null);
+                    }}
+                    onCancel={() => setEditingId(null)}
+                  />
+                )}
+              </div>
+            );
+          })}
+
+          {/* add rule */}
+          <div className="rounded-xl border border-dashed border-gray-700 bg-gray-800/30 p-3">
+            <p className="text-xs font-medium text-gray-500 mb-2">Add take profit rule</p>
+            <div key={addKey} className="space-y-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <input type="number" value={addMin} onChange={e => setAddMin(e.target.value)} placeholder="Min %" className="w-20 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-brand-500" />
+                <span className="text-gray-600 text-xs">% –</span>
+                <input type="number" value={addMax} onChange={e => setAddMax(e.target.value)} placeholder="Max %" className="w-20 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-brand-500" />
+                <span className="text-gray-600 text-xs">% profit → sell</span>
+                <div className="flex items-center gap-1">
+                  <input type="number" value={addAmount} onChange={e => setAddAmount(e.target.value)} placeholder={addAmtType === 'USD' ? 'USD' : '%'} className="w-20 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-brand-500" />
+                  <div className="flex rounded overflow-hidden border border-gray-700 text-xs">
+                    {(['USD', 'PCT'] as const).map(t => (
+                      <button key={t} type="button" onClick={() => setAddAmtType(t)}
+                        className={`px-2 py-1 transition-colors ${addAmtType === t ? 'bg-brand-600 text-white' : 'bg-gray-800 text-gray-500 hover:text-gray-300'}`}>
+                        {t === 'USD' ? '$' : '%'}
+                      </button>
+                    ))}
+                  </div>
+                  {addAmtType === 'PCT' && <span className="text-gray-600 text-xs">of holdings</span>}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 pt-0.5">
+                <button type="button" onClick={handleAdd}
+                  className="text-xs bg-brand-600 hover:bg-brand-500 text-white font-medium px-3 py-1.5 rounded-lg transition-colors">
+                  {createRule.isPending ? 'Adding…' : 'Add rule'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── main page ────────────────────────────────────────────────────────────────
 export default function DcaPlans() {
   const { data: plans = [], isLoading } = useDcaPlans();
   const { data: assets = [] } = useAssets();
+  const { data: dashStats } = useDashboard();
+
+  // build assetId → pnlPercent map from dashboard stats
+  const assetPnlMap = new Map<string, number>(
+    (dashStats?.assetStats ?? []).map(s => [s.asset.id, s.pnlPercent])
+  );
+
+  const getPlanPnl = (plan: DcaPlan): number | null => {
+    if (!dashStats || plan.allocations.length === 0) return null;
+    let weighted = 0;
+    for (const alloc of plan.allocations) {
+      const pnl = assetPnlMap.get(alloc.assetId);
+      if (pnl === undefined) return null;
+      weighted += (alloc.allocationPct / 100) * pnl;
+    }
+    return weighted;
+  };
   const updatePlan = useUpdateDcaPlan();
   const deletePlan = useDeleteDcaPlan();
   const { format } = useCurrencyFormatter();
   const navigate = useNavigate();
 
-  // null = closed, object = open (empty = new, filled = duplicate)
+  // null = closed, object = open (form=undefined means new plan; form=object means duplicate)
   const [createModal, setCreateModal] = useState<{
-    form: PlanFormValues; allocs: AllocDraft[]; rules: PendingRule[]
+    form?: PlanFormValues; allocs: AllocDraft[]; sourceRules?: SourceRule[]; sourceSellRules?: SourceSellRule[];
   } | null>(null);
   const [editingPlan, setEditingPlan] = useState<DcaPlan | null>(null);
 
-  const openNew = () => setCreateModal({ form: emptyForm(), allocs: [], rules: [] });
+  const openNew = () => setCreateModal({ allocs: [] });
 
   const openDuplicate = (source: DcaPlan) => setCreateModal({
     form: {
@@ -1051,8 +1182,11 @@ export default function DcaPlans() {
     allocs: source.allocations.map((a, i) => ({
       key: i, assetId: a.assetId, allocationPct: a.allocationPct,
     })),
-    rules: source.buyingRules.map((r, i) => ({
-      key: i, minDrawdown: r.minDrawdown, maxDrawdown: r.maxDrawdown, buyAmount: r.buyAmount,
+    sourceRules: source.buyingRules.map(r => ({
+      minDrawdown: r.minDrawdown, maxDrawdown: r.maxDrawdown, buyAmount: r.buyAmount,
+    })),
+    sourceSellRules: (source.sellRules ?? []).map(r => ({
+      minProfit: r.minProfit, maxProfit: r.maxProfit, sellAmount: r.sellAmount,
     })),
   });
 
@@ -1063,7 +1197,8 @@ export default function DcaPlans() {
           assets={assets}
           initialForm={createModal.form}
           initialAllocs={createModal.allocs}
-          initialRules={createModal.rules}
+          sourceRules={createModal.sourceRules}
+          sourceSellRules={createModal.sourceSellRules}
           onClose={() => setCreateModal(null)}
         />
       )}
@@ -1156,6 +1291,7 @@ export default function DcaPlans() {
 
                   {/* inline rules manager */}
                   <PlanRulesPanel plan={plan} />
+                  <SellRulesPanel plan={plan} pnlPercent={getPlanPnl(plan)} />
                 </div>
 
                 {/* actions */}

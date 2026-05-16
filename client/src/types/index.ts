@@ -1,4 +1,5 @@
 export type AssetType = 'CRYPTO' | 'METAL' | 'STOCK' | 'ETF' | 'OTHER';
+export type TransactionType = 'BUY' | 'SELL';
 export type DcaFrequency = 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'CUSTOM';
 
 export interface User {
@@ -19,6 +20,16 @@ export interface Asset {
   assetType: AssetType;
   coingeckoId?: string;
   color?: string | null;
+  createdAt: string;
+}
+
+export interface SellRule {
+  id: string;
+  dcaPlanId: string;
+  minProfit: number;
+  maxProfit: number;
+  sellAmount: number;
+  sellAmountType: 'USD' | 'PCT';
   createdAt: string;
 }
 
@@ -64,6 +75,7 @@ export interface DcaPlan {
   updatedAt: string;
   allocations: PlanAllocation[];          // assets + their % shares
   buyingRules: BuyingRule[];
+  sellRules: SellRule[];
   drawdownFromAth: number | null;         // weighted average, negative = below ATH
   suggestedAmount: number;               // total suggested buy
   suggestedAllocations: SuggestedAllocation[]; // per-asset breakdown
@@ -76,6 +88,7 @@ export interface Transaction {
   asset: Asset;
   dcaPlanId?: string;
   dcaPlan?: { id: string; name?: string } | null;
+  type: TransactionType;
   amountUsd: number;
   quantity: number;
   pricePerUnit: number;
@@ -107,12 +120,13 @@ export interface AssetStats {
 }
 
 export interface ActivePlanSummary {
-  id:               string;
-  name:             string | null;
-  amountUsd:        number;
-  suggestedAmount:  number;
-  frequency:        string;
-  nextPurchaseDate: string | null;
+  id:                  string;
+  name:                string | null;
+  amountUsd:           number;
+  suggestedAmount:     number;
+  suggestedSellAmount: number | null;
+  frequency:           string;
+  nextPurchaseDate:    string | null;
   allocations: {
     allocationPct: number;
     asset: { symbol: string; color: string | null };
