@@ -1,16 +1,18 @@
 import { useState, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { Layers, DollarSign, CalendarCheck } from 'lucide-react';
 import { useGoals, useCreateGoal, useUpdateGoal, useDeleteGoal, GoalPayload } from '@/hooks/useGoals';
 import { useAssets } from '@/hooks/useAssets';
 import { Goal, GoalType } from '@/types';
+import type { LucideIcon } from 'lucide-react';
 import { useCurrencyFormatter, formatQuantity } from '@/lib/format';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const TABS: { key: GoalType; label: string; icon: string; description: string }[] = [
-  { key: 'ACCUMULATION',         label: 'Accumulation',         icon: '🏦', description: 'Target a quantity of a specific asset' },
-  { key: 'PORTFOLIO_VALUE',      label: 'Portfolio Value',      icon: '💰', description: 'Target a total portfolio value in USD' },
-  { key: 'INVESTMENT_COMMITMENT', label: 'Investment Commitment', icon: '📅', description: 'Stick to a monthly investment target' },
+const TABS: { key: GoalType; label: string; Icon: LucideIcon; description: string }[] = [
+  { key: 'ACCUMULATION',          label: 'Accumulation',          Icon: Layers,        description: 'Target a quantity of a specific asset' },
+  { key: 'PORTFOLIO_VALUE',       label: 'Portfolio Value',       Icon: DollarSign,    description: 'Target a total portfolio value in USD' },
+  { key: 'INVESTMENT_COMMITMENT', label: 'Investment Commitment', Icon: CalendarCheck, description: 'Stick to a monthly investment target' },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -165,7 +167,7 @@ function GoalCard({
       {/* Deadline */}
       {goal.deadline && (
         <p className={`text-xs ${deadlineColor(goal.daysUntil)}`}>
-          ⏰ {deadlineLabel(goal.daysUntil, goal.deadline)}
+          {deadlineLabel(goal.daysUntil, goal.deadline)}
           <span className="text-gray-700 ml-1.5">
             ({new Date(goal.deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })})
           </span>
@@ -414,7 +416,7 @@ function EmptyState({ type, onAdd }: { type: GoalType; onAdd: () => void }) {
   const tab = TABS.find(t => t.key === type)!;
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
-      <span className="text-4xl">{tab.icon}</span>
+      <tab.Icon size={36} strokeWidth={1.5} className="text-gray-600" />
       <p className="text-gray-400 text-sm font-medium">No {tab.label.toLowerCase()} goals yet</p>
       <p className="text-gray-600 text-xs max-w-xs">{tab.description}</p>
       <button
@@ -483,7 +485,7 @@ export default function Goals() {
                   : 'text-gray-500 hover:text-gray-300'
               }`}
             >
-              <span>{tab.icon}</span>
+              <tab.Icon size={15} strokeWidth={1.75} />
               <span className="hidden sm:inline">{tab.label}</span>
               {count > 0 && (
                 <span className={`text-xs px-1.5 py-0.5 rounded-full font-mono ${activeTab === tab.key ? 'bg-brand-500/20 text-brand-400' : 'bg-gray-800 text-gray-600'}`}>
