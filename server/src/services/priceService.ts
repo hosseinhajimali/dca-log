@@ -4,6 +4,13 @@ const COINGECKO_BASE = 'https://api.coingecko.com/api/v3';
 const METALS_BASE = 'https://api.metals.live/v1/spot';
 const FX_BASE = 'https://api.frankfurter.app/latest';
 
+function cgHeaders(): HeadersInit {
+  const key = process.env.COINGECKO_API_KEY;
+  return key
+    ? { 'x-cg-demo-api-key': key }
+    : {};
+}
+
 // Symbol → CoinGecko ID map (extend as needed)
 const COINGECKO_IDS: Record<string, string> = {
   BTC:   'bitcoin',
@@ -42,7 +49,7 @@ async function fetchCryptoMarkets(
       `?vs_currency=usd&ids=${ids}&order=market_cap_desc` +
       `&per_page=100&page=1&sparkline=false&price_change_percentage=24h`;
 
-    const resp = await fetch(url);
+    const resp = await fetch(url, { headers: cgHeaders() });
     if (!resp.ok) throw new Error(`CoinGecko /markets error: ${resp.status}`);
 
     const data = await resp.json() as Array<{
