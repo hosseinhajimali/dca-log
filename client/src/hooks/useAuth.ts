@@ -17,7 +17,7 @@ export function useLogin() {
     onSuccess: ({ user, token }) => {
       queryClient.clear(); // wipe any stale cache before loading new user's data
       setAuth(user, token);
-      navigate('/');
+      navigate('/app');
     },
   });
 }
@@ -34,7 +34,7 @@ export function useRegister() {
     onSuccess: ({ user, token }) => {
       queryClient.clear(); // wipe any stale cache before loading new user's data
       setAuth(user, token);
-      navigate('/');
+      navigate('/app');
     },
   });
 }

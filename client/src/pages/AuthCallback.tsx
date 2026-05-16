@@ -32,7 +32,7 @@ export default function AuthCallback() {
       .then(res => {
         queryClient.clear();
         setAuth(res.data.data, token);
-        navigate('/', { replace: true });
+        navigate('/app', { replace: true });
       })
       .catch(() => {
         localStorage.removeItem('dcalog_token');
