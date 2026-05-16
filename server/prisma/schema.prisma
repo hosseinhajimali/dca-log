@@ -15,6 +15,12 @@ enum AssetType {
   OTHER
 }
 
+enum GoalType {
+  ACCUMULATION
+  PORTFOLIO_VALUE
+  INVESTMENT_COMMITMENT
+}
+
 enum DcaFrequency {
   DAILY
   WEEKLY
@@ -38,6 +44,7 @@ model User {
   assets       Asset[]
   dcaPlans     DcaPlan[]
   transactions Transaction[]
+  goals        Goal[]
 
   @@map("users")
 }
@@ -56,6 +63,7 @@ model Asset {
   dcaPlans        DcaPlan[]        // legacy: single-asset plans
   planAllocations PlanAllocation[]
   transactions    Transaction[]
+  goals           Goal[]
 
   @@unique([userId, symbol])
   @@map("assets")
@@ -147,6 +155,36 @@ model PriceCache {
   fetchedAt  DateTime  @map("fetched_at")
 
   @@map("price_cache")
+}
+
+model Goal {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  type        GoalType
+  name        String
+  notes       String?
+
+  // ACCUMULATION
+  assetId     String?   @map("asset_id")
+  targetQty   Float?    @map("target_qty")
+
+  // PORTFOLIO_VALUE
+  targetValue Float?    @map("target_value")
+
+  // INVESTMENT_COMMITMENT
+  targetMonthlyAmount Float? @map("target_monthly_amount")
+
+  // Common
+  startDate   DateTime? @map("start_date")
+  deadline    DateTime?
+  isCompleted Boolean   @default(false) @map("is_completed")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset Asset? @relation(fields: [assetId], references: [id], onDelete: SetNull)
+
+  @@map("goals")
 }
 
 model ExchangeRate {

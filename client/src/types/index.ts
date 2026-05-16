@@ -133,6 +133,27 @@ export interface DashboardStats {
   lastUpdated: string;
 }
 
+export type GoalType = 'ACCUMULATION' | 'PORTFOLIO_VALUE' | 'INVESTMENT_COMMITMENT';
+
+export interface Goal {
+  id:                  string;
+  type:                GoalType;
+  name:                string;
+  notes:               string | null;
+  startDate:           string | null;
+  deadline:            string | null;
+  daysUntil:           number | null;
+  isCompleted:         boolean;
+  createdAt:           string;
+  asset:               { id: string; symbol: string; name: string; color: string | null } | null;
+  targetQty:           number | null;
+  targetValue:         number | null;
+  targetMonthlyAmount: number | null;
+  currentValue:        number | null;
+  progressPct:         number | null;
+  monthlyHistory:      { month: string; invested: number }[] | null;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
