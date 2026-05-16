@@ -27,7 +27,7 @@ export async function refreshPrices(req: Request, res: Response, next: NextFunct
     const { symbols } = req.body;
     await fetchAndCachePrices(symbols);
     const prices = await prisma.priceCache.findMany(
-      symbols?.length ? { where: { symbol: { in: symbols } } } : {}
+      symbols?.length ? { where: { symbol: { in: symbols } } } : undefined
     );
     res.json({ success: true, data: prices });
   } catch (err) {

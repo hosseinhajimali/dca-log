@@ -26,14 +26,14 @@ export async function createBuyingRule(req: AuthRequest, res: Response, next: Ne
     const { planId } = req.params;
 
     // Verify plan belongs to user
-    const plan = await prisma.dcaPlan.findFirst({ where: { id: planId, userId: req.userId } });
+    const plan = await prisma.dcaPlan.findFirst({ where: { id: planId as string, userId: req.userId } });
     if (!plan) return next(new AppError(404, 'Plan not found'));
 
     const body = ruleSchema.safeParse(req.body);
     if (!body.success) return next(new AppError(400, body.error.errors[0].message));
 
     const rule = await prisma.buyingRule.create({
-      data: { dcaPlanId: planId, ...body.data },
+      data: { dcaPlanId: planId as string, ...body.data },
     });
 
     res.status(201).json({ success: true, data: rule });
@@ -48,14 +48,14 @@ export async function updateBuyingRule(req: AuthRequest, res: Response, next: Ne
 
     // Verify ownership via plan
     const rule = await prisma.buyingRule.findFirst({
-      where: { id: ruleId, dcaPlan: { userId: req.userId } },
+      where: { id: ruleId as string, dcaPlan: { userId: req.userId } },
     });
     if (!rule) return next(new AppError(404, 'Rule not found'));
 
     const body = ruleUpdateSchema.safeParse(req.body);
     if (!body.success) return next(new AppError(400, body.error.errors[0].message));
 
-    const updated = await prisma.buyingRule.update({ where: { id: ruleId }, data: body.data });
+    const updated = await prisma.buyingRule.update({ where: { id: ruleId as string }, data: body.data });
     res.json({ success: true, data: updated });
   } catch (err) {
     next(err);
@@ -67,11 +67,11 @@ export async function deleteBuyingRule(req: AuthRequest, res: Response, next: Ne
     const { ruleId } = req.params;
 
     const rule = await prisma.buyingRule.findFirst({
-      where: { id: ruleId, dcaPlan: { userId: req.userId } },
+      where: { id: ruleId as string, dcaPlan: { userId: req.userId } },
     });
     if (!rule) return next(new AppError(404, 'Rule not found'));
 
-    await prisma.buyingRule.delete({ where: { id: ruleId } });
+    await prisma.buyingRule.delete({ where: { id: ruleId as string } });
     res.json({ success: true, message: 'Rule deleted' });
   } catch (err) {
     next(err);

@@ -30,7 +30,7 @@ export async function markAsRead(req: AuthRequest, res: Response, next: NextFunc
     const userId = req.userId!;
     const { id } = req.params;
     await prisma.notification.updateMany({
-      where: { id, userId },
+      where: { id: id as string, userId },
       data: { isRead: true },
     });
     res.json({ success: true });
@@ -58,7 +58,7 @@ export async function deleteNotification(req: AuthRequest, res: Response, next: 
   try {
     const userId = req.userId!;
     const { id } = req.params;
-    await prisma.notification.deleteMany({ where: { id, userId } });
+    await prisma.notification.deleteMany({ where: { id: id as string, userId } });
     res.json({ success: true });
   } catch (err) {
     next(err);

@@ -87,14 +87,14 @@ export async function createTransaction(req: AuthRequest, res: Response, next: N
 export async function updateTransaction(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
-    const tx = await prisma.transaction.findFirst({ where: { id, userId: req.userId } });
+    const tx = await prisma.transaction.findFirst({ where: { id: id as string, userId: req.userId } });
     if (!tx) return next(new AppError(404, 'Transaction not found'));
 
     const body = txSchema.partial().safeParse(req.body);
     if (!body.success) return next(new AppError(400, body.error.errors[0].message));
 
     const updated = await prisma.transaction.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         ...body.data,
         ...(body.data.purchasedAt ? { purchasedAt: new Date(body.data.purchasedAt) } : {}),
@@ -110,10 +110,10 @@ export async function updateTransaction(req: AuthRequest, res: Response, next: N
 export async function deleteTransaction(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
-    const tx = await prisma.transaction.findFirst({ where: { id, userId: req.userId } });
+    const tx = await prisma.transaction.findFirst({ where: { id: id as string, userId: req.userId } });
     if (!tx) return next(new AppError(404, 'Transaction not found'));
 
-    await prisma.transaction.delete({ where: { id } });
+    await prisma.transaction.delete({ where: { id: id as string } });
     res.json({ success: true, message: 'Transaction deleted' });
   } catch (err) {
     next(err);
