@@ -1,0 +1,22 @@
+[
+  {
+    "id": "cmp7yowjt000011c9tffm7a66",
+    "symbol": "BTC",
+    "priceUsd": 78835,
+    "change24h": -2.08496,
+    "marketCap": 1578710450260,
+    "ath": 126080,
+    "athDate": "2025-10-06T18:57:42.558Z",
+    "fetchedAt": "2026-05-16T06:35:00.339Z"
+  },
+  {
+    "id": "cmp7yowk3000111c9232r9l35",
+    "symbol": "ETH",
+    "priceUsd": 2220.66,
+    "change24h": -1.43764,
+    "marketCap": 267853010344,
+    "ath": 4946.05,
+    "athDate": "2025-08-24T19:21:03.333Z",
+    "fetchedAt": "2026-05-16T06:35:00.355Z"
+  }
+]

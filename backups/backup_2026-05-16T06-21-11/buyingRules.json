@@ -1,0 +1,152 @@
+[
+  {
+    "id": "cmp76ecke000kiofu9d7ioioa",
+    "dcaPlanId": "cmp76echm000giofu422khl9r",
+    "type": "DRAWDOWN",
+    "minDrawdown": 0,
+    "maxDrawdown": 10,
+    "maxIndex": null,
+    "buyAmount": 50,
+    "createdAt": "2026-05-15T17:12:58.909Z"
+  },
+  {
+    "id": "cmp76ecl7000miofu0ymk8z0i",
+    "dcaPlanId": "cmp76echm000giofu422khl9r",
+    "type": "DRAWDOWN",
+    "minDrawdown": 11,
+    "maxDrawdown": 25,
+    "maxIndex": null,
+    "buyAmount": 100,
+    "createdAt": "2026-05-15T17:12:58.939Z"
+  },
+  {
+    "id": "cmp76er1t000oiofu8tabobeu",
+    "dcaPlanId": "cmp76echm000giofu422khl9r",
+    "type": "DRAWDOWN",
+    "minDrawdown": 26,
+    "maxDrawdown": 40,
+    "maxIndex": null,
+    "buyAmount": 150,
+    "createdAt": "2026-05-15T17:13:17.682Z"
+  },
+  {
+    "id": "cmp76ezia000qiofuzxkcefal",
+    "dcaPlanId": "cmp76echm000giofu422khl9r",
+    "type": "DRAWDOWN",
+    "minDrawdown": 41,
+    "maxDrawdown": 60,
+    "maxIndex": null,
+    "buyAmount": 200,
+    "createdAt": "2026-05-15T17:13:28.643Z"
+  },
+  {
+    "id": "cmp76f9w9000siofuscc3r8av",
+    "dcaPlanId": "cmp76echm000giofu422khl9r",
+    "type": "DRAWDOWN",
+    "minDrawdown": 60,
+    "maxDrawdown": 100,
+    "maxIndex": null,
+    "buyAmount": 300,
+    "createdAt": "2026-05-15T17:13:42.105Z"
+  },
+  {
+    "id": "cmp76gbdu000yiofuqk8dynyd",
+    "dcaPlanId": "cmp76gbbv000viofuw8805sih",
+    "type": "DRAWDOWN",
+    "minDrawdown": 0,
+    "maxDrawdown": 10,
+    "maxIndex": null,
+    "buyAmount": 25,
+    "createdAt": "2026-05-15T17:14:30.690Z"
+  },
+  {
+    "id": "cmp76gbe70010iofulpe3zakl",
+    "dcaPlanId": "cmp76gbbv000viofuw8805sih",
+    "type": "DRAWDOWN",
+    "minDrawdown": 11,
+    "maxDrawdown": 25,
+    "maxIndex": null,
+    "buyAmount": 50,
+    "createdAt": "2026-05-15T17:14:30.703Z"
+  },
+  {
+    "id": "cmp76gbei0012iofuje72l2rq",
+    "dcaPlanId": "cmp76gbbv000viofuw8805sih",
+    "type": "DRAWDOWN",
+    "minDrawdown": 26,
+    "maxDrawdown": 40,
+    "maxIndex": null,
+    "buyAmount": 75,
+    "createdAt": "2026-05-15T17:14:30.715Z"
+  },
+  {
+    "id": "cmp76gbew0014iofucpwsejo0",
+    "dcaPlanId": "cmp76gbbv000viofuw8805sih",
+    "type": "DRAWDOWN",
+    "minDrawdown": 41,
+    "maxDrawdown": 60,
+    "maxIndex": null,
+    "buyAmount": 100,
+    "createdAt": "2026-05-15T17:14:30.728Z"
+  },
+  {
+    "id": "cmp76gbf70016iofu4kc6371e",
+    "dcaPlanId": "cmp76gbbv000viofuw8805sih",
+    "type": "DRAWDOWN",
+    "minDrawdown": 60,
+    "maxDrawdown": 100,
+    "maxIndex": null,
+    "buyAmount": 150,
+    "createdAt": "2026-05-15T17:14:30.740Z"
+  },
+  {
+    "id": "cmp76ifbm001jiofu3zf7qwjc",
+    "dcaPlanId": "cmp76if9w001giofuqn8mutu1",
+    "type": "DRAWDOWN",
+    "minDrawdown": 0,
+    "maxDrawdown": 10,
+    "maxIndex": null,
+    "buyAmount": 25,
+    "createdAt": "2026-05-15T17:16:09.106Z"
+  },
+  {
+    "id": "cmp76ifby001liofuqnjgbo3t",
+    "dcaPlanId": "cmp76if9w001giofuqn8mutu1",
+    "type": "DRAWDOWN",
+    "minDrawdown": 11,
+    "maxDrawdown": 25,
+    "maxIndex": null,
+    "buyAmount": 50,
+    "createdAt": "2026-05-15T17:16:09.119Z"
+  },
+  {
+    "id": "cmp76ifc8001niofudagen0yz",
+    "dcaPlanId": "cmp76if9w001giofuqn8mutu1",
+    "type": "DRAWDOWN",
+    "minDrawdown": 26,
+    "maxDrawdown": 40,
+    "maxIndex": null,
+    "buyAmount": 75,
+    "createdAt": "2026-05-15T17:16:09.128Z"
+  },
+  {
+    "id": "cmp76ifch001piofu0hki85ab",
+    "dcaPlanId": "cmp76if9w001giofuqn8mutu1",
+    "type": "DRAWDOWN",
+    "minDrawdown": 41,
+    "maxDrawdown": 60,
+    "maxIndex": null,
+    "buyAmount": 100,
+    "createdAt": "2026-05-15T17:16:09.138Z"
+  },
+  {
+    "id": "cmp76ifct001riofu7ptbnziu",
+    "dcaPlanId": "cmp76if9w001giofuqn8mutu1",
+    "type": "DRAWDOWN",
+    "minDrawdown": 60,
+    "maxDrawdown": 100,
+    "maxIndex": null,
+    "buyAmount": 150,
+    "createdAt": "2026-05-15T17:16:09.149Z"
+  }
+]
