@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStore } from '@/store/useStore';
 import { useAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '@/hooks/useAssets';
 import { Badge } from '@/components/ui/Badge';
 import { Asset, AssetType } from '@/types';
 import { toast } from '@/lib/toast';
+import { api } from '@/lib/api';
+import { useQueryClient } from '@tanstack/react-query';
 
 const CURRENCIES = ['USD', 'EUR', 'CZK', 'GBP', 'JPY', 'CHF'];
 
@@ -184,12 +186,71 @@ export default function General() {
   const { currency, setCurrency, user } = useStore();
   const { data: assets = [] } = useAssets();
   const createAsset = useCreateAsset();
+  const queryClient = useQueryClient();
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
 
+  // Backup / restore state
+  const [backupLoading, setBackupLoading] = useState(false);
+  const [restoreLoading, setRestoreLoading] = useState(false);
+  const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const assetSymbols = new Set(assets.map(a => a.symbol));
+
+  async function handleDownloadBackup() {
+    setBackupLoading(true);
+    try {
+      const res = await api.get('/backup', { responseType: 'blob' });
+      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/json' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dcalog_backup_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('Backup downloaded');
+    } catch {
+      toast('Failed to download backup');
+    } finally {
+      setBackupLoading(false);
+    }
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.name.endsWith('.json')) {
+      toast('Please select a .json backup file');
+      return;
+    }
+    setPendingFile(file);
+    setShowRestoreConfirm(true);
+    // reset input so same file can be re-selected
+    e.target.value = '';
+  }
+
+  async function handleConfirmRestore() {
+    if (!pendingFile) return;
+    setRestoreLoading(true);
+    setShowRestoreConfirm(false);
+    try {
+      const text = await pendingFile.text();
+      const json = JSON.parse(text);
+      const res = await api.post<{ data: { restored: Record<string, number> } }>('/backup/restore', json);
+      // Invalidate all cached data so UI reflects restored state
+      await queryClient.invalidateQueries();
+      const totals = Object.values(res.data.data.restored).reduce((s, n) => s + n, 0);
+      toast(`Restore complete — ${totals} records restored`);
+    } catch {
+      toast('Restore failed — file may be invalid or corrupted');
+    } finally {
+      setRestoreLoading(false);
+      setPendingFile(null);
+    }
+  }
 
   return (
     <div className="space-y-8">
@@ -267,6 +328,75 @@ export default function General() {
           <p className="text-xs text-gray-600">Email cannot be changed</p>
         </div>
       </section>
+
+      {/* Backup & Restore */}
+      <section className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
+        <div>
+          <h2 className="text-sm font-semibold text-gray-300">Backup & Restore</h2>
+          <p className="text-xs text-gray-500 mt-1">
+            Download all your data as a JSON file, or restore from a previous backup. Restore replaces all current data.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={handleDownloadBackup}
+            disabled={backupLoading}
+            className="px-4 py-2 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            {backupLoading ? 'Preparing…' : '⬇ Download backup'}
+          </button>
+
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={restoreLoading}
+            className="px-4 py-2 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 border border-gray-700 text-gray-300 text-sm font-medium rounded-lg transition-colors"
+          >
+            {restoreLoading ? 'Restoring…' : '⬆ Restore from file'}
+          </button>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+        </div>
+      </section>
+
+      {/* Restore confirm modal */}
+      {showRestoreConfirm && pendingFile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-sm bg-gray-900 border border-gray-700 rounded-2xl p-6 space-y-4">
+            <div className="flex flex-col gap-2">
+              <span className="text-2xl">⚠️</span>
+              <h2 className="text-base font-semibold text-gray-100">Replace all data?</h2>
+              <p className="text-sm text-gray-400">
+                This will permanently delete your current assets, plans, transactions, and goals, then restore from:
+              </p>
+              <p className="text-sm font-mono text-brand-400 bg-gray-800 px-3 py-2 rounded-lg truncate">
+                {pendingFile.name}
+              </p>
+              <p className="text-xs text-gray-600">This cannot be undone. Download a fresh backup first if unsure.</p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={handleConfirmRestore}
+                className="flex-1 bg-red-600 hover:bg-red-500 text-white text-sm font-medium py-2.5 rounded-lg transition-colors"
+              >
+                Yes, restore
+              </button>
+              <button
+                onClick={() => { setShowRestoreConfirm(false); setPendingFile(null); }}
+                className="flex-1 text-gray-400 border border-gray-700 text-sm py-2.5 rounded-lg hover:text-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
