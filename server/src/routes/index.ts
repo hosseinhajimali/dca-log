@@ -10,6 +10,9 @@ import simulatorRoutes from './simulator';
 import goalsRoutes from './goals';
 import backupRoutes from './backup';
 import sellRulesRoutes from './sellRules';
+import notificationsRoutes from './notifications';
+import feedbackRoutes from './feedback';
+import adminRoutes from './admin';
 
 export const router = Router();
 
@@ -28,3 +31,6 @@ router.use('/simulator', simulatorRoutes);
 router.use('/goals', goalsRoutes);
 router.use('/backup', backupRoutes);
 router.use('/sell-rules', sellRulesRoutes);
+router.use('/notifications', notificationsRoutes);
+router.use('/feedback', feedbackRoutes);
+router.use('/admin', adminRoutes);
