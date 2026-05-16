@@ -27,12 +27,19 @@ export async function getDashboardStats(req: AuthRequest, res: Response, next: N
     // Per-asset stats
     const assetStats = assets.map((asset) => {
       const txs = transactions.filter((t) => t.assetId === asset.id);
-      const totalInvested = txs.reduce((sum, t) => sum + t.amountUsd, 0);
-      const totalQuantity = txs.reduce((sum, t) => sum + t.quantity, 0);
-      const avgCost = totalQuantity > 0 ? totalInvested / totalQuantity : 0;
+      const buys = txs.filter((t) => t.type === 'BUY');
+      const sells = txs.filter((t) => t.type === 'SELL');
+      const totalInvested = buys.reduce((sum, t) => sum + t.amountUsd, 0);
+      const totalSold = sells.reduce((sum, t) => sum + t.amountUsd, 0);
+      const totalBuyQty = buys.reduce((sum, t) => sum + t.quantity, 0);
+      const totalSellQty = sells.reduce((sum, t) => sum + t.quantity, 0);
+      const totalQuantity = totalBuyQty - totalSellQty;
+      const avgCost = totalBuyQty > 0 ? totalInvested / totalBuyQty : 0;
       const currentPrice = priceMap.get(asset.symbol) ?? 0;
       const currentValue = totalQuantity * currentPrice;
-      const pnl = currentValue - totalInvested;
+      const realizedPnl = totalSold - sells.reduce((sum, t) => sum + t.quantity * avgCost, 0);
+      const unrealizedPnl = currentValue - (totalQuantity * avgCost);
+      const pnl = realizedPnl + unrealizedPnl;
       const pnlPercent = totalInvested > 0 ? (pnl / totalInvested) * 100 : 0;
 
       const ath = athMap.get(asset.symbol) ?? null;
@@ -62,20 +69,27 @@ export async function getDashboardStats(req: AuthRequest, res: Response, next: N
     const totalPnl = totalCurrentValue - totalInvested;
     const totalPnlPercent = totalInvested > 0 ? (totalPnl / totalInvested) * 100 : 0;
 
-    // Active plans — with next purchase date and suggested amount
+    // Build avg cost map per asset from all transactions
+    const avgCostMap = new Map<string, number>();
+    for (const stat of assetStats) {
+      avgCostMap.set(stat.asset.id, stat.avgCost);
+    }
+
+    // Active plans — with next purchase date, suggested buy amount, and sell suggestions
     const activePlanRows = await prisma.dcaPlan.findMany({
       where: { userId, isActive: true },
       include: {
         allocations: { include: { asset: true }, orderBy: { allocationPct: 'desc' as const } },
         buyingRules: true,
+        sellRules: true,
       },
       orderBy: { nextPurchaseDate: 'asc' as const },
     });
 
     const activePlanList = activePlanRows.map((plan) => {
-      // Compute suggested amount: highest matched drawdown rule, else base amount
+      // ── Buy suggestions (drawdown from ATH) ──────────────────────────────
       let suggestedAmount = plan.amountUsd;
-      const matchedAmounts: number[] = [];
+      const matchedBuyAmounts: number[] = [];
 
       for (const alloc of plan.allocations) {
         const price = priceMap.get(alloc.asset.symbol) ?? 0;
@@ -83,28 +97,45 @@ export async function getDashboardStats(req: AuthRequest, res: Response, next: N
         const drawdownPct = ath && price > 0 ? ((price - ath) / ath) * 100 : null;
 
         for (const rule of plan.buyingRules) {
-          if (rule.minDrawdown == null || rule.maxDrawdown == null) continue;
           if (drawdownPct !== null) {
             const dd = Math.abs(drawdownPct);
             if (dd >= rule.minDrawdown && dd <= rule.maxDrawdown) {
-              matchedAmounts.push(rule.buyAmount);
+              matchedBuyAmounts.push(rule.buyAmount);
             }
           }
         }
       }
-
-      if (matchedAmounts.length > 0) {
-        suggestedAmount = Math.max(plan.amountUsd, ...matchedAmounts);
+      if (matchedBuyAmounts.length > 0) {
+        suggestedAmount = Math.max(plan.amountUsd, ...matchedBuyAmounts);
       }
 
+      // ── Sell suggestions (profit % from avg buy) ──────────────────────────
+      const matchedSellAmounts: number[] = [];
+
+      for (const alloc of plan.allocations) {
+        const price   = priceMap.get(alloc.asset.symbol) ?? 0;
+        const avgCost = avgCostMap.get(alloc.asset.id) ?? 0;
+        const profitPct = avgCost > 0 && price > 0 ? ((price - avgCost) / avgCost) * 100 : null;
+
+        for (const rule of plan.sellRules) {
+          if (profitPct !== null && profitPct >= rule.minProfit && profitPct <= rule.maxProfit) {
+            matchedSellAmounts.push(rule.sellAmount);
+          }
+        }
+      }
+      const suggestedSellAmount = matchedSellAmounts.length > 0
+        ? Math.max(...matchedSellAmounts)
+        : null;
+
       return {
-        id:               plan.id,
-        name:             plan.name ?? null,
-        amountUsd:        plan.amountUsd,
+        id:                  plan.id,
+        name:                plan.name ?? null,
+        amountUsd:           plan.amountUsd,
         suggestedAmount,
-        frequency:        plan.frequency,
-        nextPurchaseDate: plan.nextPurchaseDate?.toISOString() ?? null,
-        allocations:      plan.allocations.map((a) => ({
+        suggestedSellAmount,
+        frequency:           plan.frequency,
+        nextPurchaseDate:    plan.nextPurchaseDate?.toISOString() ?? null,
+        allocations:         plan.allocations.map((a) => ({
           allocationPct: a.allocationPct,
           asset: { symbol: a.asset.symbol, color: a.asset.color },
         })),
@@ -119,7 +150,7 @@ export async function getDashboardStats(req: AuthRequest, res: Response, next: N
     twelveMonthsAgo.setDate(1);
     twelveMonthsAgo.setHours(0, 0, 0, 0);
 
-    const recentTxs = transactions.filter((t) => t.purchasedAt >= twelveMonthsAgo);
+    const recentTxs = transactions.filter((t) => t.purchasedAt >= twelveMonthsAgo && t.type === 'BUY');
     const monthlyMap = new Map<string, number>();
     recentTxs.forEach((t) => {
       const key = t.purchasedAt.toISOString().slice(0, 7); // "YYYY-MM"

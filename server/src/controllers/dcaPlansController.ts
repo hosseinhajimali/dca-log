@@ -36,6 +36,7 @@ const PLAN_INCLUDE = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   allocations: { include: { asset: true }, orderBy: { allocationPct: 'desc' as any } },
   buyingRules: { orderBy: { minDrawdown: 'asc' as const } },
+  sellRules:   { orderBy: { minProfit: 'asc' as const } },
 } as const;
 
 // ─── types ────────────────────────────────────────────────────────────────────
@@ -48,11 +49,14 @@ type AllocWithAsset = {
 type BuyingRule = { minDrawdown: number; maxDrawdown: number; buyAmount: number };
 type PriceEntry = { priceUsd: number; ath: number | null };
 
+type SellRule = { id: string; minProfit: number; maxProfit: number; sellAmount: number };
+
 type RichPlan = {
   amountUsd: number;
   perAssetRules: boolean;
   allocations: AllocWithAsset[];
   buyingRules: BuyingRule[];
+  sellRules: SellRule[];
   [key: string]: unknown;
 };
 
@@ -166,10 +170,44 @@ function enrichPerAssetMethod(plan: RichPlan, priceMap: Map<string, PriceEntry>)
   };
 }
 
-function enrichPlan(plan: RichPlan, priceMap: Map<string, PriceEntry>) {
-  return plan.perAssetRules
+function computeSellSuggestion(
+  plan: RichPlan,
+  priceMap: Map<string, PriceEntry>,
+  avgCostMap: Map<string, number>,
+  holdingsValueMap: Map<string, number>,
+): number | null {
+  const matched: number[] = [];
+  for (const alloc of plan.allocations) {
+    const price   = priceMap.get(alloc.asset.symbol)?.priceUsd ?? 0;
+    const avgCost = avgCostMap.get(alloc.assetId) ?? 0;
+    const profitPct = avgCost > 0 && price > 0 ? ((price - avgCost) / avgCost) * 100 : null;
+    for (const rule of (plan.sellRules as (typeof plan.sellRules[0] & { sellAmountType: string })[]) ) {
+      if (profitPct !== null && profitPct >= rule.minProfit && profitPct <= rule.maxProfit) {
+        let amount = rule.sellAmount;
+        if (rule.sellAmountType === 'PCT') {
+          const holdingsValue = holdingsValueMap.get(alloc.assetId) ?? 0;
+          amount = (rule.sellAmount / 100) * holdingsValue;
+        }
+        matched.push(amount);
+      }
+    }
+  }
+  return matched.length > 0 ? Math.max(...matched) : null;
+}
+
+function enrichPlan(
+  plan: RichPlan,
+  priceMap: Map<string, PriceEntry>,
+  avgCostMap: Map<string, number>,
+  holdingsValueMap: Map<string, number>,
+) {
+  const base = plan.perAssetRules
     ? enrichPerAssetMethod(plan, priceMap)
     : enrichGroupMethod(plan, priceMap);
+  return {
+    ...base,
+    suggestedSellAmount: computeSellSuggestion(plan, priceMap, avgCostMap, holdingsValueMap),
+  };
 }
 
 // ─── controllers ──────────────────────────────────────────────────────────────
@@ -192,7 +230,36 @@ export async function getDcaPlans(req: AuthRequest, res: Response, next: NextFun
     });
     const priceMap = new Map(prices.map((p) => [p.symbol, p]));
 
-    const enriched = (plans as RichPlan[]).map((plan) => enrichPlan(plan, priceMap));
+    // Build avg cost + net holdings per assetId from all user transactions
+    const transactions = await prisma.transaction.findMany({
+      where: { userId: req.userId! },
+      select: { assetId: true, type: true, amountUsd: true, quantity: true },
+    });
+    const buyTotals = new Map<string, { invested: number; qty: number }>();
+    const netQtyMap = new Map<string, number>();
+    for (const tx of transactions) {
+      if (tx.type === 'BUY') {
+        const cur = buyTotals.get(tx.assetId) ?? { invested: 0, qty: 0 };
+        buyTotals.set(tx.assetId, { invested: cur.invested + tx.amountUsd, qty: cur.qty + tx.quantity });
+      }
+      const net = netQtyMap.get(tx.assetId) ?? 0;
+      netQtyMap.set(tx.assetId, tx.type === 'BUY' ? net + tx.quantity : net - tx.quantity);
+    }
+    const avgCostMap = new Map<string, number>();
+    for (const [assetId, { invested, qty }] of buyTotals) {
+      avgCostMap.set(assetId, qty > 0 ? invested / qty : 0);
+    }
+    // Holdings value map: assetId → current USD value of net holdings
+    const holdingsValueMap = new Map<string, number>();
+    for (const [assetId, netQty] of netQtyMap) {
+      const symbol = [...(plans as RichPlan[])]
+        .flatMap(p => p.allocations)
+        .find(a => a.assetId === assetId)?.asset.symbol;
+      const price = symbol ? (priceMap.get(symbol)?.priceUsd ?? 0) : 0;
+      holdingsValueMap.set(assetId, Math.max(0, netQty) * price);
+    }
+
+    const enriched = (plans as RichPlan[]).map((plan) => enrichPlan(plan, priceMap, avgCostMap, holdingsValueMap));
     res.json({ success: true, data: enriched });
   } catch (err) {
     next(err);
@@ -312,6 +379,7 @@ export async function getPlanStats(req: AuthRequest, res: Response, next: NextFu
       include: {
         allocations: { include: { asset: true }, orderBy: { allocationPct: 'desc' as const } },
         buyingRules: true,
+        sellRules: true,
       },
     });
     if (!plan) return next(new AppError(404, 'Plan not found'));
@@ -333,13 +401,19 @@ export async function getPlanStats(req: AuthRequest, res: Response, next: NextFu
 
     const assetStats = plan.allocations.map((alloc) => {
       const { asset } = alloc;
-      const txs          = transactions.filter((t) => t.assetId === asset.id);
-      const totalInvested  = txs.reduce((s, t) => s + t.amountUsd, 0);
-      const totalQuantity  = txs.reduce((s, t) => s + t.quantity, 0);
-      const avgCost        = totalQuantity > 0 ? totalInvested / totalQuantity : 0;
+      const txs        = transactions.filter((t) => t.assetId === asset.id);
+      const buys       = txs.filter((t) => t.type === 'BUY');
+      const sells      = txs.filter((t) => t.type === 'SELL');
+      const totalInvested  = buys.reduce((s, t) => s + t.amountUsd, 0);
+      const totalBuyQty    = buys.reduce((s, t) => s + t.quantity, 0);
+      const totalSellQty   = sells.reduce((s, t) => s + t.quantity, 0);
+      const totalQuantity  = totalBuyQty - totalSellQty;
+      const avgCost        = totalBuyQty > 0 ? totalInvested / totalBuyQty : 0;
       const currentPrice   = priceMap.get(asset.symbol) ?? 0;
       const currentValue   = totalQuantity * currentPrice;
-      const pnl            = currentValue - totalInvested;
+      const realizedPnl    = sells.reduce((s, t) => s + (t.amountUsd - t.quantity * avgCost), 0);
+      const unrealizedPnl  = currentValue - totalQuantity * avgCost;
+      const pnl            = realizedPnl + unrealizedPnl;
       const pnlPercent     = totalInvested > 0 ? (pnl / totalInvested) * 100 : 0;
       const ath            = athMap.get(asset.symbol) ?? null;
       const drawdownFromAth =
@@ -361,7 +435,7 @@ export async function getPlanStats(req: AuthRequest, res: Response, next: NextFu
 
     const monthlyMap = new Map<string, number>();
     transactions
-      .filter((t) => t.purchasedAt >= twelveMonthsAgo)
+      .filter((t) => t.purchasedAt >= twelveMonthsAgo && t.type === 'BUY')
       .forEach((t) => {
         const key = t.purchasedAt.toISOString().slice(0, 7);
         monthlyMap.set(key, (monthlyMap.get(key) ?? 0) + t.amountUsd);
