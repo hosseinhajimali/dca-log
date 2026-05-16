@@ -1166,6 +1166,23 @@ export default function DcaPlans() {
                   >
                     View
                   </button>
+                  <button
+                    onClick={() => {
+                      const topAlloc = [...plan.allocations].sort((a, b) => b.allocationPct - a.allocationPct)[0];
+                      if (!topAlloc) return;
+                      const params = new URLSearchParams({
+                        assetId:   topAlloc.assetId,
+                        startDate: plan.startDate.slice(0, 10),
+                        amountUsd: String(Math.round(plan.amountUsd * (topAlloc.allocationPct / 100))),
+                        frequency: plan.frequency,
+                      });
+                      navigate(`/simulator?${params.toString()}`);
+                    }}
+                    className="text-xs text-gray-500 hover:text-brand-400 border border-gray-700 hover:border-brand-500/50 px-3 py-1.5 rounded-lg transition-colors"
+                    title="Simulate this plan"
+                  >
+                    ⏱ Simulate
+                  </button>
                   <PlanMenu
                     plan={plan}
                     onEdit={() => setEditingPlan(plan)}

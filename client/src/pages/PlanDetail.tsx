@@ -69,6 +69,27 @@ export default function PlanDetail() {
               {plan.nextPurchaseDate && <> · Next: <span className="text-gray-300">{formatDate(plan.nextPurchaseDate)}</span></>}
             </p>
           </div>
+
+          {/* Simulate Plan shortcut */}
+          {(() => {
+            // Pick highest-allocation asset for simulation
+            const topAlloc = [...plan.allocations].sort((a, b) => b.allocationPct - a.allocationPct)[0];
+            if (!topAlloc) return null;
+            const params = new URLSearchParams({
+              assetId:   topAlloc.assetId,
+              startDate: plan.startDate.slice(0, 10),
+              amountUsd: String(Math.round(plan.amountUsd * (topAlloc.allocationPct / 100))),
+              frequency: plan.frequency,
+            });
+            return (
+              <button
+                onClick={() => navigate(`/simulator?${params.toString()}`)}
+                className="shrink-0 flex items-center gap-1.5 text-xs text-brand-400 hover:text-brand-300 border border-brand-500/30 hover:border-brand-500/60 px-3 py-2 rounded-lg transition-colors"
+              >
+                <span>⏱</span> Simulate Plan
+              </button>
+            );
+          })()}
         </div>
       </div>
 
