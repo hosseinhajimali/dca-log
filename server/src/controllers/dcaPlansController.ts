@@ -224,7 +224,7 @@ async function fireRuleNotifications(
   const tomorrowStr = tomorrow.toISOString().slice(0, 10);
 
   for (const plan of enrichedPlans) {
-    const p = plan as RichPlan & {
+    const p = plan as unknown as RichPlan & {
       id: string; name?: string | null; drawdownFromAth: number | null;
       buyingRules: (BuyingRule & { id: string })[]; sellRules: (SellRule & { sellAmountType: string })[];
       nextPurchaseDate?: string | null; allocations: AllocWithAsset[];

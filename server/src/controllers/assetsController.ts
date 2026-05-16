@@ -46,14 +46,14 @@ export async function createAsset(req: AuthRequest, res: Response, next: NextFun
 export async function updateAsset(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
-    const asset = await prisma.asset.findFirst({ where: { id, userId: req.userId } });
+    const asset = await prisma.asset.findFirst({ where: { id: id as string, userId: req.userId } });
     if (!asset) return next(new AppError(404, 'Asset not found'));
 
     const updateSchema = assetSchema.partial();
     const body = updateSchema.safeParse(req.body);
     if (!body.success) return next(new AppError(400, body.error.errors[0].message));
 
-    const updated = await prisma.asset.update({ where: { id }, data: body.data });
+    const updated = await prisma.asset.update({ where: { id: id as string }, data: body.data });
     res.json({ success: true, data: updated });
   } catch (err) {
     next(err);
@@ -63,10 +63,10 @@ export async function updateAsset(req: AuthRequest, res: Response, next: NextFun
 export async function deleteAsset(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
-    const asset = await prisma.asset.findFirst({ where: { id, userId: req.userId } });
+    const asset = await prisma.asset.findFirst({ where: { id: id as string, userId: req.userId } });
     if (!asset) return next(new AppError(404, 'Asset not found'));
 
-    await prisma.asset.delete({ where: { id } });
+    await prisma.asset.delete({ where: { id: id as string } });
     res.json({ success: true, message: 'Asset deleted' });
   } catch (err) {
     next(err);
