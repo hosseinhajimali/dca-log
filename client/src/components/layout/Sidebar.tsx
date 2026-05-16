@@ -8,6 +8,7 @@ const NAV = [
   { to: '/plans',        label: 'DCA Plans',    icon: '♻' },
   { to: '/transactions', label: 'Transactions', icon: '↕' },
   { to: '/simulator',   label: 'Simulator',    icon: '⏱' },
+  { to: '/projection',  label: 'Projection',   icon: '🔮' },
   { to: '/settings',    label: 'Settings',     icon: '⚙' },
 ];
 
