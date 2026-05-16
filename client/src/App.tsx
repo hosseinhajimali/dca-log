@@ -11,6 +11,7 @@ import Transactions from '@/pages/Transactions';
 import Simulator from '@/pages/Simulator';
 import ProjectionCalculator from '@/pages/ProjectionCalculator';
 import TaxReport from '@/pages/TaxReport';
+import Goals from '@/pages/Goals';
 import SettingsLayout from '@/pages/settings/SettingsLayout';
 import General from '@/pages/settings/General';
 import ProfilePage from '@/pages/settings/Profile';
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="simulator" element={<Simulator />} />
             <Route path="projection" element={<ProjectionCalculator />} />
             <Route path="tax" element={<TaxReport />} />
+            <Route path="goals" element={<Goals />} />
             <Route path="settings" element={<SettingsLayout />}>
               <Route index element={<General />} />
               <Route path="profile" element={<ProfilePage />} />
