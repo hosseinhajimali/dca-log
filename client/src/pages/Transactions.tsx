@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Upload, Download } from 'lucide-react';
 import { useTransactions, useCreateTransaction, useUpdateTransaction, useDeleteTransaction, TxSortBy, TxSortOrder } from '@/hooks/useTransactions';
 import { useAssets } from '@/hooks/useAssets';
 import { Badge } from '@/components/ui/Badge';
@@ -792,6 +793,7 @@ function ImportModal({ assets, onClose }: ImportModalProps) {
 // ─── main page ────────────────────────────────────────────────────────────────
 export default function Transactions() {
   const [assetFilter, setAssetFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState<'BUY' | 'SELL' | ''>('');
   const [page, setPage] = useState(1);
   const [showCreate, setShowCreate] = useState(false);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
@@ -810,7 +812,7 @@ export default function Transactions() {
     setPage(1); // reset to first page on sort change
   };
 
-  const { data, isLoading } = useTransactions({ assetId: assetFilter || undefined, page, limit: 20, sortBy, sortOrder });
+  const { data, isLoading } = useTransactions({ assetId: assetFilter || undefined, type: typeFilter || undefined, page, limit: 20, sortBy, sortOrder });
   const { data: assets = [] } = useAssets();
   const deleteTx = useDeleteTransaction();
   const { format } = useCurrencyFormatter();
@@ -843,14 +845,16 @@ export default function Transactions() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowImport(true)}
-            className="text-gray-400 hover:text-gray-200 text-sm font-medium px-4 py-2 border border-gray-700 hover:border-gray-600 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 text-gray-400 hover:text-gray-200 text-sm font-medium px-4 py-2 border border-gray-700 hover:border-gray-600 rounded-lg transition-colors"
           >
+            <Upload className="w-3.5 h-3.5" />
             Import CSV
           </button>
           <button
             onClick={() => setShowExport(true)}
-            className="text-gray-400 hover:text-gray-200 text-sm font-medium px-4 py-2 border border-gray-700 hover:border-gray-600 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 text-gray-400 hover:text-gray-200 text-sm font-medium px-4 py-2 border border-gray-700 hover:border-gray-600 rounded-lg transition-colors"
           >
+            <Download className="w-3.5 h-3.5" />
             Export
           </button>
           <button
@@ -863,11 +867,18 @@ export default function Transactions() {
       </div>
 
       {/* filter bar */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-wrap">
         <select value={assetFilter} onChange={e => { setAssetFilter(e.target.value); setPage(1); }}
           className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-brand-500">
           <option value="">All assets</option>
           {assets.map(a => <option key={a.id} value={a.id}>{a.symbol}</option>)}
+        </select>
+
+        <select value={typeFilter} onChange={e => { setTypeFilter(e.target.value as 'BUY' | 'SELL' | ''); setPage(1); }}
+          className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-brand-500">
+          <option value="">All types</option>
+          <option value="BUY">BUY</option>
+          <option value="SELL">SELL</option>
         </select>
       </div>
 
