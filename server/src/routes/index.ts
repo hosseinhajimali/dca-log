@@ -6,6 +6,7 @@ import transactionsRoutes from './transactions';
 import pricesRoutes from './prices';
 import dashboardRoutes from './dashboard';
 import buyingRulesRoutes from './buyingRules';
+import simulatorRoutes from './simulator';
 
 export const router = Router();
 
@@ -20,3 +21,4 @@ router.use('/buying-rules', buyingRulesRoutes);  // patch/delete individual rule
 router.use('/transactions', transactionsRoutes);
 router.use('/prices', pricesRoutes);
 router.use('/dashboard', dashboardRoutes);
+router.use('/simulator', simulatorRoutes);
