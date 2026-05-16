@@ -6,6 +6,7 @@ import {
   ShieldCheck, type LucideIcon,
 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
+import { useTheme } from '@/hooks/useTheme';
 
 const NAV: { to: string; label: string; Icon: LucideIcon }[] = [
   { to: '/',             label: 'Dashboard',    Icon: LayoutDashboard },
@@ -52,7 +53,14 @@ function LogoutConfirmModal({ onConfirm, onCancel }: { onConfirm: () => void; on
 
 export function Sidebar() {
   const { user, logout } = useStore();
+  const { theme } = useTheme();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  // Resolve actual mode for system preference
+  const resolvedTheme = theme === 'system'
+    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+    : theme;
+  const logoSrc = resolvedTheme === 'light' ? '/logo-horizontal-light.svg' : '/logo-horizontal.svg';
 
   return (
     <>
@@ -66,7 +74,7 @@ export function Sidebar() {
       <aside className="fixed inset-y-0 left-0 w-60 bg-gray-900 border-r border-gray-800 flex flex-col z-30">
         {/* Logo */}
         <div className="px-4 py-3 border-b border-gray-800 flex items-center">
-          <img src="/logo-horizontal.svg" alt="DCAlog" className="h-9 w-auto shrink-0" />
+          <img src={logoSrc} alt="DCAlog" className="h-9 w-auto shrink-0" />
         </div>
 
         {/* Nav */}

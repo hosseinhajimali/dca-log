@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -7,6 +7,21 @@
     <title>DCAlog — Dollar Cost Averaging Tracker</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <!-- Blocking theme script — prevents flash of wrong theme on load -->
+    <script>
+      (function () {
+        try {
+          var stored = JSON.parse(localStorage.getItem('dcalog-store') || '{}');
+          var theme = (stored.state && stored.state.theme) || 'dark';
+          var resolved = theme === 'system'
+            ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : theme;
+          document.documentElement.classList.add(resolved);
+        } catch (e) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
   </head>
   <body class="bg-gray-950 text-gray-100 antialiased">
     <div id="root"></div>
