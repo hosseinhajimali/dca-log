@@ -65,8 +65,8 @@ export function Sidebar() {
 
       <aside className="fixed inset-y-0 left-0 w-60 bg-gray-900 border-r border-gray-800 flex flex-col z-30">
         {/* Logo */}
-        <div className="px-6 py-4 border-b border-gray-800 flex items-center justify-center">
-          <img src="/logo.svg" alt="DCAlog" className="w-10 h-10 rounded-lg shrink-0" />
+        <div className="px-4 py-3 border-b border-gray-800 flex items-center">
+          <img src="/logo-horizontal.svg" alt="DCAlog" className="h-9 w-auto shrink-0" />
         </div>
 
         {/* Nav */}
