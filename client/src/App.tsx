@@ -9,6 +9,7 @@ import DcaPlans from '@/pages/DcaPlans';
 import PlanDetail from '@/pages/PlanDetail';
 import Transactions from '@/pages/Transactions';
 import Simulator from '@/pages/Simulator';
+import ProjectionCalculator from '@/pages/ProjectionCalculator';
 import SettingsLayout from '@/pages/settings/SettingsLayout';
 import General from '@/pages/settings/General';
 import ProfilePage from '@/pages/settings/Profile';
@@ -40,6 +41,7 @@ export default function App() {
             <Route path="plans/:id" element={<PlanDetail />} />
             <Route path="transactions" element={<Transactions />} />
             <Route path="simulator" element={<Simulator />} />
+            <Route path="projection" element={<ProjectionCalculator />} />
             <Route path="settings" element={<SettingsLayout />}>
               <Route index element={<General />} />
               <Route path="profile" element={<ProfilePage />} />
