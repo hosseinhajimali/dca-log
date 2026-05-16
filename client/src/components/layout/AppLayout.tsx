@@ -36,7 +36,7 @@ export function AppLayout() {
       <Sidebar />
       <div className="flex-1 ml-60 flex flex-col min-h-screen">
         {/* Top bar */}
-        <header className="h-12 border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm flex items-center justify-end px-6 gap-3 shrink-0 sticky top-0 z-20">
+        <header className="h-[60px] border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm flex items-center justify-end px-6 gap-3 shrink-0 sticky top-0 z-20">
           <NotificationBell />
           <span className="text-sm font-medium text-gray-300">{user?.name || 'You'}</span>
           <NavLink to="/settings/profile" className="flex items-center">
