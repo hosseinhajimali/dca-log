@@ -52,9 +52,8 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-brand-400">DCAlog</h1>
-          <p className="text-gray-500 text-sm mt-2">Think in years, not months</p>
+        <div className="flex justify-center mb-8">
+          <img src="/logo-horizontal.svg" alt="DCAlog" className="h-10 w-auto" />
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl space-y-5">
