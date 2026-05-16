@@ -1,4 +1,5 @@
 import { Response, NextFunction } from 'express';
+import { FeedbackCategory } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { AuthRequest } from '../types';
 
@@ -48,7 +49,7 @@ export async function deleteUser(req: AuthRequest, res: Response, next: NextFunc
       res.status(400).json({ success: false, error: 'Cannot delete your own account' });
       return;
     }
-    await prisma.user.delete({ where: { id } });
+    await prisma.user.delete({ where: { id: id as string } });
     res.json({ success: true });
   } catch (err) {
     next(err);
@@ -94,7 +95,7 @@ export async function getFeedback(req: AuthRequest, res: Response, next: NextFun
 
     const feedbacks = await prisma.feedback.findMany({
       where: {
-        ...(category ? { category: category as string } : {}),
+        ...(category ? { category: category as string as FeedbackCategory } : {}),
         ...(unread === 'true' ? { isRead: false } : {}),
       },
       include: { user: { select: { id: true, email: true, name: true } } },
@@ -111,7 +112,7 @@ export async function getFeedback(req: AuthRequest, res: Response, next: NextFun
 export async function markFeedbackRead(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
-    await prisma.feedback.update({ where: { id }, data: { isRead: true } });
+    await prisma.feedback.update({ where: { id: id as string }, data: { isRead: true } });
     res.json({ success: true });
   } catch (err) {
     next(err);

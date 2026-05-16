@@ -25,7 +25,7 @@ export async function listGoals(req: AuthRequest, res: Response, next: NextFunct
     // Current holdings per asset
     const transactions = await prisma.transaction.findMany({
       where: { userId },
-      select: { assetId: true, amountUsd: true, quantity: true, purchasedAt: true },
+      select: { assetId: true, type: true, amountUsd: true, quantity: true, purchasedAt: true },
     });
 
     // Current prices
@@ -159,7 +159,7 @@ export async function updateGoal(req: AuthRequest, res: Response, next: NextFunc
     const userId = req.userId!;
     const { id } = req.params;
 
-    const existing = await prisma.goal.findFirst({ where: { id, userId } });
+    const existing = await prisma.goal.findFirst({ where: { id: id as string, userId } });
     if (!existing) {
       res.status(404).json({ success: false, error: 'Goal not found' });
       return;
@@ -168,7 +168,7 @@ export async function updateGoal(req: AuthRequest, res: Response, next: NextFunc
     const { name, notes, assetId, targetQty, targetValue, targetMonthlyAmount, startDate, deadline, isCompleted } = req.body;
 
     const goal = await prisma.goal.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         ...(name !== undefined             && { name: name.trim() }),
         ...(notes !== undefined            && { notes: notes?.trim() || null }),
@@ -196,13 +196,13 @@ export async function deleteGoal(req: AuthRequest, res: Response, next: NextFunc
     const userId = req.userId!;
     const { id } = req.params;
 
-    const existing = await prisma.goal.findFirst({ where: { id, userId } });
+    const existing = await prisma.goal.findFirst({ where: { id: id as string, userId } });
     if (!existing) {
       res.status(404).json({ success: false, error: 'Goal not found' });
       return;
     }
 
-    await prisma.goal.delete({ where: { id } });
+    await prisma.goal.delete({ where: { id: id as string } });
     res.json({ success: true });
   } catch (err) {
     next(err);
