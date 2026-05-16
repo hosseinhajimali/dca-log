@@ -43,7 +43,7 @@ export function AppLayout() {
           <ThemeToggle />
           <NotificationBell />
           <span className="text-sm font-medium text-gray-300">{user?.name || 'You'}</span>
-          <NavLink to="/settings/profile" className="flex items-center">
+          <NavLink to="/app/settings/profile" className="flex items-center">
             <Avatar id={user?.avatar} size={28} className="hover:ring-2 hover:ring-brand-500/50 hover:ring-offset-1 hover:ring-offset-gray-900 transition-all" />
           </NavLink>
         </header>

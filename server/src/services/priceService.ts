@@ -4,7 +4,7 @@ const COINGECKO_BASE = 'https://api.coingecko.com/api/v3';
 const METALS_BASE = 'https://api.metals.live/v1/spot';
 const FX_BASE = 'https://api.frankfurter.app/latest';
 
-function cgHeaders(): HeadersInit {
+function cgHeaders(): Record<string, string> {
   const key = process.env.COINGECKO_API_KEY;
   return key
     ? { 'x-cg-demo-api-key': key }

@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { useLogin, useRegister } from '@/hooks/useAuth';
+import { useStore } from '@/store/useStore';
 
 function GoogleIcon() {
   return (
@@ -18,7 +20,10 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 export default function Login() {
+  const token = useStore((s) => s.token);
   const [mode, setMode] = useState<'login' | 'register'>('login');
+
+  if (token) return <Navigate to="/app" replace />;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
