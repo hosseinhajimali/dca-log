@@ -4,6 +4,7 @@ import { prisma } from '../lib/prisma';
 import { AuthRequest } from '../types';
 import { AppError } from '../middleware/errorHandler';
 import { computeNextPurchaseDate } from '../services/dcaService';
+import { maybeNotify } from '../services/notificationService';
 
 // ─── validation ───────────────────────────────────────────────────────────────
 
@@ -210,6 +211,67 @@ function enrichPlan(
   };
 }
 
+// ─── notification firing ──────────────────────────────────────────────────────
+
+async function fireRuleNotifications(
+  userId: string,
+  enrichedPlans: ReturnType<typeof enrichPlan>[],
+  priceMap: Map<string, PriceEntry>,
+  avgCostMap: Map<string, number>,
+) {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+
+  for (const plan of enrichedPlans) {
+    const p = plan as RichPlan & {
+      id: string; name?: string | null; drawdownFromAth: number | null;
+      buyingRules: (BuyingRule & { id: string })[]; sellRules: (SellRule & { sellAmountType: string })[];
+      nextPurchaseDate?: string | null; allocations: AllocWithAsset[];
+    };
+
+    // DCA_REMINDER — next purchase is tomorrow
+    if (p.nextPurchaseDate && p.nextPurchaseDate.toString().slice(0, 10) === tomorrowStr) {
+      const label = p.name ?? p.allocations.map(a => a.asset.symbol).join('/');
+      await maybeNotify(userId, 'DCA_REMINDER', 'DCA purchase tomorrow',
+        `Your plan "${label}" is scheduled for tomorrow.`,
+        { planId: p.id },
+      );
+    }
+
+    // BUYING_RULE_MET — drawdown is in a rule range
+    const drawdownPct = p.drawdownFromAth !== null ? Math.abs(p.drawdownFromAth) : null;
+    if (drawdownPct !== null) {
+      for (const rule of p.buyingRules) {
+        if (drawdownPct >= rule.minDrawdown && drawdownPct <= rule.maxDrawdown) {
+          const label = p.name ?? p.allocations.map(a => a.asset.symbol).join('/');
+          await maybeNotify(userId, 'BUYING_RULE_MET', 'Buy rule triggered',
+            `Plan "${label}" is down ${drawdownPct.toFixed(1)}% from ATH — a buying rule is active.`,
+            { planId: p.id, ruleId: (rule as { id?: string }).id },
+          );
+        }
+      }
+    }
+
+    // SELL_RULE_MET — P&L is in a rule range
+    for (const alloc of p.allocations) {
+      const price   = priceMap.get(alloc.asset.symbol)?.priceUsd ?? 0;
+      const avgCost = avgCostMap.get(alloc.assetId) ?? 0;
+      const profitPct = avgCost > 0 && price > 0 ? ((price - avgCost) / avgCost) * 100 : null;
+      if (profitPct === null) continue;
+      for (const rule of p.sellRules) {
+        if (profitPct >= rule.minProfit && profitPct <= rule.maxProfit) {
+          const label = p.name ?? p.allocations.map(a => a.asset.symbol).join('/');
+          await maybeNotify(userId, 'SELL_RULE_MET', 'Take-profit rule triggered',
+            `${alloc.asset.symbol} in plan "${label}" is up ${profitPct.toFixed(1)}% — a sell rule is active.`,
+            { planId: p.id, ruleId: rule.id, assetId: alloc.assetId },
+          );
+        }
+      }
+    }
+  }
+}
+
 // ─── controllers ──────────────────────────────────────────────────────────────
 
 export async function getDcaPlans(req: AuthRequest, res: Response, next: NextFunction) {
@@ -260,6 +322,10 @@ export async function getDcaPlans(req: AuthRequest, res: Response, next: NextFun
     }
 
     const enriched = (plans as RichPlan[]).map((plan) => enrichPlan(plan, priceMap, avgCostMap, holdingsValueMap));
+
+    // Fire-and-forget: create rule-met notifications (don't await to avoid slowing response)
+    void fireRuleNotifications(req.userId!, enriched, priceMap, avgCostMap).catch(() => {});
+
     res.json({ success: true, data: enriched });
   } catch (err) {
     next(err);

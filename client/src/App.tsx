@@ -17,6 +17,8 @@ import General from '@/pages/settings/General';
 import ProfilePage from '@/pages/settings/Profile';
 import Login from '@/pages/Login';
 import AuthCallback from '@/pages/AuthCallback';
+import Admin from '@/pages/Admin';
+import Help from '@/pages/Help';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { token } = useStore();
@@ -50,6 +52,8 @@ export default function App() {
               <Route index element={<General />} />
               <Route path="profile" element={<ProfilePage />} />
             </Route>
+            <Route path="help" element={<Help />} />
+            <Route path="admin" element={<Admin />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

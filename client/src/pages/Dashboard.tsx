@@ -159,7 +159,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <StatCard label="Total Invested" value={format(portfolio.totalInvested)} />
         <StatCard label="Current Value"  value={format(portfolio.totalCurrentValue)} />
         <StatCard
@@ -169,7 +169,6 @@ export default function Dashboard() {
           positive={isProfitable}
           negative={!isProfitable}
         />
-        <StatCard label="Active Plans" value={String(activePlans)} />
       </div>
 
       {/* Active plans */}
