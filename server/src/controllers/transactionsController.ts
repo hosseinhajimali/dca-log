@@ -21,7 +21,7 @@ type SortableField = (typeof SORTABLE_FIELDS)[number];
 
 export async function getTransactions(req: AuthRequest & { query: TransactionQuery }, res: Response, next: NextFunction) {
   try {
-    const { assetId, from, to, page = '1', limit = '50', sortBy = 'purchasedAt', sortOrder = 'desc' } = req.query;
+    const { assetId, from, to, type, page = '1', limit = '50', sortBy = 'purchasedAt', sortOrder = 'desc' } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     // Validate sort field to prevent injection
@@ -32,6 +32,7 @@ export async function getTransactions(req: AuthRequest & { query: TransactionQue
 
     const where: Record<string, unknown> = { userId: req.userId };
     if (assetId) where.assetId = assetId;
+    if (type === 'BUY' || type === 'SELL') where.type = type;
     if (from || to) {
       where.purchasedAt = {
         ...(from ? { gte: new Date(from) } : {}),

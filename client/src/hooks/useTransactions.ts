@@ -9,6 +9,7 @@ interface TxFilters {
   assetId?: string;
   from?: string;
   to?: string;
+  type?: 'BUY' | 'SELL';
   page?: number;
   limit?: number;
   sortBy?: TxSortBy;
