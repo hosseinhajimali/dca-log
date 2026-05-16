@@ -12,13 +12,14 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401 globally — clear token and redirect
+// Handle 401 globally — clear everything and redirect
 api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
       localStorage.removeItem('dcalog_token');
       localStorage.removeItem('dcalog_user');
+      localStorage.removeItem('dcalog-store'); // clear Zustand persisted state
       window.location.href = '/login';
     }
     return Promise.reject(err);
