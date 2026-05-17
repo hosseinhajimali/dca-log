@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useMemo } from 'react';
 import { TrendingUp } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';

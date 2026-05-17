@@ -1,4 +1,6 @@
-import { useParams, useNavigate } from 'react-router-dom';
+'use client';
+
+import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -128,8 +130,8 @@ function AddSellRuleRow({ planId, onDone }: { planId: string; onDone: () => void
 }
 
 export default function PlanDetail() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const { id } = useParams() as { id: string };
+  const router = useRouter();
   const { data, isLoading, error } = usePlanStats(id!);
   const { format, formatPct } = useCurrencyFormatter();
   const [showAddSellRule, setShowAddSellRule] = useState(false);
@@ -163,7 +165,7 @@ export default function PlanDetail() {
       {/* Back + header */}
       <div>
         <button
-          onClick={() => navigate('/app/plans')}
+          onClick={() => router.push('/app/plans')}
           className="text-xs text-gray-500 hover:text-gray-300 transition-colors mb-3 flex items-center gap-1"
         >
           ← Back to plans
@@ -200,7 +202,7 @@ export default function PlanDetail() {
             });
             return (
               <button
-                onClick={() => navigate(`/app/simulator?${params.toString()}`)}
+                onClick={() => router.push(`/app/simulator?${params.toString()}`)}
                 className="shrink-0 flex items-center gap-1.5 text-xs text-brand-400 hover:text-brand-300 border border-brand-500/30 hover:border-brand-500/60 px-3 py-2 rounded-lg transition-colors"
               >
                 <span>⏱</span> Simulate Plan

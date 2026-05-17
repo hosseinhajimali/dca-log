@@ -1,6 +1,8 @@
+'use client';
+
 import { useState, useEffect, useRef } from 'react';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import {
   useDcaPlans, useCreateDcaPlan, useUpdateDcaPlan, useDeleteDcaPlan,
 } from '@/hooks/useDcaPlans';
@@ -1159,7 +1161,7 @@ export default function DcaPlans() {
   const updatePlan = useUpdateDcaPlan();
   const deletePlan = useDeleteDcaPlan();
   const { format } = useCurrencyFormatter();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   // null = closed, object = open (form=undefined means new plan; form=object means duplicate)
   const [createModal, setCreateModal] = useState<{
@@ -1314,7 +1316,7 @@ export default function DcaPlans() {
                 {/* actions row — bottom of card, full-width on mobile */}
                 <div className="flex items-center gap-2 pt-3 border-t border-gray-800">
                   <button
-                    onClick={() => navigate(`/app/plans/${plan.id}`)}
+                    onClick={() => router.push(`/app/plans/${plan.id}`)}
                     className="flex-1 md:flex-none text-xs text-gray-500 hover:text-brand-400 border border-gray-700 hover:border-brand-500/50 px-3 py-2 md:py-1.5 rounded-lg transition-colors text-center"
                   >
                     View
@@ -1329,7 +1331,7 @@ export default function DcaPlans() {
                         amountUsd: String(Math.round(plan.amountUsd * (topAlloc.allocationPct / 100))),
                         frequency: plan.frequency,
                       });
-                      navigate(`/app/simulator?${params.toString()}`);
+                      router.push(`/app/simulator?${params.toString()}`);
                     }}
                     className="flex-1 md:flex-none text-xs text-gray-500 hover:text-brand-400 border border-gray-700 hover:border-brand-500/50 px-3 py-2 md:py-1.5 rounded-lg transition-colors text-center"
                     title="Simulate this plan"

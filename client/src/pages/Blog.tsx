@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom';
+'use client';
+
+import Link from 'next/link';
 import { ArrowRight, Clock, Tag } from 'lucide-react';
 import { BLOG_POSTS } from '@/data/blogPosts';
 import { PublicNavbar } from '@/components/layout/PublicNavbar';
@@ -32,7 +34,7 @@ export default function Blog() {
           {BLOG_POSTS.map(post => (
             <Link
               key={post.slug}
-              to={`/blog/${post.slug}`}
+              href={`/blog/${post.slug}`}
               className="group bg-gray-900 border border-gray-800 hover:border-gray-700 rounded-2xl p-6 flex flex-col gap-4 transition-colors"
             >
               <div className="flex items-center gap-2 flex-wrap">
@@ -70,7 +72,7 @@ export default function Blog() {
           <h2 className="text-xl font-bold text-gray-100 mb-2">Ready to start tracking your DCA?</h2>
           <p className="text-gray-500 mb-6 text-sm">DCAlog is free to use. Set up your first plan in minutes.</p>
           <Link
-            to="/login"
+            href="/login"
             className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white font-semibold px-6 py-3 rounded-xl transition-colors text-sm"
           >
             Get started for free <ArrowRight size={15} />

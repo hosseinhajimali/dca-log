@@ -1,5 +1,7 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+'use client';
+
 import { useEffect, useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { Menu, UserCircle, LogOut } from 'lucide-react';
 import { Sidebar } from './Sidebar';
 import { NotificationBell } from './NotificationBell';
@@ -10,7 +12,7 @@ import { api } from '@/lib/api';
 import { useStore } from '@/store/useStore';
 import { useTheme } from '@/hooks/useTheme';
 
-export function AppLayout() {
+export function AppLayout({ children }: { children: React.ReactNode }) {
   const setExchangeRates = useStore((s) => s.setExchangeRates);
   const setUser = useStore((s) => s.setUser);
   const user   = useStore((s) => s.user);
@@ -18,7 +20,7 @@ export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
+  const router = useRouter();
   useTheme();
 
   useEffect(() => {
@@ -30,7 +32,6 @@ export function AppLayout() {
     return () => document.removeEventListener('mousedown', handle);
   }, [menuOpen]);
 
-  // Refresh user profile on mount so isAdmin and other fields are always current
   useEffect(() => {
     api.get<{ data: { id: string; email: string; name?: string; currency: string; avatar?: string | null; isAdmin: boolean; createdAt: string } }>('/auth/me')
       .then((res) => setUser(res.data.data))
@@ -46,18 +47,15 @@ export function AppLayout() {
         }
         setExchangeRates(map);
       })
-      .catch(() => {}); // silently ignore — USD fallback is fine
+      .catch(() => {});
   }, [setExchangeRates]);
 
   return (
     <div className="min-h-screen bg-gray-950 flex">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      {/* Main content — offset by sidebar width on md+ */}
       <div className="flex-1 md:ml-60 flex flex-col min-h-screen overflow-x-hidden">
-        {/* Top bar */}
         <header className="h-[60px] border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm flex items-center px-4 md:px-6 gap-3 shrink-0 sticky top-0 z-20">
-          {/* Hamburger — mobile only */}
           <button
             onClick={() => setSidebarOpen(true)}
             className="md:hidden text-gray-400 hover:text-gray-200 transition-colors p-1.5 rounded-lg hover:bg-gray-800 mr-1"
@@ -66,7 +64,6 @@ export function AppLayout() {
             <Menu size={20} />
           </button>
 
-          {/* Spacer */}
           <div className="flex-1" />
 
           <div className="flex items-center gap-2">
@@ -89,7 +86,7 @@ export function AppLayout() {
                     <p className="text-xs text-gray-500 truncate mt-0.5">{user?.email}</p>
                   </div>
                   <button
-                    onClick={() => { navigate('/app/settings/profile'); setMenuOpen(false); }}
+                    onClick={() => { router.push('/app/settings/profile'); setMenuOpen(false); }}
                     className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-400 hover:text-gray-100 hover:bg-gray-800 transition-colors"
                   >
                     <UserCircle size={14} />
@@ -110,7 +107,7 @@ export function AppLayout() {
 
         <main className="flex-1">
           <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
-            <Outlet />
+            {children}
           </div>
         </main>
       </div>

@@ -1,4 +1,7 @@
-import { Link, useLocation } from 'react-router-dom';
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import {
   RefreshCw, Zap, FlaskConical, TrendingUp,
@@ -75,7 +78,8 @@ function BrowserFrame({ src, alt }: { src: string; alt: string }) {
 }
 
 export default function Landing() {
-  const { hash } = useLocation();
+  const pathname = usePathname();
+  const hash = typeof window !== 'undefined' ? window.location.hash : '';
 
   // When navigated here with a hash (e.g. /#features from blog), scroll to that section
   useEffect(() => {
@@ -110,14 +114,14 @@ export default function Landing() {
         </p>
         <div className="flex items-center justify-center gap-4 flex-wrap mb-14 sm:mb-20">
           <Link
-            to="/login"
+            href="/login"
             className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white font-semibold px-6 py-3 rounded-xl transition-colors text-sm"
           >
             Start tracking for free
             <ArrowRight size={15} />
           </Link>
           <Link
-            to="/login"
+            href="/login"
             className="text-sm text-gray-400 hover:text-gray-100 border border-gray-700 hover:border-gray-500 px-6 py-3 rounded-xl transition-colors"
           >
             Sign in to your account
@@ -178,7 +182,7 @@ export default function Landing() {
               Set up recurring plans for any asset and define buying rules tied to ATH drawdowns. When the market dips 30%, you buy more. When it dips 50%, you buy even more. The app does the math and alerts you when it's time to act.
             </p>
             <Link
-              to="/login"
+              href="/login"
               className="inline-flex items-center gap-2 text-sm text-brand-400 hover:text-brand-300 font-medium transition-colors"
             >
               Set up your first plan <ArrowRight size={14} />
@@ -211,7 +215,7 @@ export default function Landing() {
               Backtest any DCA strategy against real historical price data. Pick an asset, set a weekly or monthly amount, choose a start date, and see the full picture — total invested, current value, return, and a chart of your portfolio growth over time.
             </p>
             <Link
-              to="/login"
+              href="/login"
               className="inline-flex items-center gap-2 text-sm text-brand-400 hover:text-brand-300 font-medium transition-colors"
             >
               Run a simulation <ArrowRight size={14} />
@@ -247,7 +251,7 @@ export default function Landing() {
           <h2 className="text-2xl font-bold text-gray-100 mb-2">Ready to think in years?</h2>
           <p className="text-gray-500 mb-8 text-sm">Join DCAlog and turn your investing discipline into a data-driven strategy.</p>
           <Link
-            to="/login"
+            href="/login"
             className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white font-semibold px-6 py-3 rounded-xl transition-colors text-sm"
           >
             Get started, it's free

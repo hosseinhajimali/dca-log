@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useMemo } from 'react';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { useQuery } from '@tanstack/react-query';

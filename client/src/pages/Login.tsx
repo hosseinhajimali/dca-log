@@ -1,5 +1,7 @@
-import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useLogin, useRegister } from '@/hooks/useAuth';
 import { useStore } from '@/store/useStore';
 
@@ -21,20 +23,27 @@ const ERROR_MESSAGES: Record<string, string> = {
 
 export default function Login() {
   const token = useStore((s) => s.token);
+  const router = useRouter();
   const [mode, setMode] = useState<'login' | 'register'>('login');
-
-  if (token) return <Navigate to="/app" replace />;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [oauthError, setOauthError] = useState<string | null>(null);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (token) router.replace('/app');
+  }, [token, router]);
+
+  // Read OAuth error from URL
+  useEffect(() => {
+    const urlError = new URLSearchParams(window.location.search).get('error');
+    if (urlError) setOauthError(ERROR_MESSAGES[urlError] ?? 'Sign-in failed. Please try again.');
+  }, []);
 
   const login = useLogin();
   const register = useRegister();
   const mutation = mode === 'login' ? login : register;
-
-  // Error passed back from Google OAuth redirect
-  const urlError = new URLSearchParams(window.location.search).get('error');
-  const oauthError = urlError ? (ERROR_MESSAGES[urlError] ?? 'Sign-in failed. Please try again.') : null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +55,9 @@ export default function Login() {
   };
 
   const handleGoogleSignIn = () => {
-    window.location.href = '/api/auth/google';
+    // Must go directly to Express — Next.js proxy can't handle OAuth redirect chain
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    window.location.href = `${apiUrl}/api/auth/google`;
   };
 
   return (

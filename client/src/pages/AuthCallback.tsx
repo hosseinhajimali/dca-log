@@ -1,12 +1,14 @@
+'use client';
+
 import { useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useStore } from '@/store/useStore';
 import { queryClient } from '@/lib/queryClient';
 import { api } from '@/lib/api';
 import { ApiResponse, User } from '@/types';
 
 export default function AuthCallback() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { setAuth } = useStore();
   const ran = useRef(false);
 
@@ -20,7 +22,7 @@ export default function AuthCallback() {
     const error = params.get('error');
 
     if (error || !token) {
-      navigate('/login?error=' + (error || 'auth_failed'), { replace: true });
+      router.replace('/login?error=' + (error || 'auth_failed'));
       return;
     }
 
@@ -32,11 +34,11 @@ export default function AuthCallback() {
       .then(res => {
         queryClient.clear();
         setAuth(res.data.data, token);
-        navigate('/app', { replace: true });
+        router.replace('/app');
       })
       .catch(() => {
         localStorage.removeItem('dcalog_token');
-        navigate('/login?error=auth_failed', { replace: true });
+        router.replace('/login?error=auth_failed');
       });
   }, []);
 

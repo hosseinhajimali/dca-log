@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect, useRef } from 'react';
 import { Upload, Download } from 'lucide-react';
 import { useTransactions, useCreateTransaction, useUpdateTransaction, useDeleteTransaction, TxSortBy, TxSortOrder } from '@/hooks/useTransactions';

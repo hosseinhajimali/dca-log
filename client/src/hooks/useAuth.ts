@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useStore } from '@/store/useStore';
 import { queryClient } from '@/lib/queryClient';
@@ -7,7 +7,7 @@ import { ApiResponse, AuthResponse, User } from '@/types';
 
 export function useLogin() {
   const { setAuth } = useStore();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return useMutation({
     mutationFn: async (data: { email: string; password: string }) => {
@@ -17,14 +17,14 @@ export function useLogin() {
     onSuccess: ({ user, token }) => {
       queryClient.clear(); // wipe any stale cache before loading new user's data
       setAuth(user, token);
-      navigate('/app');
+      router.push('/app');
     },
   });
 }
 
 export function useRegister() {
   const { setAuth } = useStore();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return useMutation({
     mutationFn: async (data: { email: string; password: string; name?: string }) => {
@@ -34,7 +34,7 @@ export function useRegister() {
     onSuccess: ({ user, token }) => {
       queryClient.clear(); // wipe any stale cache before loading new user's data
       setAuth(user, token);
-      navigate('/app');
+      router.push('/app');
     },
   });
 }
