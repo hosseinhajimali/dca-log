@@ -145,7 +145,7 @@ function AllocationEditor({
               className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-2.5 py-2 text-sm text-gray-100 focus:outline-none focus:border-brand-500"
             >
               {rowAvailable.map(a => (
-                <option key={a.id} value={a.id}>{a.symbol} — {a.name}</option>
+                <option key={a.id} value={a.id}>{a.symbol} · {a.name}</option>
               ))}
             </select>
             <div className="flex items-center gap-1 shrink-0">
@@ -1257,7 +1257,7 @@ export default function DcaPlans() {
                           </span>
                         ))}
                       </span>
-                      {plan.name && <span className="text-gray-400 text-sm">— {plan.name}</span>}
+                      {plan.name && <span className="text-gray-400 text-sm">({plan.name})</span>}
                       <Badge variant={plan.isActive ? 'green' : 'gray'}>
                         {plan.isActive ? 'Active' : 'Paused'}
                       </Badge>

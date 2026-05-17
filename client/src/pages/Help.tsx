@@ -28,7 +28,7 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: 'What are Sell Rules?',
-    a: 'Sell Rules work the opposite way — you define a P&L range (e.g. +50% to +100%) and an amount to sell. They help you take profit systematically instead of emotionally. The current P&L percentage is shown next to the Sell Rules panel title so you can see how close you are at a glance.',
+    a: 'Sell Rules work the opposite way: you define a P&L range (e.g. +50% to +100%) and an amount to sell. They help you take profit systematically instead of emotionally. The current P&L percentage is shown next to the Sell Rules panel title so you can see how close you are at a glance.',
   },
   {
     q: 'How is my P&L calculated?',
@@ -56,7 +56,7 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: 'What notifications does DCAlog send?',
-    a: 'DCAlog sends in-app notifications for three events: a DCA reminder when a plan\'s next purchase date is tomorrow, a Buying Rule alert when an asset\'s drawdown falls inside a rule\'s range, and a Sell Rule alert when P&L enters a sell rule\'s range. No emails — everything stays inside the app.',
+    a: 'DCAlog sends in-app notifications for three events: a DCA reminder when a plan\'s next purchase date is tomorrow, a Buying Rule alert when an asset\'s drawdown falls inside a rule\'s range, and a Sell Rule alert when P&L enters a sell rule\'s range. No emails, everything stays inside the app.',
   },
   {
     q: 'How does the Fear & Greed Index work?',
@@ -112,7 +112,7 @@ export default function Help() {
       setMessage('');
       setCategory('FEEDBACK');
     },
-    onError: () => toast('Failed to send — please try again.', 'error'),
+    onError: () => toast('Failed to send, please try again.', 'error'),
   });
 
   return (
@@ -143,7 +143,7 @@ export default function Help() {
           <div className="bg-brand-500/10 border border-brand-500/20 rounded-xl p-6 text-center space-y-2">
             <p className="text-2xl">✓</p>
             <p className="text-brand-400 font-medium">Message sent!</p>
-            <p className="text-sm text-gray-500">Thanks for reaching out — we'll take a look.</p>
+            <p className="text-sm text-gray-500">Thanks for reaching out, we'll take a look.</p>
             <button
               onClick={() => setSent(false)}
               className="mt-2 text-xs text-gray-500 hover:text-gray-300 underline transition-colors"

@@ -86,7 +86,7 @@ function TxFields({ form, setForm, assets, lockAsset }: TxFieldsProps) {
           onChange={e => setForm(f => ({ ...f, assetId: e.target.value }))}
           className={cls}>
           <option value="">Select asset...</option>
-          {assets.map(a => <option key={a.id} value={a.id}>{a.symbol} — {a.name}</option>)}
+          {assets.map(a => <option key={a.id} value={a.id}>{a.symbol} · {a.name}</option>)}
         </select>
       </div>
 
@@ -196,7 +196,7 @@ function CreateModal({ assets, onClose }: {
 
           {createTx.isError && (
             <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-              Failed to save — please try again.
+              Failed to save, please try again.
             </p>
           )}
 
@@ -281,7 +281,7 @@ function EditModal({ tx, assets, onClose }: EditModalProps) {
 
           {updateTx.isError && (
             <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-              Failed to save — please try again.
+              Failed to save, please try again.
             </p>
           )}
 

@@ -339,7 +339,7 @@ export default function TaxReport() {
           {summaries.length > 0 && (
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-800">
-                <h2 className="text-sm font-semibold text-gray-300">Cost Basis Summary — {selectedYear}</h2>
+                <h2 className="text-sm font-semibold text-gray-300">Cost Basis Summary {selectedYear}</h2>
                 <p className="text-xs text-gray-600 mt-0.5">Average cost method · totals are cumulative from all time up to Dec 31, {selectedYear}</p>
               </div>
               <div className="overflow-x-auto">
@@ -412,7 +412,7 @@ export default function TaxReport() {
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
                 <div>
-                  <h2 className="text-sm font-semibold text-gray-300">Transaction Detail — {selectedYear}</h2>
+                  <h2 className="text-sm font-semibold text-gray-300">Transaction Detail {selectedYear}</h2>
                   <p className="text-xs text-gray-600 mt-0.5">Running average cost computed from all-time purchases</p>
                 </div>
                 <span className="text-xs text-gray-600">

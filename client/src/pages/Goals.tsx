@@ -15,21 +15,21 @@ const TABS: { key: GoalType; label: string; Icon: LucideIcon; description: strin
     label: 'Accumulation',
     Icon: Layers,
     description: 'Track how much of a specific asset you\'ve stacked.',
-    detail: 'Set a quantity target — e.g. 1 BTC or 10 ETH — and every buy you log moves the progress bar forward. Great for long-term stacking goals where you care about how many coins you own, not just their current dollar value.',
+    detail: 'Set a quantity target (e.g. 1 BTC or 10 ETH) and every buy you log moves the progress bar forward. Great for long-term stacking goals where you care about how many coins you own, not just their current dollar value.',
   },
   {
     key: 'PORTFOLIO_VALUE',
     label: 'Portfolio Value',
     Icon: DollarSign,
     description: 'Aim for a total portfolio value in USD.',
-    detail: 'Set a dollar milestone — e.g. $50 000 or $1 M — and watch your combined holdings grow toward it as prices rise and you keep buying. Useful for retirement targets, financial independence numbers, or any wealth milestone you\'re working toward.',
+    detail: 'Set a dollar milestone (e.g. $50,000 or $1M) and watch your combined holdings grow toward it as prices rise and you keep buying. Useful for retirement targets, financial independence numbers, or any wealth milestone you\'re working toward.',
   },
   {
     key: 'INVESTMENT_COMMITMENT',
     label: 'Investment Commitment',
     Icon: CalendarCheck,
     description: 'Measure whether you\'re sticking to your DCA discipline.',
-    detail: 'Set a monthly investment amount and track how many months you actually hit it. The bar chart shows each month at a glance — green means you met the target, gray means you fell short. Ideal for building and maintaining consistent investing habits.',
+    detail: 'Set a monthly investment amount and track how many months you actually hit it. The bar chart shows each month at a glance: green means you met the target, gray means you fell short. Ideal for building and maintaining consistent investing habits.',
   },
 ];
 
@@ -301,7 +301,7 @@ function GoalModal({
                 >
                   <option value="">Select asset…</option>
                   {cryptoAssets.map((a) => (
-                    <option key={a.id} value={a.id}>{a.symbol} — {a.name}</option>
+                    <option key={a.id} value={a.id}>{a.symbol} · {a.name}</option>
                   ))}
                 </select>
               </div>
@@ -351,10 +351,10 @@ function GoalModal({
             <label className="block text-xs text-gray-400 mb-1">
               Start date (optional)
               {type === 'INVESTMENT_COMMITMENT' && (
-                <span className="ml-1.5 text-gray-600">— scopes which months count</span>
+                <span className="ml-1.5 text-gray-600">(scopes which months count)</span>
               )}
               {type !== 'INVESTMENT_COMMITMENT' && (
-                <span className="ml-1.5 text-gray-600">— when you started working on this</span>
+                <span className="ml-1.5 text-gray-600">(when you started working on this)</span>
               )}
             </label>
             <input

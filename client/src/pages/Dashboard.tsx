@@ -59,7 +59,7 @@ function ActivePlanCard({ plan, onClick }: { plan: ActivePlanSummary; onClick: (
             </span>
           ))}
         </span>
-        {plan.name && <span className="text-xs text-gray-500">— {plan.name}</span>}
+        {plan.name && <span className="text-xs text-gray-500">({plan.name})</span>}
         <Badge variant="blue">{FREQ_LABELS[plan.frequency] ?? plan.frequency}</Badge>
       </div>
 
