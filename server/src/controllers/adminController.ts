@@ -118,3 +118,24 @@ export async function markFeedbackRead(req: AuthRequest, res: Response, next: Ne
     next(err);
   }
 }
+
+// ─── PATCH /admin/feedback/read-all ──────────────────────────────────────────
+export async function markAllFeedbackRead(_req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    await prisma.feedback.updateMany({ where: { isRead: false }, data: { isRead: true } });
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// ─── DELETE /admin/feedback/:id ───────────────────────────────────────────────
+export async function deleteFeedback(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+    await prisma.feedback.delete({ where: { id: id as string } });
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
