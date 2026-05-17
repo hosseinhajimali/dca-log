@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { FlaskConical } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -248,8 +249,8 @@ export default function Simulator() {
       {/* Header */}
       <div>
         <h1 className="text-xl md:text-2xl font-bold text-gray-100">DCA Simulator</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Backtest any DCA strategy against real historical prices and see what would have happened.
+        <p className="text-sm text-gray-500 mt-1 max-w-2xl leading-relaxed">
+          Pick a crypto asset, set a start date, enter how much you would have bought each time, choose a frequency, then hit Run. You'll see the full backtest: total invested, current value, return, and a chart of how your portfolio would have grown.
         </p>
       </div>
 
@@ -357,10 +358,10 @@ export default function Simulator() {
 
       {/* Empty state */}
       {!activeParams && !isLoading && (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <p className="text-5xl mb-4">📈</p>
-          <p className="text-gray-400 font-medium">Configure your simulation above</p>
-          <p className="text-gray-600 text-sm mt-1">Pick an asset, a start date, and an amount, then hit Run.</p>
+        <div className="flex flex-col items-center justify-center py-20 text-center gap-2">
+          <FlaskConical size={40} strokeWidth={1.5} className="text-gray-700" />
+          <p className="text-gray-400 text-sm font-medium">No simulation run yet.</p>
+          <p className="text-gray-600 text-xs">Fill in the fields above and hit Run.</p>
         </div>
       )}
     </div>
