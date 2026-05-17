@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { FlaskConical, Info } from 'lucide-react';
+import { FlaskConical } from 'lucide-react';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { useSearchParams } from 'react-router-dom';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -250,12 +251,7 @@ export default function Simulator() {
       <div>
         <div className="flex items-center gap-2">
           <h1 className="text-xl md:text-2xl font-bold text-gray-100">DCA Simulator</h1>
-          <div className="relative group">
-            <Info size={16} className="text-gray-600 hover:text-gray-400 cursor-pointer transition-colors mt-0.5" />
-            <div className="absolute left-0 top-full mt-2 w-72 bg-gray-900 border border-gray-700 rounded-xl shadow-xl px-4 py-3 text-xs text-gray-400 leading-relaxed z-50 hidden group-hover:block">
-              Pick a crypto asset, set a start date, enter how much you would have bought each time, choose a frequency, then hit Run. You'll see the full backtest: total invested, current value, return, and a chart of how your portfolio would have grown.
-            </div>
-          </div>
+          <InfoTooltip content="Pick a crypto asset, set a start date, enter how much you would have bought each time, choose a frequency, then hit Run. You'll see the full backtest: total invested, current value, return, and a chart of how your portfolio would have grown." />
         </div>
       </div>
 
