@@ -181,9 +181,9 @@ function CreateModal({ assets, onClose }: {
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="w-full max-w-2xl bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl">
+      <div className="w-full max-w-2xl bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
         {/* header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 shrink-0">
           <h2 className="text-base font-semibold text-gray-100">Add Transaction</h2>
           <button onClick={onClose}
             className="text-gray-500 hover:text-gray-200 text-xl leading-none transition-colors"
@@ -191,7 +191,7 @@ function CreateModal({ assets, onClose }: {
         </div>
 
         {/* body */}
-        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5">
+        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5 overflow-y-auto">
           <TxFields form={form} setForm={setForm} assets={assets} />
 
           {createTx.isError && (
@@ -257,9 +257,9 @@ function EditModal({ tx, assets, onClose }: EditModalProps) {
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="w-full max-w-2xl bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl">
+      <div className="w-full max-w-2xl bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
         {/* header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 shrink-0">
           <div>
             <h2 className="text-base font-semibold text-gray-100">Edit Transaction</h2>
             <p className="text-xs text-gray-500 mt-0.5">
@@ -276,7 +276,7 @@ function EditModal({ tx, assets, onClose }: EditModalProps) {
         </div>
 
         {/* body */}
-        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5">
+        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5 overflow-y-auto">
           <TxFields form={form} setForm={setForm} assets={assets} lockAsset />
 
           {updateTx.isError && (
@@ -314,12 +314,13 @@ interface SortHeaderProps {
   current: TxSortBy;
   order: TxSortOrder;
   onSort: (field: TxSortBy) => void;
+  className?: string;
 }
 
-function SortHeader({ label, field, current, order, onSort }: SortHeaderProps) {
+function SortHeader({ label, field, current, order, onSort, className }: SortHeaderProps) {
   const active = field === current;
   return (
-    <th className="px-5 py-3 text-left">
+    <th className={`px-5 py-3 text-left ${className ?? ''}`}>
       <button
         onClick={() => onSort(field)}
         className={`flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider transition-colors ${
@@ -839,10 +840,10 @@ export default function Transactions() {
 
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-100">Transactions</h1>
-          <p className="text-sm text-gray-500 mt-1">{meta?.total ?? 0} total purchases logged</p>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-100">Transactions</h1>
+          <p className="text-sm text-gray-500 mt-1">{meta?.total ?? 0} total logged</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setShowImport(true)}
             className="flex items-center gap-1.5 text-gray-400 hover:text-gray-200 text-sm font-medium px-4 py-2 border border-gray-700 hover:border-gray-600 rounded-lg transition-colors"
@@ -901,9 +902,9 @@ export default function Transactions() {
                   <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
                   <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asset</th>
                   <SortHeader label="Amount"   field="amountUsd"   current={sortBy} order={sortOrder} onSort={handleSort} />
-                  <SortHeader label="Quantity" field="quantity"     current={sortBy} order={sortOrder} onSort={handleSort} />
-                  <SortHeader label="Price"    field="pricePerUnit" current={sortBy} order={sortOrder} onSort={handleSort} />
-                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Exchange</th>
+                  <SortHeader label="Quantity" field="quantity"     current={sortBy} order={sortOrder} onSort={handleSort} className="hidden md:table-cell" />
+                  <SortHeader label="Price"    field="pricePerUnit" current={sortBy} order={sortOrder} onSort={handleSort} className="hidden lg:table-cell" />
+                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Exchange</th>
                   <th className="px-5 py-3" />
                 </tr>
               </thead>
@@ -920,12 +921,12 @@ export default function Transactions() {
                       <span className="font-bold font-mono"
                         style={tx.asset.color ? { color: tx.asset.color } : { color: '#f3f4f6' }}
                       >{tx.asset.symbol}</span>
-                      <span className="text-gray-500 text-xs ml-2">{tx.asset.name}</span>
+                      <span className="text-gray-500 text-xs ml-2 hidden sm:inline">{tx.asset.name}</span>
                     </td>
                     <td className="px-5 py-3.5 font-mono text-gray-200">{format(tx.amountUsd)}</td>
-                    <td className="px-5 py-3.5 font-mono text-gray-300">{formatQuantity(tx.quantity)}</td>
-                    <td className="px-5 py-3.5 font-mono text-gray-400">{format(tx.pricePerUnit)}</td>
-                    <td className="px-5 py-3.5">
+                    <td className="px-5 py-3.5 font-mono text-gray-300 hidden md:table-cell">{formatQuantity(tx.quantity)}</td>
+                    <td className="px-5 py-3.5 font-mono text-gray-400 hidden lg:table-cell">{format(tx.pricePerUnit)}</td>
+                    <td className="px-5 py-3.5 hidden lg:table-cell">
                       {tx.exchange
                         ? <Badge variant="gray">{tx.exchange}</Badge>
                         : <span className="text-gray-600">—</span>}

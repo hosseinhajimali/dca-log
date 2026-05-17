@@ -152,14 +152,14 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-100">Portfolio Overview</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-100">Portfolio Overview</h1>
         <p className="text-sm text-gray-500 mt-1">
           Last updated {formatDate(data.lastUpdated)} · {activePlans} active plan{activePlans !== 1 ? 's' : ''}
         </p>
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard label="Total Invested" value={format(portfolio.totalInvested)} />
         <StatCard label="Current Value"  value={format(portfolio.totalCurrentValue)} />
         <StatCard
@@ -177,7 +177,7 @@ export default function Dashboard() {
           <div className="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-gray-300">Active Plans</h2>
             <button
-              onClick={() => navigate('/plans')}
+              onClick={() => navigate('/app/plans')}
               className="text-xs text-gray-500 hover:text-brand-400 transition-colors"
             >
               Manage →
@@ -188,7 +188,7 @@ export default function Dashboard() {
               <ActivePlanCard
                 key={plan.id}
                 plan={plan}
-                onClick={() => navigate(`/plans/${plan.id}`)}
+                onClick={() => navigate(`/app/plans/${plan.id}`)}
               />
             ))}
           </div>

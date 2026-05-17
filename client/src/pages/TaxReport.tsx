@@ -227,7 +227,7 @@ export default function TaxReport() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-100">Tax Report</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-100">Tax Report</h1>
         <p className="text-sm text-gray-500 mt-1">
           Average cost (WAC) method · purchases only · no disposal events tracked
         </p>

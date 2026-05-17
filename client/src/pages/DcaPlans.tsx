@@ -1211,9 +1211,9 @@ export default function DcaPlans() {
       )}
 
       {/* header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-100">DCA Plans</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-100">DCA Plans</h1>
           <p className="text-sm text-gray-500 mt-1">
             {plans.length} plan{plans.length !== 1 ? 's' : ''} · {plans.filter(p => p.isActive).length} active
           </p>
@@ -1238,67 +1238,80 @@ export default function DcaPlans() {
           {plans.map(plan => (
             <div key={plan.id}
               className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  {/* title */}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {/* asset symbols with allocation pct */}
-                    <span className="flex items-center gap-1.5 font-bold font-mono">
-                      {plan.allocations.map((alloc, i) => (
-                        <span key={alloc.assetId} className="flex items-center gap-1">
-                          {i > 0 && <span className="text-gray-600 font-normal text-xs">·</span>}
-                          <span style={alloc.asset.color ? { color: alloc.asset.color } : { color: '#f3f4f6' }}>
-                            {alloc.asset.symbol}
+              <div className="flex flex-col gap-4">
+                {/* content */}
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    {/* title */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="flex items-center gap-1.5 font-bold font-mono">
+                        {plan.allocations.map((alloc, i) => (
+                          <span key={alloc.assetId} className="flex items-center gap-1">
+                            {i > 0 && <span className="text-gray-600 font-normal text-xs">·</span>}
+                            <span style={alloc.asset.color ? { color: alloc.asset.color } : { color: '#f3f4f6' }}>
+                              {alloc.asset.symbol}
+                            </span>
+                            {plan.allocations.length > 1 && (
+                              <span className="text-gray-500 text-xs font-normal">{alloc.allocationPct}%</span>
+                            )}
                           </span>
-                          {plan.allocations.length > 1 && (
-                            <span className="text-gray-500 text-xs font-normal">{alloc.allocationPct}%</span>
-                          )}
-                        </span>
-                      ))}
-                    </span>
-                    {plan.name && <span className="text-gray-400 text-sm">— {plan.name}</span>}
-                    <Badge variant={plan.isActive ? 'green' : 'gray'}>
-                      {plan.isActive ? 'Active' : 'Paused'}
-                    </Badge>
-                    <Badge variant="blue">{FREQ_LABELS[plan.frequency]}</Badge>
-                    {plan.frequency === 'CUSTOM' && plan.intervalDays && (
-                      <Badge variant="gray">every {plan.intervalDays}d</Badge>
-                    )}
-                    {plan.perAssetRules && plan.buyingRules.length > 0 && (
-                      <Badge variant="gray">per-asset</Badge>
-                    )}
+                        ))}
+                      </span>
+                      {plan.name && <span className="text-gray-400 text-sm">— {plan.name}</span>}
+                      <Badge variant={plan.isActive ? 'green' : 'gray'}>
+                        {plan.isActive ? 'Active' : 'Paused'}
+                      </Badge>
+                      <Badge variant="blue">{FREQ_LABELS[plan.frequency]}</Badge>
+                      {plan.frequency === 'CUSTOM' && plan.intervalDays && (
+                        <Badge variant="gray">every {plan.intervalDays}d</Badge>
+                      )}
+                      {plan.perAssetRules && plan.buyingRules.length > 0 && (
+                        <Badge variant="gray">per-asset</Badge>
+                      )}
+                    </div>
+
+                    {/* meta */}
+                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-400 flex-wrap">
+                      <span className="font-mono font-semibold text-gray-200">{format(plan.amountUsd)}</span>
+                      <span>Started {formatDate(plan.startDate)}</span>
+                      {plan.endDate && (
+                        <span>Ends <span className="text-gray-300">{formatDate(plan.endDate)}</span></span>
+                      )}
+                      {plan.nextPurchaseDate && (
+                        <span>Next: <span className="text-gray-300">{formatDate(plan.nextPurchaseDate)}</span></span>
+                      )}
+                      {plan.notes && (
+                        <span className="text-gray-600 italic truncate max-w-xs">{plan.notes}</span>
+                      )}
+                    </div>
+
+                    {/* suggested amount */}
+                    <div className="mt-3">
+                      <SuggestedBadge plan={plan} />
+                    </div>
+
+                    {/* inline rules manager */}
+                    <PlanRulesPanel plan={plan} />
+                    <SellRulesPanel plan={plan} pnlPercent={getPlanPnl(plan)} />
                   </div>
 
-                  {/* meta */}
-                  <div className="flex items-center gap-4 mt-2 text-sm text-gray-400 flex-wrap">
-                    <span className="font-mono font-semibold text-gray-200">{format(plan.amountUsd)}</span>
-                    <span>Started {formatDate(plan.startDate)}</span>
-                    {plan.endDate && (
-                      <span>Ends <span className="text-gray-300">{formatDate(plan.endDate)}</span></span>
-                    )}
-                    {plan.nextPurchaseDate && (
-                      <span>Next: <span className="text-gray-300">{formatDate(plan.nextPurchaseDate)}</span></span>
-                    )}
-                    {plan.notes && (
-                      <span className="text-gray-600 italic truncate max-w-xs">{plan.notes}</span>
-                    )}
+                  {/* desktop-only 3-dot menu (top-right corner) */}
+                  <div className="hidden md:block shrink-0">
+                    <PlanMenu
+                      plan={plan}
+                      onEdit={() => setEditingPlan(plan)}
+                      onDuplicate={() => openDuplicate(plan)}
+                      onToggleActive={() => updatePlan.mutate({ id: plan.id, data: { isActive: !plan.isActive } })}
+                      onDelete={() => deletePlan.mutate(plan.id)}
+                    />
                   </div>
-
-                  {/* suggested amount */}
-                  <div className="mt-3">
-                    <SuggestedBadge plan={plan} />
-                  </div>
-
-                  {/* inline rules manager */}
-                  <PlanRulesPanel plan={plan} />
-                  <SellRulesPanel plan={plan} pnlPercent={getPlanPnl(plan)} />
                 </div>
 
-                {/* actions */}
-                <div className="flex items-center gap-2 shrink-0">
+                {/* actions row — bottom of card, full-width on mobile */}
+                <div className="flex items-center gap-2 pt-3 border-t border-gray-800">
                   <button
-                    onClick={() => navigate(`/plans/${plan.id}`)}
-                    className="text-xs text-gray-500 hover:text-brand-400 border border-gray-700 hover:border-brand-500/50 px-3 py-1.5 rounded-lg transition-colors"
+                    onClick={() => navigate(`/app/plans/${plan.id}`)}
+                    className="flex-1 md:flex-none text-xs text-gray-500 hover:text-brand-400 border border-gray-700 hover:border-brand-500/50 px-3 py-2 md:py-1.5 rounded-lg transition-colors text-center"
                   >
                     View
                   </button>
@@ -1312,20 +1325,23 @@ export default function DcaPlans() {
                         amountUsd: String(Math.round(plan.amountUsd * (topAlloc.allocationPct / 100))),
                         frequency: plan.frequency,
                       });
-                      navigate(`/simulator?${params.toString()}`);
+                      navigate(`/app/simulator?${params.toString()}`);
                     }}
-                    className="text-xs text-gray-500 hover:text-brand-400 border border-gray-700 hover:border-brand-500/50 px-3 py-1.5 rounded-lg transition-colors"
+                    className="flex-1 md:flex-none text-xs text-gray-500 hover:text-brand-400 border border-gray-700 hover:border-brand-500/50 px-3 py-2 md:py-1.5 rounded-lg transition-colors text-center"
                     title="Simulate this plan"
                   >
                     ⏱ Simulate
                   </button>
-                  <PlanMenu
-                    plan={plan}
-                    onEdit={() => setEditingPlan(plan)}
-                    onDuplicate={() => openDuplicate(plan)}
-                    onToggleActive={() => updatePlan.mutate({ id: plan.id, data: { isActive: !plan.isActive } })}
-                    onDelete={() => deletePlan.mutate(plan.id)}
-                  />
+                  {/* 3-dot menu moves here on mobile */}
+                  <div className="md:hidden shrink-0">
+                    <PlanMenu
+                      plan={plan}
+                      onEdit={() => setEditingPlan(plan)}
+                      onDuplicate={() => openDuplicate(plan)}
+                      onToggleActive={() => updatePlan.mutate({ id: plan.id, data: { isActive: !plan.isActive } })}
+                      onDelete={() => deletePlan.mutate(plan.id)}
+                    />
+                  </div>
                 </div>
               </div>
             </div>

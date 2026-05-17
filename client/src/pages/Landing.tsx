@@ -87,12 +87,12 @@ export default function Landing() {
       </header>
 
       {/* ── Hero ── */}
-      <section className="max-w-6xl mx-auto px-6 pt-24 pb-20 text-center">
+      <section className="max-w-6xl mx-auto px-6 pt-14 sm:pt-24 pb-14 sm:pb-20 text-center">
         <div className="inline-flex items-center gap-2 bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-medium px-3 py-1.5 rounded-full mb-8">
           <ShieldCheck size={12} />
           Built for long-term crypto investors
         </div>
-        <h1 className="text-5xl sm:text-6xl font-bold text-gray-50 tracking-tight leading-tight mb-6">
+        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-gray-50 tracking-tight leading-tight mb-6">
           Invest consistently.<br />
           <span className="text-brand-400">Profit systematically.</span>
         </h1>
