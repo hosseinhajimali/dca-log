@@ -23,6 +23,23 @@ export async function createFeedback(req: AuthRequest, res: Response, next: Next
       },
     });
 
+    // Notify all admin users
+    const admins = await prisma.user.findMany({ where: { isAdmin: true }, select: { id: true } });
+    if (admins.length > 0) {
+      const categoryLabel = body.data.category.replace(/_/g, ' ').toLowerCase().replace(/^\w/, c => c.toUpperCase());
+      await prisma.notification.createMany({
+        data: admins.map(admin => ({
+          userId:  admin.id,
+          type:    'NEW_FEEDBACK' as const,
+          title:   `New ${categoryLabel}`,
+          message: body.data.message.length > 100
+            ? body.data.message.slice(0, 100) + '…'
+            : body.data.message,
+          metadata: { feedbackId: feedback.id, category: body.data.category },
+        })),
+      });
+    }
+
     res.status(201).json({ success: true, data: feedback });
   } catch (err) {
     next(err);
