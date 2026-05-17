@@ -3,11 +3,12 @@ import { useStore } from '@/store/useStore';
 import { Navigate, useSearchParams } from 'react-router-dom';
 import {
   useAdminUsers, useAdminStats, useAdminFeedback,
-  useDeleteUser, useMarkFeedbackRead,
+  useDeleteUser, useMarkFeedbackRead, useMarkAllFeedbackRead, useDeleteFeedback,
 } from '@/hooks/useAdmin';
 import { useCurrencyFormatter } from '@/lib/format';
 import { Avatar } from '@/components/ui/Avatar';
 import { toast } from '@/lib/toast';
+import { Trash2 } from 'lucide-react';
 
 const CATEGORIES = [
   { value: '', label: 'All' },
@@ -120,30 +121,86 @@ function UsersTab() {
   );
 }
 
+function ConfirmModal({ message, onConfirm, onCancel, loading }: {
+  message: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  loading?: boolean;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
+      <div className="relative bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+        <p className="text-sm text-gray-300 leading-relaxed">{message}</p>
+        <div className="flex items-center justify-end gap-2">
+          <button
+            onClick={onCancel}
+            className="text-xs px-4 py-2 rounded-lg border border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-500 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="text-xs px-4 py-2 rounded-lg bg-red-600/20 border border-red-600/40 text-red-400 hover:bg-red-600/30 hover:border-red-500/60 transition-colors disabled:opacity-50"
+          >
+            {loading ? 'Deleting…' : 'Delete'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function FeedbackTab() {
   const [category, setCategory] = useState('');
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const { data: feedbacks = [], isLoading } = useAdminFeedback(category || undefined);
   const markRead = useMarkFeedbackRead();
+  const markAllRead = useMarkAllFeedbackRead();
+  const deleteFeedback = useDeleteFeedback();
+
+  const hasUnread = feedbacks.some(fb => !fb.isRead);
 
   if (isLoading) return <div className="text-gray-500 text-sm animate-pulse">Loading feedback…</div>;
 
   return (
     <div className="space-y-4">
-      {/* category filter */}
-      <div className="flex items-center gap-2 flex-wrap">
-        {CATEGORIES.map(c => (
+      {deleteId && (
+        <ConfirmModal
+          message="Delete this feedback? This cannot be undone."
+          loading={deleteFeedback.isPending}
+          onConfirm={() => deleteFeedback.mutate(deleteId, { onSuccess: () => setDeleteId(null) })}
+          onCancel={() => setDeleteId(null)}
+        />
+      )}
+
+      {/* category filter + mark all read */}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
+          {CATEGORIES.map(c => (
+            <button
+              key={c.value}
+              onClick={() => setCategory(c.value)}
+              className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                category === c.value
+                  ? 'border-brand-500/50 text-brand-400 bg-brand-500/10'
+                  : 'border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-300'
+              }`}
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
+        {hasUnread && (
           <button
-            key={c.value}
-            onClick={() => setCategory(c.value)}
-            className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
-              category === c.value
-                ? 'border-brand-500/50 text-brand-400 bg-brand-500/10'
-                : 'border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-300'
-            }`}
+            onClick={() => markAllRead.mutate()}
+            disabled={markAllRead.isPending}
+            className="text-xs text-gray-500 hover:text-gray-300 border border-gray-800 hover:border-gray-600 px-3 py-1.5 rounded-lg transition-colors shrink-0 disabled:opacity-50"
           >
-            {c.label}
+            Mark all read
           </button>
-        ))}
+        )}
       </div>
 
       <div className="space-y-2">
@@ -163,14 +220,23 @@ function FeedbackTab() {
                 </div>
                 <p className="text-sm text-gray-300 leading-relaxed">{fb.message}</p>
               </div>
-              {!fb.isRead && (
+              <div className="flex items-center gap-1.5 shrink-0">
+                {!fb.isRead && (
+                  <button
+                    onClick={() => markRead.mutate(fb.id)}
+                    className="text-xs text-gray-600 hover:text-gray-300 border border-gray-800 hover:border-gray-600 px-2.5 py-1 rounded-lg transition-colors"
+                  >
+                    Mark read
+                  </button>
+                )}
                 <button
-                  onClick={() => markRead.mutate(fb.id)}
-                  className="shrink-0 text-xs text-gray-600 hover:text-gray-300 border border-gray-800 hover:border-gray-600 px-2.5 py-1 rounded-lg transition-colors"
+                  onClick={() => setDeleteId(fb.id)}
+                  className="flex items-center justify-center w-7 h-7 rounded-lg text-gray-700 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  title="Delete"
                 >
-                  Mark read
+                  <Trash2 size={13} />
                 </button>
-              )}
+              </div>
             </div>
           </div>
         ))}
