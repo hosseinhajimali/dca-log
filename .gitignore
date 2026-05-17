@@ -44,3 +44,7 @@ coverage/
 
 # Vite cache (usually inside node_modules/.vite, but just in case)
 .vite/
+
+# Next.js
+.next/
+out/
