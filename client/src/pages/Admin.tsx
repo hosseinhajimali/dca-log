@@ -268,7 +268,7 @@ export default function Admin() {
       </div>
 
       {/* tabs */}
-      <div className="flex items-center gap-1 border-b border-gray-800 pb-0 overflow-x-auto">
+      <div className="flex items-center gap-1 border-b border-gray-800 pb-0 overflow-x-auto overflow-y-hidden">
         {tabs.map(t => (
           <button
             key={t.id}
