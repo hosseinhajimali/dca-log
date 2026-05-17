@@ -1,6 +1,6 @@
-import { Outlet, NavLink } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { Menu } from 'lucide-react';
+import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { useEffect, useState, useRef } from 'react';
+import { Menu, UserCircle, LogOut } from 'lucide-react';
 import { Sidebar } from './Sidebar';
 import { NotificationBell } from './NotificationBell';
 import { Toaster } from '@/components/ui/Toaster';
@@ -13,9 +13,22 @@ import { useTheme } from '@/hooks/useTheme';
 export function AppLayout() {
   const setExchangeRates = useStore((s) => s.setExchangeRates);
   const setUser = useStore((s) => s.setUser);
-  const user = useStore((s) => s.user);
+  const user   = useStore((s) => s.user);
+  const logout = useStore((s) => s.logout);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  useTheme(); // initialize theme from store on mount
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  useTheme();
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handle(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    }
+    document.addEventListener('mousedown', handle);
+    return () => document.removeEventListener('mousedown', handle);
+  }, [menuOpen]);
 
   // Refresh user profile on mount so isAdmin and other fields are always current
   useEffect(() => {
@@ -59,11 +72,38 @@ export function AppLayout() {
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <NotificationBell />
-            <div className="flex items-center gap-2 ms-3">
+            <div ref={menuRef} className="relative flex items-center gap-2 ms-3">
               <span className="text-sm font-medium text-gray-300 hidden sm:block">{user?.name || 'You'}</span>
-              <NavLink to="/app/settings/profile" className="flex items-center">
+              <button
+                onClick={() => setMenuOpen(o => !o)}
+                className="flex items-center"
+                aria-label="Account menu"
+              >
                 <Avatar id={user?.avatar} size={28} className="hover:ring-2 hover:ring-brand-500/50 hover:ring-offset-1 hover:ring-offset-gray-900 transition-all" />
-              </NavLink>
+              </button>
+
+              {menuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-52 bg-gray-900 border border-gray-700 rounded-xl shadow-xl overflow-hidden z-50">
+                  <div className="px-4 py-3 border-b border-gray-800">
+                    <p className="text-xs font-medium text-gray-300 truncate">{user?.name}</p>
+                    <p className="text-xs text-gray-500 truncate mt-0.5">{user?.email}</p>
+                  </div>
+                  <button
+                    onClick={() => { navigate('/app/settings/profile'); setMenuOpen(false); }}
+                    className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-400 hover:text-gray-100 hover:bg-gray-800 transition-colors"
+                  >
+                    <UserCircle size={14} />
+                    Profile settings
+                  </button>
+                  <button
+                    onClick={() => { logout(); setMenuOpen(false); }}
+                    className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-400 hover:text-red-400 hover:bg-gray-800 transition-colors border-t border-gray-800"
+                  >
+                    <LogOut size={14} />
+                    Sign out
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>

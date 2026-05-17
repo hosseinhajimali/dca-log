@@ -27,8 +27,8 @@ export default function SettingsLayout() {
       </div>
 
       <div className="flex border-b border-gray-800 overflow-x-auto">
-        <Tab to="/settings" end label="General" />
-        <Tab to="/settings/profile" label="Profile" />
+        <Tab to="/app/settings" end label="General" />
+        <Tab to="/app/settings/profile" label="Profile" />
       </div>
 
       <Outlet />
