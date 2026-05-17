@@ -56,12 +56,16 @@ export function AppLayout() {
           {/* Spacer */}
           <div className="flex-1" />
 
-          <ThemeToggle />
-          <NotificationBell />
-          <span className="text-sm font-medium text-gray-300 hidden sm:block">{user?.name || 'You'}</span>
-          <NavLink to="/app/settings/profile" className="flex items-center">
-            <Avatar id={user?.avatar} size={28} className="hover:ring-2 hover:ring-brand-500/50 hover:ring-offset-1 hover:ring-offset-gray-900 transition-all" />
-          </NavLink>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <NotificationBell />
+            <div className="flex items-center gap-2 ms-3">
+              <span className="text-sm font-medium text-gray-300 hidden sm:block">{user?.name || 'You'}</span>
+              <NavLink to="/app/settings/profile" className="flex items-center">
+                <Avatar id={user?.avatar} size={28} className="hover:ring-2 hover:ring-brand-500/50 hover:ring-offset-1 hover:ring-offset-gray-900 transition-all" />
+              </NavLink>
+            </div>
+          </div>
         </header>
 
         <main className="flex-1">
