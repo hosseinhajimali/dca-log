@@ -25,7 +25,7 @@ const NAV: { to: string; label: string; Icon: LucideIcon; exact?: boolean }[] = 
 
 function NavItem({ to, label, Icon, exact, onClick }: { to: string; label: string; Icon: LucideIcon; exact?: boolean; onClick: () => void }) {
   const pathname = usePathname();
-  const isActive = exact ? pathname === to : pathname.startsWith(to);
+  const isActive = exact ? pathname === to : (pathname?.startsWith(to) ?? false);
   return (
     <Link
       href={to}

@@ -19,7 +19,7 @@ export function PublicNavbar() {
   const logout = useStore((s) => s.logout);
   const pathname = usePathname();
   const router = useRouter();
-  const isHome = pathname === '/';
+  const isHome = pathname === null || pathname === '/';
 
   const [menuOpen, setMenuOpen]           = useState(false);
   const [mobileOpen, setMobileOpen]       = useState(false);
@@ -64,7 +64,7 @@ export function PublicNavbar() {
     return () => document.removeEventListener('mousedown', handle);
   }, [menuOpen]);
 
-  const isBlogActive = pathname.startsWith('/blog');
+  const isBlogActive = pathname?.startsWith('/blog') ?? false;
 
   const navLinkCls = (active: boolean) =>
     `px-3 py-1.5 rounded-lg transition-colors text-sm ${
