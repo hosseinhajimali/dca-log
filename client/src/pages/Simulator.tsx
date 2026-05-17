@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+'use client';
+
+import { useState, useEffect, Suspense } from 'react';
 import { FlaskConical } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'next/navigation';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend,
@@ -194,8 +196,8 @@ function ResultsSection({ data }: { data: SimulationResult }) {
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
-export default function Simulator() {
-  const [searchParams] = useSearchParams();
+function SimulatorInner() {
+  const searchParams = useSearchParams();
   const { data: assets = [] } = useAssets();
   const { format } = useCurrencyFormatter();
 
@@ -366,5 +368,13 @@ export default function Simulator() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function Simulator() {
+  return (
+    <Suspense>
+      <SimulatorInner />
+    </Suspense>
   );
 }

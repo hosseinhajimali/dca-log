@@ -1,6 +1,8 @@
-import { useState } from 'react';
+'use client';
+
+import { useState, Suspense } from 'react';
 import { useStore } from '@/store/useStore';
-import { Navigate, useSearchParams } from 'react-router-dom';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   useAdminUsers, useAdminStats, useAdminFeedback,
   useDeleteUser, useMarkFeedbackRead, useMarkAllFeedbackRead, useDeleteFeedback,
@@ -246,13 +248,14 @@ function FeedbackTab() {
   );
 }
 
-export default function Admin() {
+function AdminInner() {
   const { user } = useStore();
-  const [searchParams] = useSearchParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const initialTab = (searchParams.get('tab') as Tab) ?? 'stats';
   const [tab, setTab] = useState<Tab>(initialTab);
 
-  if (!user?.isAdmin) return <Navigate to="/" replace />;
+  if (!user?.isAdmin) { router.replace('/'); return null; }
 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'stats',    label: 'Stats' },
@@ -290,5 +293,13 @@ export default function Admin() {
         {tab === 'feedback' && <FeedbackTab />}
       </div>
     </div>
+  );
+}
+
+export default function Admin() {
+  return (
+    <Suspense>
+      <AdminInner />
+    </Suspense>
   );
 }

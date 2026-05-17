@@ -1,4 +1,7 @@
-import { useParams, Link, Navigate } from 'react-router-dom';
+'use client';
+
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { ArrowLeft, Clock, Tag, ArrowRight } from 'lucide-react';
 import { getBlogPost, BLOG_POSTS } from '@/data/blogPosts';
 import { PublicNavbar } from '@/components/layout/PublicNavbar';
@@ -15,10 +18,11 @@ function formatDate(iso: string) {
 }
 
 export default function BlogPost() {
-  const { slug } = useParams<{ slug: string }>();
+  const { slug } = useParams() as { slug: string };
+  const router = useRouter();
   const post = getBlogPost(slug ?? '');
 
-  if (!post) return <Navigate to="/blog" replace />;
+  if (!post) { router.replace('/blog'); return null; }
 
   const others = BLOG_POSTS.filter(p => p.slug !== slug).slice(0, 2);
 
@@ -27,15 +31,12 @@ export default function BlogPost() {
 
       <PublicNavbar />
 
-      {/* Article */}
       <article className="max-w-2xl mx-auto px-6 pt-12 pb-20">
 
-        {/* Back */}
-        <Link to="/blog" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-300 transition-colors mb-10">
+        <Link href="/blog" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-300 transition-colors mb-10">
           <ArrowLeft size={14} /> Back to blog
         </Link>
 
-        {/* Meta */}
         <div className="flex items-center gap-3 flex-wrap mb-6">
           <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border ${CATEGORY_COLORS[post.category] ?? 'text-gray-400 bg-gray-800 border-gray-700'}`}>
             <Tag size={10} />
@@ -47,13 +48,10 @@ export default function BlogPost() {
           <span className="text-xs text-gray-600">{formatDate(post.date)}</span>
         </div>
 
-        {/* Title */}
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-50 mb-6 leading-snug">{post.title}</h1>
 
-        {/* Excerpt */}
         <p className="text-gray-400 text-lg leading-relaxed mb-10 border-l-2 border-brand-500/40 pl-4">{post.excerpt}</p>
 
-        {/* Content */}
         <div className="space-y-8">
           {post.sections.map((section, i) => (
             <div key={i}>
@@ -65,12 +63,11 @@ export default function BlogPost() {
           ))}
         </div>
 
-        {/* CTA */}
         <div className="mt-14 bg-brand-500/10 border border-brand-500/20 rounded-2xl px-6 py-8 text-center">
           <h3 className="text-base font-semibold text-gray-100 mb-2">Track your DCA strategy with DCAlog</h3>
           <p className="text-sm text-gray-500 mb-5">Free to use. Set up your first plan in minutes.</p>
           <Link
-            to="/login"
+            href="/login"
             className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"
           >
             Get started for free <ArrowRight size={14} />
@@ -78,7 +75,6 @@ export default function BlogPost() {
         </div>
       </article>
 
-      {/* Related posts */}
       {others.length > 0 && (
         <section className="max-w-2xl mx-auto px-6 pb-20">
           <h2 className="text-base font-semibold text-gray-300 mb-5">More articles</h2>
@@ -86,7 +82,7 @@ export default function BlogPost() {
             {others.map(p => (
               <Link
                 key={p.slug}
-                to={`/blog/${p.slug}`}
+                href={`/blog/${p.slug}`}
                 className="group flex items-start gap-4 bg-gray-900 border border-gray-800 hover:border-gray-700 rounded-xl p-4 transition-colors"
               >
                 <div className="flex-1 min-w-0">
@@ -100,7 +96,6 @@ export default function BlogPost() {
         </section>
       )}
 
-      {/* Footer */}
       <footer className="border-t border-gray-800">
         <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <a href="/"><img src="/logo-horizontal.svg" alt="DCAlog" className="h-7 w-auto opacity-60 hover:opacity-100 transition-opacity" /></a>

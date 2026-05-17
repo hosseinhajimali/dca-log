@@ -1,8 +1,10 @@
+'use client';
+
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useDashboard } from '@/hooks/useDashboard';
 import { StatCard } from '@/components/ui/StatCard';
 import { Badge } from '@/components/ui/Badge';
@@ -112,7 +114,7 @@ function ActivePlanCard({ plan, onClick }: { plan: ActivePlanSummary; onClick: (
 export default function Dashboard() {
   const { data, isLoading, error } = useDashboard();
   const { format, formatPct } = useCurrencyFormatter();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   if (isLoading) {
     return (
@@ -177,7 +179,7 @@ export default function Dashboard() {
           <div className="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-gray-300">Active Plans</h2>
             <button
-              onClick={() => navigate('/app/plans')}
+              onClick={() => router.push('/app/plans')}
               className="text-xs text-gray-500 hover:text-brand-400 transition-colors"
             >
               Manage →
@@ -188,7 +190,7 @@ export default function Dashboard() {
               <ActivePlanCard
                 key={plan.id}
                 plan={plan}
-                onClick={() => navigate(`/app/plans/${plan.id}`)}
+                onClick={() => router.push(`/app/plans/${plan.id}`)}
               />
             ))}
           </div>

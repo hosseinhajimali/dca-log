@@ -1,5 +1,7 @@
+'use client';
+
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { Bell } from 'lucide-react';
 import {
   useNotifications, useMarkAsRead, useMarkAllAsRead,
@@ -20,7 +22,7 @@ export function NotificationBell() {
   const markAll = useMarkAllAsRead();
   const deleteOne = useDeleteNotification();
   const clearAll = useClearAllNotifications();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -79,10 +81,10 @@ export function NotificationBell() {
                   onClick={() => {
                     if (!n.isRead) markAsRead.mutate(n.id);
                     if (n.metadata?.planId) {
-                      navigate(`/app/plans/${n.metadata.planId}`);
+                      router.push(`/app/plans/${n.metadata.planId}`);
                       setOpen(false);
                     } else if (n.type === 'NEW_FEEDBACK') {
-                      navigate('/app/admin?tab=feedback');
+                      router.push('/app/admin?tab=feedback');
                       setOpen(false);
                     }
                   }}
