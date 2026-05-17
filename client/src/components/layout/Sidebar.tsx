@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, RefreshCw, ArrowLeftRight, FlaskConical,
@@ -20,36 +20,6 @@ const NAV: { to: string; label: string; Icon: LucideIcon }[] = [
   { to: '/app/help',         label: 'Help',         Icon: HelpCircle },
 ];
 
-function LogoutConfirmModal({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-      onClick={e => { if (e.target === e.currentTarget) onCancel(); }}
-    >
-      <div className="w-full max-w-xs bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-6 space-y-4">
-        <div className="flex flex-col items-center text-center gap-2">
-          <span className="text-3xl">⏻</span>
-          <h2 className="text-base font-semibold text-gray-100">Sign out?</h2>
-          <p className="text-sm text-gray-500">You'll need to sign in again to access your account.</p>
-        </div>
-        <div className="flex gap-3 pt-1">
-          <button
-            onClick={onConfirm}
-            className="flex-1 bg-red-600 hover:bg-red-500 text-white text-sm font-medium py-2.5 rounded-lg transition-colors"
-          >
-            Sign out
-          </button>
-          <button
-            onClick={onCancel}
-            className="flex-1 text-gray-400 hover:text-gray-200 text-sm border border-gray-700 py-2.5 rounded-lg transition-colors"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 interface SidebarProps {
   isOpen: boolean;
@@ -57,9 +27,8 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const { user, logout } = useStore();
+  const { user } = useStore();
   const { theme } = useTheme();
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Close sidebar on Escape key
   useEffect(() => {
@@ -81,13 +50,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   return (
     <>
-      {showLogoutConfirm && (
-        <LogoutConfirmModal
-          onConfirm={logout}
-          onCancel={() => setShowLogoutConfirm(false)}
-        />
-      )}
-
       {/* Mobile backdrop */}
       {isOpen && (
         <div
@@ -106,7 +68,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       >
         {/* Logo */}
         <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
-          <img src={logoSrc} alt="DCAlog" className="h-9 w-auto shrink-0" />
+          <a href="/"><img src={logoSrc} alt="DCAlog" className="h-9 w-auto shrink-0" /></a>
           {/* Close button — mobile only */}
           <button
             onClick={onClose}
@@ -155,21 +117,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           )}
         </nav>
 
-        {/* Logout */}
+        {/* Footer */}
         <div className="px-4 py-4 border-t border-gray-800">
-          <button
-            onClick={() => setShowLogoutConfirm(true)}
-            className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              className="w-4 h-4 shrink-0">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-            Sign out
-          </button>
+          <p className="text-xs text-gray-700 text-center">© {new Date().getFullYear()} DCAlog</p>
         </div>
       </aside>
     </>
