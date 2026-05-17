@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { TrendingUp } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend, ReferenceLine,
@@ -603,7 +604,7 @@ export default function ProjectionCalculator() {
       {/* Empty state */}
       {!canCompute && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <p className="text-5xl mb-4">🔮</p>
+          <TrendingUp size={48} strokeWidth={1.5} className="text-gray-600 mb-4" />
           <p className="text-gray-400 font-medium">Configure your inputs above</p>
           <p className="text-gray-600 text-sm mt-1">
             Pick an asset, set a buy amount, then choose a goal or time horizon.
