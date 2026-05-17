@@ -53,7 +53,7 @@ export default function Login() {
     <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="flex justify-center mb-8">
-          <img src="/logo-horizontal.svg" alt="DCAlog" className="h-10 w-auto" />
+          <a href="/"><img src="/logo-horizontal.svg" alt="DCAlog" className="h-10 w-auto" /></a>
         </div>
 
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl space-y-5">
