@@ -163,19 +163,19 @@ export default function PlanDetail() {
       {/* Back + header */}
       <div>
         <button
-          onClick={() => navigate('/plans')}
+          onClick={() => navigate('/app/plans')}
           className="text-xs text-gray-500 hover:text-gray-300 transition-colors mb-3 flex items-center gap-1"
         >
           ← Back to plans
         </button>
 
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-2xl font-bold text-gray-100">
+              <h1 className="text-xl md:text-2xl font-bold text-gray-100">
                 {plan.allocations.map((a) => a.asset.symbol).join(' · ')}
               </h1>
-              {plan.name && <span className="text-gray-400">— {plan.name}</span>}
+              {plan.name && <span className="text-gray-400">({plan.name})</span>}
               <Badge variant={plan.isActive ? 'green' : 'gray'}>
                 {plan.isActive ? 'Active' : 'Paused'}
               </Badge>
@@ -200,7 +200,7 @@ export default function PlanDetail() {
             });
             return (
               <button
-                onClick={() => navigate(`/simulator?${params.toString()}`)}
+                onClick={() => navigate(`/app/simulator?${params.toString()}`)}
                 className="shrink-0 flex items-center gap-1.5 text-xs text-brand-400 hover:text-brand-300 border border-brand-500/30 hover:border-brand-500/60 px-3 py-2 rounded-lg transition-colors"
               >
                 <span>⏱</span> Simulate Plan

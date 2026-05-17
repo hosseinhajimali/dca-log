@@ -29,7 +29,7 @@ const FEATURES = [
   {
     Icon: BarChart2,
     title: 'Tax Report',
-    desc: 'Get a clear summary of your realised gains and losses grouped by asset and tax year — ready to hand to your accountant.',
+    desc: 'Get a clear summary of your realised gains and losses grouped by asset and tax year, ready to hand to your accountant.',
   },
   {
     Icon: Bell,
@@ -87,18 +87,18 @@ export default function Landing() {
       </header>
 
       {/* ── Hero ── */}
-      <section className="max-w-6xl mx-auto px-6 pt-24 pb-20 text-center">
+      <section className="max-w-6xl mx-auto px-6 pt-14 sm:pt-24 pb-14 sm:pb-20 text-center">
         <div className="inline-flex items-center gap-2 bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-medium px-3 py-1.5 rounded-full mb-8">
           <ShieldCheck size={12} />
           Built for long-term crypto investors
         </div>
-        <h1 className="text-5xl sm:text-6xl font-bold text-gray-50 tracking-tight leading-tight mb-6">
+        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-gray-50 tracking-tight leading-tight mb-6">
           Invest consistently.<br />
           <span className="text-brand-400">Profit systematically.</span>
         </h1>
         <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
           DCAlog tracks your dollar-cost averaging strategy, monitors buying opportunities based on market conditions,
-          and tells you when it's time to take profit — all in one place.
+          and tells you when it's time to take profit, all in one place.
         </p>
         <div className="flex items-center justify-center gap-4 flex-wrap">
           <Link
@@ -171,7 +171,7 @@ export default function Landing() {
             to="/login"
             className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white font-semibold px-6 py-3 rounded-xl transition-colors text-sm"
           >
-            Get started — it's free
+            Get started, it's free
             <ArrowRight size={15} />
           </Link>
         </div>

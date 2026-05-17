@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { TrendingUp, Info } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend, ReferenceLine,
@@ -134,7 +135,7 @@ function ScenarioInput({
   onChange: (v: number) => void;
 }) {
   return (
-    <div className="flex items-center gap-3 p-3 bg-gray-800/50 border border-gray-800 rounded-xl">
+    <div className="flex items-center gap-2 p-3 bg-gray-800/50 border border-gray-800 rounded-xl">
       <span className="w-2 h-2 rounded-full shrink-0" style={{ background: scenario.color }} />
       <span className="text-sm font-medium text-gray-300 w-20">{scenario.label}</span>
       <input
@@ -142,9 +143,9 @@ function ScenarioInput({
         step="5"
         value={rate}
         onChange={e => onChange(parseFloat(e.target.value) || 0)}
-        className="w-24 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-sm text-gray-100 text-right font-mono focus:outline-none focus:border-brand-500"
+        className="w-20 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-sm text-gray-100 text-right font-mono focus:outline-none focus:border-brand-500"
       />
-      <span className="text-sm text-gray-500">% / year</span>
+      <span className="text-xs text-gray-500 shrink-0">%/yr</span>
     </div>
   );
 }
@@ -294,10 +295,15 @@ export default function ProjectionCalculator() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-100">Projection Calculator</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          See where your DCA strategy takes you — across four growth scenarios.
-        </p>
+        <div className="flex items-center gap-2">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-100">Projection Calculator</h1>
+          <div className="relative group">
+            <Info size={16} className="text-gray-600 hover:text-gray-400 cursor-pointer transition-colors mt-0.5" />
+            <div className="absolute left-0 top-full mt-2 w-72 bg-gray-900 border border-gray-700 rounded-xl shadow-xl px-4 py-3 text-xs text-gray-400 leading-relaxed z-50 hidden group-hover:block">
+              Enter an asset, a buy amount, and a time horizon (or a target value) to see how your portfolio could grow across bear, flat, moderate, and bull scenarios. Adjust the annual growth rates to match your own outlook.
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Form */}
@@ -309,7 +315,7 @@ export default function ProjectionCalculator() {
             <select value={assetId} onChange={e => setAssetId(e.target.value)} className={inputCls}>
               <option value="">Select asset…</option>
               {assets.map(a => (
-                <option key={a.id} value={a.id}>{a.symbol} — {a.name}</option>
+                <option key={a.id} value={a.id}>{a.symbol} · {a.name}</option>
               ))}
             </select>
           </div>
@@ -353,7 +359,7 @@ export default function ProjectionCalculator() {
               className={inputCls}
             />
             {!fetchedPrice && !manualPrice && assetId && (
-              <p className="text-xs text-amber-500/80 mt-1">Price not cached — enter manually or refresh prices.</p>
+              <p className="text-xs text-amber-500/80 mt-1">Price not cached, enter it manually or refresh prices.</p>
             )}
           </div>
 
@@ -441,9 +447,9 @@ export default function ProjectionCalculator() {
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
         <h2 className="text-sm font-semibold text-gray-300 mb-3">
           Growth scenarios
-          <span className="text-gray-600 font-normal ml-2">— adjust to match your outlook</span>
+          <span className="text-gray-600 font-normal ml-2">(adjust to match your outlook)</span>
         </h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {SCENARIOS.map(s => (
             <ScenarioInput
               key={s.key}
@@ -469,7 +475,7 @@ export default function ProjectionCalculator() {
                     : `${goalAmount} ${selectedAsset?.symbol}`}
                 </span>
               </h2>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {SCENARIOS.map(s => (
                   <GoalBadge
                     key={s.key}
@@ -603,7 +609,7 @@ export default function ProjectionCalculator() {
       {/* Empty state */}
       {!canCompute && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <p className="text-5xl mb-4">🔮</p>
+          <TrendingUp size={48} strokeWidth={1.5} className="text-gray-600 mb-4" />
           <p className="text-gray-400 font-medium">Configure your inputs above</p>
           <p className="text-gray-600 text-sm mt-1">
             Pick an asset, set a buy amount, then choose a goal or time horizon.
