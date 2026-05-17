@@ -294,7 +294,7 @@ export default function ProjectionCalculator() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-100">Projection Calculator</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-100">Projection Calculator</h1>
         <p className="text-sm text-gray-500 mt-1">
           See where your DCA strategy takes you — across four growth scenarios.
         </p>

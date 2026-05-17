@@ -247,7 +247,7 @@ export default function Simulator() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-100">DCA Simulator</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-100">DCA Simulator</h1>
         <p className="text-sm text-gray-500 mt-1">
           Backtest any DCA strategy against real historical prices — see what would have happened.
         </p>

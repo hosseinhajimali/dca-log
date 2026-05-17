@@ -70,7 +70,7 @@ function AssetModal({ mode, asset, onClose }: AssetModalProps) {
           <button onClick={onClose} className="text-gray-500 hover:text-gray-200 text-xl leading-none transition-colors">×</button>
         </div>
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs text-gray-400 mb-1.5">Symbol *</label>
               <input type="text" required disabled={mode === 'edit'} value={symbol}

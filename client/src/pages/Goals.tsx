@@ -254,7 +254,7 @@ function GoalModal({
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="w-full max-w-md bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-6">
+      <div className="w-full max-w-md bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto">
         <h2 className="text-base font-semibold text-gray-100 mb-5">
           {isEdit ? 'Edit goal' : `New ${TABS.find(t => t.key === type)?.label} goal`}
         </h2>
@@ -458,9 +458,9 @@ export default function Goals() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-100">Goals</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-100">Goals</h1>
           <p className="text-sm text-gray-500 mt-1">Track what you're working toward</p>
         </div>
         <button
