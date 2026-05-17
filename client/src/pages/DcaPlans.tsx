@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Info } from 'lucide-react';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { useNavigate } from 'react-router-dom';
 import {
   useDcaPlans, useCreateDcaPlan, useUpdateDcaPlan, useDeleteDcaPlan,
@@ -1216,12 +1216,7 @@ export default function DcaPlans() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl md:text-2xl font-bold text-gray-100">DCA Plans</h1>
-            <div className="relative group">
-              <Info size={16} className="text-gray-600 hover:text-gray-400 cursor-pointer transition-colors mt-0.5" />
-              <div className="absolute left-0 top-full mt-2 w-72 bg-gray-900 border border-gray-700 rounded-xl shadow-xl px-4 py-3 text-xs text-gray-400 leading-relaxed z-50 hidden group-hover:block">
-                Create and manage your dollar-cost averaging plans. Each plan ties an amount and a frequency to one or more assets. The app tracks your next purchase date, suggests how much to buy based on market conditions, and alerts you when it's time to act.
-              </div>
-            </div>
+            <InfoTooltip content="Create and manage your dollar-cost averaging plans. Each plan ties an amount and a frequency to one or more assets. The app tracks your next purchase date, suggests how much to buy based on market conditions, and alerts you when it's time to act." />
           </div>
           <p className="text-xs text-gray-600 mt-1">
             {plans.length} plan{plans.length !== 1 ? 's' : ''} · {plans.filter(p => p.isActive).length} active

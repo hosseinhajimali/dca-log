@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { TrendingUp, Info } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend, ReferenceLine,
@@ -297,12 +298,7 @@ export default function ProjectionCalculator() {
       <div>
         <div className="flex items-center gap-2">
           <h1 className="text-xl md:text-2xl font-bold text-gray-100">Projection Calculator</h1>
-          <div className="relative group">
-            <Info size={16} className="text-gray-600 hover:text-gray-400 cursor-pointer transition-colors mt-0.5" />
-            <div className="absolute left-0 top-full mt-2 w-72 bg-gray-900 border border-gray-700 rounded-xl shadow-xl px-4 py-3 text-xs text-gray-400 leading-relaxed z-50 hidden group-hover:block">
-              Enter an asset, a buy amount, and a time horizon (or a target value) to see how your portfolio could grow across bear, flat, moderate, and bull scenarios. Adjust the annual growth rates to match your own outlook.
-            </div>
-          </div>
+          <InfoTooltip content="Enter an asset, a buy amount, and a time horizon (or a target value) to see how your portfolio could grow across bear, flat, moderate, and bull scenarios. Adjust the annual growth rates to match your own outlook." />
         </div>
       </div>
 
