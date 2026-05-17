@@ -20,6 +20,8 @@ import Login from '@/pages/Login';
 import AuthCallback from '@/pages/AuthCallback';
 import Admin from '@/pages/Admin';
 import Help from '@/pages/Help';
+import Blog from '@/pages/Blog';
+import BlogPost from '@/pages/BlogPost';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { token } = useStore();
@@ -33,6 +35,8 @@ export default function App() {
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Landing />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/login" element={<Login />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
 
