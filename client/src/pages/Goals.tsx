@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Layers, DollarSign, CalendarCheck } from 'lucide-react';
+import { Layers, DollarSign, CalendarCheck, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import { useGoals, useCreateGoal, useUpdateGoal, useDeleteGoal, GoalPayload } from '@/hooks/useGoals';
 import { useAssets } from '@/hooks/useAssets';
 import { Goal, GoalType } from '@/types';
@@ -9,10 +9,28 @@ import { useCurrencyFormatter, formatQuantity } from '@/lib/format';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const TABS: { key: GoalType; label: string; Icon: LucideIcon; description: string }[] = [
-  { key: 'ACCUMULATION',          label: 'Accumulation',          Icon: Layers,        description: 'Target a quantity of a specific asset' },
-  { key: 'PORTFOLIO_VALUE',       label: 'Portfolio Value',       Icon: DollarSign,    description: 'Target a total portfolio value in USD' },
-  { key: 'INVESTMENT_COMMITMENT', label: 'Investment Commitment', Icon: CalendarCheck, description: 'Stick to a monthly investment target' },
+const TABS: { key: GoalType; label: string; Icon: LucideIcon; description: string; detail: string }[] = [
+  {
+    key: 'ACCUMULATION',
+    label: 'Accumulation',
+    Icon: Layers,
+    description: 'Track how much of a specific asset you\'ve stacked.',
+    detail: 'Set a quantity target (e.g. 1 BTC or 10 ETH) and every buy you log moves the progress bar forward. Great for long-term stacking goals where you care about how many coins you own, not just their current dollar value.',
+  },
+  {
+    key: 'PORTFOLIO_VALUE',
+    label: 'Portfolio Value',
+    Icon: DollarSign,
+    description: 'Aim for a total portfolio value in USD.',
+    detail: 'Set a dollar milestone (e.g. $50,000 or $1M) and watch your combined holdings grow toward it as prices rise and you keep buying. Useful for retirement targets, financial independence numbers, or any wealth milestone you\'re working toward.',
+  },
+  {
+    key: 'INVESTMENT_COMMITMENT',
+    label: 'Investment Commitment',
+    Icon: CalendarCheck,
+    description: 'Measure whether you\'re sticking to your DCA discipline.',
+    detail: 'Set a monthly investment amount and track how many months you actually hit it. The bar chart shows each month at a glance: green means you met the target, gray means you fell short. Ideal for building and maintaining consistent investing habits.',
+  },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -254,7 +272,7 @@ function GoalModal({
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="w-full max-w-md bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-6">
+      <div className="w-full max-w-md bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto">
         <h2 className="text-base font-semibold text-gray-100 mb-5">
           {isEdit ? 'Edit goal' : `New ${TABS.find(t => t.key === type)?.label} goal`}
         </h2>
@@ -283,7 +301,7 @@ function GoalModal({
                 >
                   <option value="">Select asset…</option>
                   {cryptoAssets.map((a) => (
-                    <option key={a.id} value={a.id}>{a.symbol} — {a.name}</option>
+                    <option key={a.id} value={a.id}>{a.symbol} · {a.name}</option>
                   ))}
                 </select>
               </div>
@@ -333,10 +351,10 @@ function GoalModal({
             <label className="block text-xs text-gray-400 mb-1">
               Start date (optional)
               {type === 'INVESTMENT_COMMITMENT' && (
-                <span className="ml-1.5 text-gray-600">— scopes which months count</span>
+                <span className="ml-1.5 text-gray-600">(scopes which months count)</span>
               )}
               {type !== 'INVESTMENT_COMMITMENT' && (
-                <span className="ml-1.5 text-gray-600">— when you started working on this</span>
+                <span className="ml-1.5 text-gray-600">(when you started working on this)</span>
               )}
             </label>
             <input
@@ -410,21 +428,42 @@ function DeleteModal({ goal, onConfirm, onCancel }: { goal: Goal; onConfirm: () 
   );
 }
 
+// ─── Tab hint ─────────────────────────────────────────────────────────────────
+
+function TabHint({ type }: { type: GoalType }) {
+  const [expanded, setExpanded] = useState(false);
+  const tab = TABS.find(t => t.key === type)!;
+  return (
+    <div className="bg-gray-900/60 border border-gray-800 rounded-xl px-4 py-3">
+      <button
+        onClick={() => setExpanded(e => !e)}
+        className="w-full flex items-center gap-2.5 text-left"
+      >
+        <Info size={14} className="text-gray-500 shrink-0" />
+        <span className="text-xs text-gray-400 flex-1">{tab.description}</span>
+        {expanded
+          ? <ChevronUp size={13} className="text-gray-600 shrink-0" />
+          : <ChevronDown size={13} className="text-gray-600 shrink-0" />
+        }
+      </button>
+      {expanded && (
+        <p className="text-xs text-gray-500 leading-relaxed mt-2 pl-[22px]">
+          {tab.detail}
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ─── Empty state ──────────────────────────────────────────────────────────────
 
 function EmptyState({ type, onAdd }: { type: GoalType; onAdd: () => void }) {
   const tab = TABS.find(t => t.key === type)!;
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
-      <tab.Icon size={36} strokeWidth={1.5} className="text-gray-600" />
-      <p className="text-gray-400 text-sm font-medium">No {tab.label.toLowerCase()} goals yet</p>
-      <p className="text-gray-600 text-xs max-w-xs">{tab.description}</p>
-      <button
-        onClick={onAdd}
-        className="mt-2 px-4 py-2 bg-brand-500 hover:bg-brand-400 text-white text-sm font-medium rounded-lg transition-colors"
-      >
-        + Add goal
-      </button>
+    <div className="flex flex-col items-center justify-center py-16 text-center gap-2">
+      <tab.Icon size={36} strokeWidth={1.5} className="text-gray-700" />
+      <p className="text-gray-500 text-sm">No {tab.label.toLowerCase()} goals yet.</p>
+      <p className="text-gray-600 text-xs">Hit "Add goal" to set your first one.</p>
     </div>
   );
 }
@@ -458,16 +497,16 @@ export default function Goals() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-100">Goals</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-100">Goals</h1>
           <p className="text-sm text-gray-500 mt-1">Track what you're working toward</p>
         </div>
         <button
           onClick={() => { setEditGoal(null); setShowModal(true); }}
           className="px-4 py-2 bg-brand-500 hover:bg-brand-400 text-white text-sm font-medium rounded-lg transition-colors"
         >
-          + New goal
+          + Add goal
         </button>
       </div>
 
@@ -496,6 +535,9 @@ export default function Goals() {
           );
         })}
       </div>
+
+      {/* Tab hint */}
+      <TabHint type={activeTab} />
 
       {/* Content */}
       {isLoading ? (

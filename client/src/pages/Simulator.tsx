@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { FlaskConical, Info } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -247,10 +248,15 @@ export default function Simulator() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-100">DCA Simulator</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Backtest any DCA strategy against real historical prices — see what would have happened.
-        </p>
+        <div className="flex items-center gap-2">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-100">DCA Simulator</h1>
+          <div className="relative group">
+            <Info size={16} className="text-gray-600 hover:text-gray-400 cursor-pointer transition-colors mt-0.5" />
+            <div className="absolute left-0 top-full mt-2 w-72 bg-gray-900 border border-gray-700 rounded-xl shadow-xl px-4 py-3 text-xs text-gray-400 leading-relaxed z-50 hidden group-hover:block">
+              Pick a crypto asset, set a start date, enter how much you would have bought each time, choose a frequency, then hit Run. You'll see the full backtest: total invested, current value, return, and a chart of how your portfolio would have grown.
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Form */}
@@ -267,7 +273,7 @@ export default function Simulator() {
             >
               <option value="">Select asset…</option>
               {simulatableAssets.map(a => (
-                <option key={a.id} value={a.id}>{a.symbol} — {a.name}</option>
+                <option key={a.id} value={a.id}>{a.symbol} · {a.name}</option>
               ))}
               {simulatableAssets.length === 0 && assets.length > 0 && (
                 <option disabled>No crypto assets found</option>
@@ -357,10 +363,10 @@ export default function Simulator() {
 
       {/* Empty state */}
       {!activeParams && !isLoading && (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <p className="text-5xl mb-4">📈</p>
-          <p className="text-gray-400 font-medium">Configure your simulation above</p>
-          <p className="text-gray-600 text-sm mt-1">Pick an asset, a start date, and an amount — then hit Run.</p>
+        <div className="flex flex-col items-center justify-center py-20 text-center gap-2">
+          <FlaskConical size={40} strokeWidth={1.5} className="text-gray-700" />
+          <p className="text-gray-400 text-sm font-medium">No simulation run yet.</p>
+          <p className="text-gray-600 text-xs">Fill in the fields above and hit Run.</p>
         </div>
       )}
     </div>

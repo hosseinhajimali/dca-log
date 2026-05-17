@@ -43,7 +43,7 @@ function FngTooltip({ active, payload, label }: any) {
     <div className="bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-xs">
       <p className="text-gray-400 mb-1">{label}</p>
       <p className="font-bold" style={{ color: zoneColor(v) }}>
-        {v} — {zoneLabel(v)}
+        {v}: {zoneLabel(v)}
       </p>
     </div>
   );

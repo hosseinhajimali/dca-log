@@ -82,3 +82,25 @@ export function useMarkFeedbackRead() {
     },
   });
 }
+
+export function useMarkAllFeedbackRead() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.patch('/admin/feedback/read-all', {}),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-feedback'] });
+      qc.invalidateQueries({ queryKey: ['admin-stats'] });
+    },
+  });
+}
+
+export function useDeleteFeedback() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/admin/feedback/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-feedback'] });
+      qc.invalidateQueries({ queryKey: ['admin-stats'] });
+    },
+  });
+}

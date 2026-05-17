@@ -22,11 +22,11 @@ export default function SettingsLayout() {
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-2xl font-bold text-gray-100">Settings</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-100">Settings</h1>
         <p className="text-sm text-gray-500 mt-1">Manage your account and preferences</p>
       </div>
 
-      <div className="flex border-b border-gray-800">
+      <div className="flex border-b border-gray-800 overflow-x-auto">
         <Tab to="/settings" end label="General" />
         <Tab to="/settings/profile" label="Profile" />
       </div>
