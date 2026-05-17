@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useStore } from '@/store/useStore';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import {
   useAdminUsers, useAdminStats, useAdminFeedback,
   useDeleteUser, useMarkFeedbackRead,
@@ -182,7 +182,9 @@ function FeedbackTab() {
 
 export default function Admin() {
   const { user } = useStore();
-  const [tab, setTab] = useState<Tab>('stats');
+  const [searchParams] = useSearchParams();
+  const initialTab = (searchParams.get('tab') as Tab) ?? 'stats';
+  const [tab, setTab] = useState<Tab>(initialTab);
 
   if (!user?.isAdmin) return <Navigate to="/" replace />;
 

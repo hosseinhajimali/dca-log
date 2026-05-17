@@ -11,6 +11,7 @@ const TYPE_ICON: Record<AppNotification['type'], string> = {
   DCA_REMINDER:    '📅',
   SELL_RULE_MET:   '📈',
   BUYING_RULE_MET: '📉',
+  NEW_FEEDBACK:    '💬',
 };
 
 export function NotificationBell() {
@@ -78,7 +79,10 @@ export function NotificationBell() {
                   onClick={() => {
                     if (!n.isRead) markAsRead.mutate(n.id);
                     if (n.metadata?.planId) {
-                      navigate(`/plans/${n.metadata.planId}`);
+                      navigate(`/app/plans/${n.metadata.planId}`);
+                      setOpen(false);
+                    } else if (n.type === 'NEW_FEEDBACK') {
+                      navigate('/app/admin?tab=feedback');
                       setOpen(false);
                     }
                   }}

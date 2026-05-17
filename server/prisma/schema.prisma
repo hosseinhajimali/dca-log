@@ -30,6 +30,7 @@ enum NotificationType {
   DCA_REMINDER
   SELL_RULE_MET
   BUYING_RULE_MET
+  NEW_FEEDBACK
 }
 
 enum FeedbackCategory {
