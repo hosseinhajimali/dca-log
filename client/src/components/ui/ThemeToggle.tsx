@@ -31,7 +31,7 @@ export function ThemeToggle() {
   }, [open]);
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative flex items-center">
       <button
         onClick={() => setOpen((o) => !o)}
         className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:text-gray-100 hover:bg-gray-800 transition-colors"
