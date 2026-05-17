@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Info } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Transaction, ApiResponse } from '@/types';
@@ -227,7 +228,15 @@ export default function TaxReport() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl md:text-2xl font-bold text-gray-100">Tax Report</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-100">Tax Report</h1>
+          <div className="relative group">
+            <Info size={16} className="text-gray-600 hover:text-gray-400 cursor-pointer transition-colors mt-0.5" />
+            <div className="absolute left-0 top-full mt-2 w-72 bg-gray-900 border border-gray-700 rounded-xl shadow-xl px-4 py-3 text-xs text-gray-400 leading-relaxed z-50 hidden group-hover:block">
+              Shows a yearly breakdown of your buy activity per asset. Uses the weighted average cost (WAC) method to calculate your cost basis. You get a cost basis summary and a full transaction list for the selected year, both exportable as CSV to hand to your accountant. Note: only purchases are tracked here, no disposal events.
+            </div>
+          </div>
+        </div>
         <p className="text-sm text-gray-500 mt-1">
           Average cost (WAC) method · purchases only · no disposal events tracked
         </p>
