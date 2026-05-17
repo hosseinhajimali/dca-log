@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Layers, DollarSign, CalendarCheck } from 'lucide-react';
+import { Layers, DollarSign, CalendarCheck, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import { useGoals, useCreateGoal, useUpdateGoal, useDeleteGoal, GoalPayload } from '@/hooks/useGoals';
 import { useAssets } from '@/hooks/useAssets';
 import { Goal, GoalType } from '@/types';
@@ -428,15 +428,42 @@ function DeleteModal({ goal, onConfirm, onCancel }: { goal: Goal; onConfirm: () 
   );
 }
 
+// ─── Tab hint ─────────────────────────────────────────────────────────────────
+
+function TabHint({ type }: { type: GoalType }) {
+  const [expanded, setExpanded] = useState(false);
+  const tab = TABS.find(t => t.key === type)!;
+  return (
+    <div className="bg-gray-900/60 border border-gray-800 rounded-xl px-4 py-3">
+      <button
+        onClick={() => setExpanded(e => !e)}
+        className="w-full flex items-center gap-2.5 text-left"
+      >
+        <Info size={14} className="text-gray-500 shrink-0" />
+        <span className="text-xs text-gray-400 flex-1">{tab.description}</span>
+        {expanded
+          ? <ChevronUp size={13} className="text-gray-600 shrink-0" />
+          : <ChevronDown size={13} className="text-gray-600 shrink-0" />
+        }
+      </button>
+      {expanded && (
+        <p className="text-xs text-gray-500 leading-relaxed mt-2 pl-[22px]">
+          {tab.detail}
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ─── Empty state ──────────────────────────────────────────────────────────────
 
 function EmptyState({ type, onAdd }: { type: GoalType; onAdd: () => void }) {
   const tab = TABS.find(t => t.key === type)!;
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
-      <tab.Icon size={36} strokeWidth={1.5} className="text-gray-600" />
-      <p className="text-gray-400 text-sm font-medium">{tab.description}</p>
-      <p className="text-gray-600 text-xs max-w-sm leading-relaxed">{tab.detail}</p>
+    <div className="flex flex-col items-center justify-center py-16 text-center gap-2">
+      <tab.Icon size={36} strokeWidth={1.5} className="text-gray-700" />
+      <p className="text-gray-500 text-sm">No {tab.label.toLowerCase()} goals yet.</p>
+      <p className="text-gray-600 text-xs">Hit "Add goal" to set your first one.</p>
     </div>
   );
 }
@@ -508,6 +535,9 @@ export default function Goals() {
           );
         })}
       </div>
+
+      {/* Tab hint */}
+      <TabHint type={activeTab} />
 
       {/* Content */}
       {isLoading ? (
