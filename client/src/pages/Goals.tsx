@@ -9,10 +9,28 @@ import { useCurrencyFormatter, formatQuantity } from '@/lib/format';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const TABS: { key: GoalType; label: string; Icon: LucideIcon; description: string }[] = [
-  { key: 'ACCUMULATION',          label: 'Accumulation',          Icon: Layers,        description: 'Target a quantity of a specific asset' },
-  { key: 'PORTFOLIO_VALUE',       label: 'Portfolio Value',       Icon: DollarSign,    description: 'Target a total portfolio value in USD' },
-  { key: 'INVESTMENT_COMMITMENT', label: 'Investment Commitment', Icon: CalendarCheck, description: 'Stick to a monthly investment target' },
+const TABS: { key: GoalType; label: string; Icon: LucideIcon; description: string; detail: string }[] = [
+  {
+    key: 'ACCUMULATION',
+    label: 'Accumulation',
+    Icon: Layers,
+    description: 'Track how much of a specific asset you\'ve stacked.',
+    detail: 'Set a quantity target — e.g. 1 BTC or 10 ETH — and every buy you log moves the progress bar forward. Great for long-term stacking goals where you care about how many coins you own, not just their current dollar value.',
+  },
+  {
+    key: 'PORTFOLIO_VALUE',
+    label: 'Portfolio Value',
+    Icon: DollarSign,
+    description: 'Aim for a total portfolio value in USD.',
+    detail: 'Set a dollar milestone — e.g. $50 000 or $1 M — and watch your combined holdings grow toward it as prices rise and you keep buying. Useful for retirement targets, financial independence numbers, or any wealth milestone you\'re working toward.',
+  },
+  {
+    key: 'INVESTMENT_COMMITMENT',
+    label: 'Investment Commitment',
+    Icon: CalendarCheck,
+    description: 'Measure whether you\'re sticking to your DCA discipline.',
+    detail: 'Set a monthly investment amount and track how many months you actually hit it. The bar chart shows each month at a glance — green means you met the target, gray means you fell short. Ideal for building and maintaining consistent investing habits.',
+  },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -417,14 +435,8 @@ function EmptyState({ type, onAdd }: { type: GoalType; onAdd: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
       <tab.Icon size={36} strokeWidth={1.5} className="text-gray-600" />
-      <p className="text-gray-400 text-sm font-medium">No {tab.label.toLowerCase()} goals yet</p>
-      <p className="text-gray-600 text-xs max-w-xs">{tab.description}</p>
-      <button
-        onClick={onAdd}
-        className="mt-2 px-4 py-2 bg-brand-500 hover:bg-brand-400 text-white text-sm font-medium rounded-lg transition-colors"
-      >
-        + Add goal
-      </button>
+      <p className="text-gray-400 text-sm font-medium">{tab.description}</p>
+      <p className="text-gray-600 text-xs max-w-sm leading-relaxed">{tab.detail}</p>
     </div>
   );
 }
@@ -467,7 +479,7 @@ export default function Goals() {
           onClick={() => { setEditGoal(null); setShowModal(true); }}
           className="px-4 py-2 bg-brand-500 hover:bg-brand-400 text-white text-sm font-medium rounded-lg transition-colors"
         >
-          + New goal
+          + Add goal
         </button>
       </div>
 
