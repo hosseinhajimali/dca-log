@@ -1,9 +1,11 @@
-import { Link, Navigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useRef, useState, useEffect } from 'react';
 import {
   RefreshCw, Zap, FlaskConical, TrendingUp,
-  BarChart2, Bell, ShieldCheck, ArrowRight,
+  BarChart2, Bell, ShieldCheck, ArrowRight, LogOut, UserCircle,
 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
+import { Avatar } from '@/components/ui/Avatar';
 
 const FEATURES = [
   {
@@ -56,11 +58,38 @@ const STEPS = [
   },
 ];
 
-export default function Landing() {
-  const token = useStore((s) => s.token);
+function BrowserFrame({ src, alt }: { src: string; alt: string }) {
+  return (
+    <div className="rounded-xl border border-gray-700/60 overflow-hidden shadow-2xl bg-gray-900">
+      {/* fake browser toolbar */}
+      <div className="flex items-center gap-1.5 px-4 py-3 bg-gray-800/80 border-b border-gray-700/50 shrink-0">
+        <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
+        <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+        <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
+        <div className="flex-1 mx-3 bg-gray-700/50 rounded h-5 flex items-center px-3">
+          <span className="text-[11px] text-gray-500">dcalog.com</span>
+        </div>
+      </div>
+      <img src={src} alt={alt} className="w-full block" />
+    </div>
+  );
+}
 
-  // Already logged in — send straight to the app
-  if (token) return <Navigate to="/app" replace />;
+export default function Landing() {
+  const token  = useStore((s) => s.token);
+  const user   = useStore((s) => s.user);
+  const logout = useStore((s) => s.logout);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handle(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    }
+    document.addEventListener('mousedown', handle);
+    return () => document.removeEventListener('mousedown', handle);
+  }, [menuOpen]);
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
@@ -68,26 +97,76 @@ export default function Landing() {
       {/* ── Navbar ── */}
       <header className="sticky top-0 z-50 border-b border-gray-800 bg-gray-950/80 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <img src="/logo-horizontal.svg" alt="DCAlog" className="h-8 w-auto" />
+          <a href="/"><img src="/logo-horizontal.svg" alt="DCAlog" className="h-8 w-auto" /></a>
           <nav className="flex items-center gap-3">
-            <Link
-              to="/login"
-              className="text-sm text-gray-400 hover:text-gray-100 transition-colors px-3 py-1.5"
-            >
-              Sign in
-            </Link>
-            <Link
-              to="/login"
-              className="bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-            >
-              Get started
-            </Link>
+            {token ? (
+              <div className="flex items-center gap-3">
+                {/* avatar + name dropdown */}
+                <div ref={menuRef} className="relative">
+                  <button
+                    onClick={() => setMenuOpen(o => !o)}
+                    className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-800 transition-colors"
+                  >
+                    <Avatar id={user?.avatar} size={28} />
+                    <span className="text-sm text-gray-300 hidden sm:block">
+                      {user?.name?.split(' ')[0] ?? 'Account'}
+                    </span>
+                  </button>
+
+                  {menuOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-52 bg-gray-900 border border-gray-700 rounded-xl shadow-xl overflow-hidden z-50">
+                      <div className="px-4 py-3 border-b border-gray-800">
+                        <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                      </div>
+                      <Link
+                        to="/app/settings/profile"
+                        onClick={() => setMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-3 text-sm text-gray-400 hover:text-gray-100 hover:bg-gray-800 transition-colors"
+                      >
+                        <UserCircle size={14} />
+                        Profile settings
+                      </Link>
+                      <button
+                        onClick={() => { logout(); setMenuOpen(false); }}
+                        className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-400 hover:text-red-400 hover:bg-gray-800 transition-colors border-t border-gray-800"
+                      >
+                        <LogOut size={14} />
+                        Sign out
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <Link
+                  to="/app"
+                  className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                >
+                  Go to app
+                  <ArrowRight size={14} />
+                </Link>
+              </div>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="text-sm text-gray-400 hover:text-gray-100 transition-colors px-3 py-1.5"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to="/login"
+                  className="bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                >
+                  Get started
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       </header>
 
       {/* ── Hero ── */}
-      <section className="max-w-6xl mx-auto px-6 pt-14 sm:pt-24 pb-14 sm:pb-20 text-center">
+      <section className="max-w-6xl mx-auto px-6 pt-14 sm:pt-24 pb-10 sm:pb-16 text-center">
         <div className="inline-flex items-center gap-2 bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-medium px-3 py-1.5 rounded-full mb-8">
           <ShieldCheck size={12} />
           Built for long-term crypto investors
@@ -100,7 +179,7 @@ export default function Landing() {
           DCAlog tracks your dollar-cost averaging strategy, monitors buying opportunities based on market conditions,
           and tells you when it's time to take profit, all in one place.
         </p>
-        <div className="flex items-center justify-center gap-4 flex-wrap">
+        <div className="flex items-center justify-center gap-4 flex-wrap mb-14 sm:mb-20">
           <Link
             to="/login"
             className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white font-semibold px-6 py-3 rounded-xl transition-colors text-sm"
@@ -114,6 +193,15 @@ export default function Landing() {
           >
             Sign in to your account
           </Link>
+        </div>
+
+        {/* ── Hero screenshot ── */}
+        <div className="relative">
+          {/* glow behind the frame */}
+          <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-40 bg-brand-500/10 blur-3xl pointer-events-none" />
+          <div className="relative">
+            <BrowserFrame src="/screenshots/dashboard.png" alt="DCAlog dashboard showing portfolio overview, active plans and fear & greed index" />
+          </div>
         </div>
       </section>
 
@@ -140,6 +228,68 @@ export default function Landing() {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* ── Divider ── */}
+      <div className="border-t border-gray-800/60" />
+
+      {/* ── Feature showcase ── */}
+      <section className="max-w-6xl mx-auto px-6 py-20 space-y-24">
+
+        {/* Plans */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div>
+            <div className="inline-flex items-center gap-2 bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-medium px-3 py-1 rounded-full mb-5">
+              DCA Plans
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-100 mb-4 leading-snug">
+              Smart rules that tell you exactly how much to buy
+            </h2>
+            <p className="text-gray-400 leading-relaxed mb-6">
+              Set up recurring plans for any asset and define buying rules tied to ATH drawdowns. When the market dips 30%, you buy more. When it dips 50%, you buy even more. The app does the math and alerts you when it's time to act.
+            </p>
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-2 text-sm text-brand-400 hover:text-brand-300 font-medium transition-colors"
+            >
+              Set up your first plan <ArrowRight size={14} />
+            </Link>
+          </div>
+          <div className="relative">
+            <div className="absolute -inset-4 bg-brand-500/5 blur-2xl rounded-full pointer-events-none" />
+            <div className="relative">
+              <BrowserFrame src="/screenshots/plans.png" alt="DCA Plans page showing ETH and BTC plans with smart buying rules" />
+            </div>
+          </div>
+        </div>
+
+        {/* Simulator */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div className="order-2 lg:order-1 relative">
+            <div className="absolute -inset-4 bg-brand-500/5 blur-2xl rounded-full pointer-events-none" />
+            <div className="relative">
+              <BrowserFrame src="/screenshots/simulator.png" alt="DCA Simulator showing portfolio value vs total invested over time" />
+            </div>
+          </div>
+          <div className="order-1 lg:order-2">
+            <div className="inline-flex items-center gap-2 bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-medium px-3 py-1 rounded-full mb-5">
+              Strategy Simulator
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-100 mb-4 leading-snug">
+              See what would have happened if you started earlier
+            </h2>
+            <p className="text-gray-400 leading-relaxed mb-6">
+              Backtest any DCA strategy against real historical price data. Pick an asset, set a weekly or monthly amount, choose a start date, and see the full picture — total invested, current value, return, and a chart of your portfolio growth over time.
+            </p>
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-2 text-sm text-brand-400 hover:text-brand-300 font-medium transition-colors"
+            >
+              Run a simulation <ArrowRight size={14} />
+            </Link>
+          </div>
+        </div>
+
       </section>
 
       {/* ── Divider ── */}
@@ -180,7 +330,7 @@ export default function Landing() {
       {/* ── Footer ── */}
       <footer className="border-t border-gray-800">
         <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <img src="/logo-horizontal.svg" alt="DCAlog" className="h-7 w-auto opacity-60" />
+          <a href="/"><img src="/logo-horizontal.svg" alt="DCAlog" className="h-7 w-auto opacity-60 hover:opacity-100 transition-opacity" /></a>
           <p className="text-xs text-gray-600">© {new Date().getFullYear()} DCAlog · Think in years, not months.</p>
         </div>
       </footer>
