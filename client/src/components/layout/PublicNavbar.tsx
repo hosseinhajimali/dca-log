@@ -1,5 +1,8 @@
+'use client';
+
 import { useRef, useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, ArrowRight, UserCircle, LogOut } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { Avatar } from '@/components/ui/Avatar';
@@ -14,27 +17,25 @@ export function PublicNavbar() {
   const token  = useStore((s) => s.token);
   const user   = useStore((s) => s.user);
   const logout = useStore((s) => s.logout);
-  const location = useLocation();
-  const navigate = useNavigate();
-  const isHome = location.pathname === '/';
+  const pathname = usePathname();
+  const router = useRouter();
+  const isHome = pathname === null || pathname === '/';
 
-  const [menuOpen, setMenuOpen]         = useState(false);
-  const [mobileOpen, setMobileOpen]     = useState(false);
+  const [menuOpen, setMenuOpen]           = useState(false);
+  const [mobileOpen, setMobileOpen]       = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Smooth scroll on landing, navigate + hash on other pages
   function handleNavClick(section: string) {
     setMobileOpen(false);
     if (isHome) {
       const el = document.getElementById(section);
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else {
-      navigate(`/#${section}`);
+      router.push(`/#${section}`);
     }
   }
 
-  // Track active section only when on the landing page
   useEffect(() => {
     if (!isHome) {
       setActiveSection('');
@@ -54,7 +55,6 @@ export function PublicNavbar() {
     return () => observers.forEach(o => o?.disconnect());
   }, [isHome]);
 
-  // Close account dropdown on outside click
   useEffect(() => {
     if (!menuOpen) return;
     function handle(e: MouseEvent) {
@@ -64,7 +64,7 @@ export function PublicNavbar() {
     return () => document.removeEventListener('mousedown', handle);
   }, [menuOpen]);
 
-  const isBlogActive = location.pathname.startsWith('/blog');
+  const isBlogActive = pathname?.startsWith('/blog') ?? false;
 
   const navLinkCls = (active: boolean) =>
     `px-3 py-1.5 rounded-lg transition-colors text-sm ${
@@ -75,10 +75,8 @@ export function PublicNavbar() {
     <>
       <header className="sticky top-0 z-50 border-b border-gray-800 bg-gray-950/80 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          {/* Logo */}
           <a href="/"><img src="/logo-horizontal.svg" alt="DCAlog" className="h-8 w-auto" /></a>
 
-          {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">
             {NAV_LINKS.map(({ label, section }) => (
               <button
@@ -89,12 +87,10 @@ export function PublicNavbar() {
                 {label}
               </button>
             ))}
-            <Link to="/blog" className={navLinkCls(isBlogActive)}>Blog</Link>
+            <Link href="/blog" className={navLinkCls(isBlogActive)}>Blog</Link>
           </nav>
 
-          {/* Right side */}
           <div className="flex items-center gap-3">
-            {/* Mobile hamburger */}
             <button
               onClick={() => setMobileOpen(o => !o)}
               className="md:hidden text-gray-400 hover:text-gray-100 transition-colors p-1.5 rounded-lg hover:bg-gray-800"
@@ -121,7 +117,7 @@ export function PublicNavbar() {
                         <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                       </div>
                       <Link
-                        to="/app/settings/profile"
+                        href="/app/settings/profile"
                         onClick={() => setMenuOpen(false)}
                         className="flex items-center gap-2.5 px-4 py-3 text-sm text-gray-400 hover:text-gray-100 hover:bg-gray-800 transition-colors"
                       >
@@ -139,7 +135,7 @@ export function PublicNavbar() {
                   )}
                 </div>
                 <Link
-                  to="/app"
+                  href="/app"
                   className="hidden sm:inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
                 >
                   Go to app <ArrowRight size={14} />
@@ -147,10 +143,10 @@ export function PublicNavbar() {
               </>
             ) : (
               <>
-                <Link to="/login" className="hidden sm:block text-sm text-gray-400 hover:text-gray-100 transition-colors px-3 py-1.5">
+                <Link href="/login" className="hidden sm:block text-sm text-gray-400 hover:text-gray-100 transition-colors px-3 py-1.5">
                   Sign in
                 </Link>
-                <Link to="/login" className="bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+                <Link href="/login" className="bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
                   Get started
                 </Link>
               </>
@@ -159,7 +155,6 @@ export function PublicNavbar() {
         </div>
       </header>
 
-      {/* Mobile menu — animated slide */}
       <div className={`md:hidden border-b border-gray-800 bg-gray-950 px-6 overflow-hidden transition-all duration-300 ease-in-out ${mobileOpen ? 'max-h-72 py-4' : 'max-h-0 py-0'}`}>
         <div className="space-y-1">
           {NAV_LINKS.map(({ label, section }) => (
@@ -172,7 +167,7 @@ export function PublicNavbar() {
             </button>
           ))}
           <Link
-            to="/blog"
+            href="/blog"
             onClick={() => setMobileOpen(false)}
             className={`block ${navLinkCls(isBlogActive)}`}
           >
@@ -180,7 +175,7 @@ export function PublicNavbar() {
           </Link>
           {token && (
             <Link
-              to="/app"
+              href="/app"
               onClick={() => setMobileOpen(false)}
               className="block w-full text-center mt-2 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
             >

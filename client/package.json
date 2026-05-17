@@ -2,12 +2,11 @@
   "name": "dcalog-client",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "lint": "eslint . --ext ts,tsx"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.28.6",
@@ -15,10 +14,10 @@
     "axios": "^1.6.8",
     "date-fns": "^3.6.0",
     "lucide-react": "^1.16.0",
+    "next": "^15.3.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.51.1",
-    "react-router-dom": "^6.22.3",
     "recharts": "^2.12.3",
     "xlsx": "^0.18.5",
     "zod": "^3.22.4",
@@ -26,13 +25,12 @@
   },
   "devDependencies": {
     "@hookform/resolvers": "^3.3.4",
+    "@types/node": "^20.0.0",
     "@types/react": "^18.2.73",
     "@types/react-dom": "^18.2.23",
-    "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
-    "typescript": "^5.4.3",
-    "vite": "^5.2.6"
+    "typescript": "^5.4.3"
   }
 }
