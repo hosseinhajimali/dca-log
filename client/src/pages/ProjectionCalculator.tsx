@@ -134,7 +134,7 @@ function ScenarioInput({
   onChange: (v: number) => void;
 }) {
   return (
-    <div className="flex items-center gap-3 p-3 bg-gray-800/50 border border-gray-800 rounded-xl">
+    <div className="flex items-center gap-2 p-3 bg-gray-800/50 border border-gray-800 rounded-xl">
       <span className="w-2 h-2 rounded-full shrink-0" style={{ background: scenario.color }} />
       <span className="text-sm font-medium text-gray-300 w-20">{scenario.label}</span>
       <input
@@ -142,9 +142,9 @@ function ScenarioInput({
         step="5"
         value={rate}
         onChange={e => onChange(parseFloat(e.target.value) || 0)}
-        className="w-24 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-sm text-gray-100 text-right font-mono focus:outline-none focus:border-brand-500"
+        className="w-20 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-sm text-gray-100 text-right font-mono focus:outline-none focus:border-brand-500"
       />
-      <span className="text-sm text-gray-500">% / year</span>
+      <span className="text-xs text-gray-500 shrink-0">%/yr</span>
     </div>
   );
 }
@@ -443,7 +443,7 @@ export default function ProjectionCalculator() {
           Growth scenarios
           <span className="text-gray-600 font-normal ml-2">— adjust to match your outlook</span>
         </h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {SCENARIOS.map(s => (
             <ScenarioInput
               key={s.key}
@@ -469,7 +469,7 @@ export default function ProjectionCalculator() {
                     : `${goalAmount} ${selectedAsset?.symbol}`}
                 </span>
               </h2>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {SCENARIOS.map(s => (
                   <GoalBadge
                     key={s.key}
