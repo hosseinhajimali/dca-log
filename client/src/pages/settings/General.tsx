@@ -243,9 +243,9 @@ export default function General() {
       // Invalidate all cached data so UI reflects restored state
       await queryClient.invalidateQueries();
       const totals = Object.values(res.data.data.restored).reduce((s, n) => s + n, 0);
-      toast(`Restore complete — ${totals} records restored`);
+      toast(`Restore complete: ${totals} records restored`);
     } catch {
-      toast('Restore failed — file may be invalid or corrupted');
+      toast('Restore failed, file may be invalid or corrupted.');
     } finally {
       setRestoreLoading(false);
       setPendingFile(null);

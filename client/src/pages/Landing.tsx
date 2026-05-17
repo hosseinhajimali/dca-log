@@ -29,7 +29,7 @@ const FEATURES = [
   {
     Icon: BarChart2,
     title: 'Tax Report',
-    desc: 'Get a clear summary of your realised gains and losses grouped by asset and tax year — ready to hand to your accountant.',
+    desc: 'Get a clear summary of your realised gains and losses grouped by asset and tax year, ready to hand to your accountant.',
   },
   {
     Icon: Bell,
@@ -98,7 +98,7 @@ export default function Landing() {
         </h1>
         <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
           DCAlog tracks your dollar-cost averaging strategy, monitors buying opportunities based on market conditions,
-          and tells you when it's time to take profit — all in one place.
+          and tells you when it's time to take profit, all in one place.
         </p>
         <div className="flex items-center justify-center gap-4 flex-wrap">
           <Link
@@ -171,7 +171,7 @@ export default function Landing() {
             to="/login"
             className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white font-semibold px-6 py-3 rounded-xl transition-colors text-sm"
           >
-            Get started — it's free
+            Get started, it's free
             <ArrowRight size={15} />
           </Link>
         </div>

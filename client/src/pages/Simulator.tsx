@@ -249,7 +249,7 @@ export default function Simulator() {
       <div>
         <h1 className="text-xl md:text-2xl font-bold text-gray-100">DCA Simulator</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Backtest any DCA strategy against real historical prices — see what would have happened.
+          Backtest any DCA strategy against real historical prices and see what would have happened.
         </p>
       </div>
 
@@ -267,7 +267,7 @@ export default function Simulator() {
             >
               <option value="">Select asset…</option>
               {simulatableAssets.map(a => (
-                <option key={a.id} value={a.id}>{a.symbol} — {a.name}</option>
+                <option key={a.id} value={a.id}>{a.symbol} · {a.name}</option>
               ))}
               {simulatableAssets.length === 0 && assets.length > 0 && (
                 <option disabled>No crypto assets found</option>
@@ -360,7 +360,7 @@ export default function Simulator() {
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <p className="text-5xl mb-4">📈</p>
           <p className="text-gray-400 font-medium">Configure your simulation above</p>
-          <p className="text-gray-600 text-sm mt-1">Pick an asset, a start date, and an amount — then hit Run.</p>
+          <p className="text-gray-600 text-sm mt-1">Pick an asset, a start date, and an amount, then hit Run.</p>
         </div>
       )}
     </div>

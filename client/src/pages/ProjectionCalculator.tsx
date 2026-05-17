@@ -297,7 +297,7 @@ export default function ProjectionCalculator() {
       <div>
         <h1 className="text-xl md:text-2xl font-bold text-gray-100">Projection Calculator</h1>
         <p className="text-sm text-gray-500 mt-1">
-          See where your DCA strategy takes you — across four growth scenarios.
+          Enter an asset, a buy amount, and a time horizon (or a target value) to see how your portfolio could grow across bear, flat, moderate, and bull scenarios. Adjust the annual growth rates to match your own outlook.
         </p>
       </div>
 
@@ -310,7 +310,7 @@ export default function ProjectionCalculator() {
             <select value={assetId} onChange={e => setAssetId(e.target.value)} className={inputCls}>
               <option value="">Select asset…</option>
               {assets.map(a => (
-                <option key={a.id} value={a.id}>{a.symbol} — {a.name}</option>
+                <option key={a.id} value={a.id}>{a.symbol} · {a.name}</option>
               ))}
             </select>
           </div>
@@ -354,7 +354,7 @@ export default function ProjectionCalculator() {
               className={inputCls}
             />
             {!fetchedPrice && !manualPrice && assetId && (
-              <p className="text-xs text-amber-500/80 mt-1">Price not cached — enter manually or refresh prices.</p>
+              <p className="text-xs text-amber-500/80 mt-1">Price not cached, enter it manually or refresh prices.</p>
             )}
           </div>
 
@@ -442,7 +442,7 @@ export default function ProjectionCalculator() {
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
         <h2 className="text-sm font-semibold text-gray-300 mb-3">
           Growth scenarios
-          <span className="text-gray-600 font-normal ml-2">— adjust to match your outlook</span>
+          <span className="text-gray-600 font-normal ml-2">(adjust to match your outlook)</span>
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {SCENARIOS.map(s => (

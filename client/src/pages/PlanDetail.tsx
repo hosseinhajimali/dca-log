@@ -175,7 +175,7 @@ export default function PlanDetail() {
               <h1 className="text-xl md:text-2xl font-bold text-gray-100">
                 {plan.allocations.map((a) => a.asset.symbol).join(' · ')}
               </h1>
-              {plan.name && <span className="text-gray-400">— {plan.name}</span>}
+              {plan.name && <span className="text-gray-400">({plan.name})</span>}
               <Badge variant={plan.isActive ? 'green' : 'gray'}>
                 {plan.isActive ? 'Active' : 'Paused'}
               </Badge>
