@@ -110,7 +110,7 @@ export function PublicNavbar() {
                   >
                     <Avatar id={user?.avatar} size={28} />
                     <span className="text-sm text-gray-300 hidden sm:block">
-                      {user?.name?.split(' ')[0] ?? 'Account'}
+                      {user?.name ?? 'Account'}
                     </span>
                   </button>
                   {menuOpen && (
