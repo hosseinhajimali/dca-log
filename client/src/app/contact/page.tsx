@@ -24,13 +24,24 @@ export default function ContactPage() {
             Have a question, found a bug, or want to share feedback? We'd love to hear from you.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 flex-wrap">
             <a
               href="mailto:support@dcalog.com"
               className="inline-flex items-center gap-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium px-6 py-3 rounded-xl transition-colors text-sm"
             >
               <Mail size={16} />
               support@dcalog.com
+            </a>
+            <a
+              href="https://x.com/DCAlogApp"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white font-medium px-6 py-3 rounded-xl transition-colors text-sm"
+            >
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
+              @DCAlogApp
             </a>
             <a
               href="https://t.me/dcalog_updates"
