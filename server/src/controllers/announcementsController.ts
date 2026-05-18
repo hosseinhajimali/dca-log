@@ -3,6 +3,29 @@ import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { AuthRequest } from '../types';
 
+// ─── Telegram helper ──────────────────────────────────────────────────────────
+async function postToTelegram(title: string, message: string): Promise<void> {
+  const token     = process.env.TELEGRAM_BOT_TOKEN;
+  const channelId = process.env.TELEGRAM_CHANNEL_ID;
+  if (!token || !channelId) return;
+
+  const text = `*${title}*\n\n${message}`;
+
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ chat_id: channelId, text, parse_mode: 'Markdown' }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      console.error('[Telegram] sendMessage failed:', err);
+    }
+  } catch (err) {
+    console.error('[Telegram] sendMessage error:', err);
+  }
+}
+
 // ─── dispatch helper — creates one notification per user ─────────────────────
 export async function dispatchAnnouncement(announcementId: string): Promise<number> {
   const announcement = await prisma.announcement.findUnique({ where: { id: announcementId } });
@@ -24,6 +47,9 @@ export async function dispatchAnnouncement(announcementId: string): Promise<numb
     where: { id: announcementId },
     data:  { sentAt: new Date(), sentCount: { increment: users.length } },
   });
+
+  // Post to Telegram channel (non-blocking — errors are logged but don't fail the dispatch)
+  await postToTelegram(announcement.title, announcement.message);
 
   return users.length;
 }
