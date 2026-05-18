@@ -23,9 +23,9 @@ export async function getUsers(req: AuthRequest, res: Response, next: NextFuncti
 // ─── PATCH /admin/users/:id/disable ──────────────────────────────────────────
 // We repurpose isAdmin=false as "not disabled" and add a soft-disable via
 // a future isDisabled field. For now we just delete their sessions by
-// invalidating — simplest approach: we can't truly disable without a flag.
+// invalidating, simplest approach: we can't truly disable without a flag.
 // So let's just mark them for now with a workaround: flip a note in the name.
-// Actually — the cleanest approach without a new migration is to just expose
+// Actually, the cleanest approach without a new migration is to just expose
 // delete. We'll keep disable as a no-op stub and note it requires a migration.
 export async function disableUser(req: AuthRequest, res: Response, next: NextFunction) {
   try {
@@ -35,7 +35,7 @@ export async function disableUser(req: AuthRequest, res: Response, next: NextFun
       return;
     }
     // Stub: will be wired to isDisabled field once added to schema
-    res.json({ success: true, message: 'User disabled (stub — add isDisabled to schema)' });
+    res.json({ success: true, message: 'User disabled (stub, add isDisabled to schema)' });
   } catch (err) {
     next(err);
   }

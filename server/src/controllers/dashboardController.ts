@@ -75,7 +75,7 @@ export async function getDashboardStats(req: AuthRequest, res: Response, next: N
       avgCostMap.set(stat.asset.id, stat.avgCost);
     }
 
-    // Active plans — with next purchase date, suggested buy amount, and sell suggestions
+    // Active plans, with next purchase date, suggested buy amount, and sell suggestions
     const activePlanRows = await prisma.dcaPlan.findMany({
       where: { userId, isActive: true },
       include: {

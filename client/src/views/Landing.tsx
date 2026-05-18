@@ -212,7 +212,7 @@ export default function Landing() {
               See what would have happened if you started earlier
             </h2>
             <p className="text-gray-400 leading-relaxed mb-6">
-              Backtest any DCA strategy against real historical price data. Pick an asset, set a weekly or monthly amount, choose a start date, and see the full picture — total invested, current value, return, and a chart of your portfolio growth over time.
+              Backtest any DCA strategy against real historical price data. Pick an asset, set a weekly or monthly amount, choose a start date, and see the full picture, total invested, current value, return, and a chart of your portfolio growth over time.
             </p>
             <Link
               href="/login"
