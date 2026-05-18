@@ -105,6 +105,7 @@ model DcaPlan {
   startDate        DateTime     @map("start_date")
   endDate          DateTime?    @map("end_date")
   nextPurchaseDate DateTime?    @map("next_purchase_date")
+  scheduledTime    String       @default("08:00") @map("scheduled_time") // HH:MM format
   notes            String?
   createdAt        DateTime     @default(now()) @map("created_at")
   updatedAt        DateTime     @updatedAt @map("updated_at")
