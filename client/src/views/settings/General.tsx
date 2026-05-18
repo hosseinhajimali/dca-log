@@ -201,6 +201,11 @@ export default function General() {
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Clear all data state
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [clearInput, setClearInput] = useState('');
+  const [clearLoading, setClearLoading] = useState(false);
+
   const assetSymbols = new Set(assets.map(a => a.symbol));
 
   async function handleDownloadBackup() {
@@ -251,6 +256,21 @@ export default function General() {
     } finally {
       setRestoreLoading(false);
       setPendingFile(null);
+    }
+  }
+
+  async function handleClearAllData() {
+    setClearLoading(true);
+    try {
+      await api.delete('/backup/clear');
+      queryClient.invalidateQueries();
+      toast('All data cleared');
+      setShowClearConfirm(false);
+      setClearInput('');
+    } catch {
+      toast('Failed to clear data');
+    } finally {
+      setClearLoading(false);
     }
   }
 
@@ -332,7 +352,7 @@ export default function General() {
       </section>
 
       {/* Backup & Restore */}
-      <section className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
+      <section id="backup" className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
         <div>
           <h2 className="text-sm font-semibold text-gray-300">Backup & Restore</h2>
           <p className="text-xs text-gray-500 mt-1">
@@ -365,9 +385,71 @@ export default function General() {
             onChange={handleFileChange}
           />
         </div>
+
+        <div className="border-t border-gray-800 pt-4">
+          <p className="text-xs text-gray-500 mb-2">New to DCAlog? Try it with sample data:</p>
+          <a
+            href="/sample-data.json"
+            download="dcalog-sample-data.json"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 text-sm font-medium rounded-lg transition-colors"
+          >
+            ⬇ Download sample data
+          </a>
+          <p className="text-xs text-gray-600 mt-1.5">Includes 17 months of BTC, ETH & Gold DCA — restore it to explore the app.</p>
+        </div>
+
+        <div className="border-t border-gray-800 pt-4">
+          <p className="text-xs text-gray-500 mb-2">Want to start fresh?</p>
+          <button
+            onClick={() => { setShowClearConfirm(true); setClearInput(''); }}
+            className="px-4 py-2 bg-red-600/10 hover:bg-red-600/20 border border-red-500/20 hover:border-red-500/40 text-red-400 text-sm font-medium rounded-lg transition-colors"
+          >
+            Clear all data
+          </button>
+        </div>
       </section>
 
       {/* Restore confirm modal */}
+      {/* Clear all data modal */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-sm bg-gray-900 border border-gray-700 rounded-2xl p-6 space-y-4">
+            <div className="flex flex-col gap-2">
+              <span className="text-2xl">⚠️</span>
+              <h2 className="text-base font-semibold text-gray-100">Clear all data?</h2>
+              <p className="text-sm text-gray-400">
+                This will permanently delete all your assets, plans, transactions, and goals. This cannot be undone.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-xs text-gray-500">Type <span className="font-mono text-red-400">DELETE</span> to confirm</p>
+              <input
+                type="text"
+                value={clearInput}
+                onChange={e => setClearInput(e.target.value)}
+                placeholder="DELETE"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-red-500/50"
+              />
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={handleClearAllData}
+                disabled={clearInput !== 'DELETE' || clearLoading}
+                className="flex-1 bg-red-600 hover:bg-red-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium py-2.5 rounded-lg transition-colors"
+              >
+                {clearLoading ? 'Clearing…' : 'Clear all data'}
+              </button>
+              <button
+                onClick={() => { setShowClearConfirm(false); setClearInput(''); }}
+                className="flex-1 text-gray-400 border border-gray-700 text-sm py-2.5 rounded-lg hover:text-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showRestoreConfirm && pendingFile && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="w-full max-w-sm bg-gray-900 border border-gray-700 rounded-2xl p-6 space-y-4">
