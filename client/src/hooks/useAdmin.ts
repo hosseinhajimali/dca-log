@@ -104,3 +104,56 @@ export function useDeleteFeedback() {
     },
   });
 }
+
+// ─── Announcements ────────────────────────────────────────────────────────────
+
+export interface AdminAnnouncement {
+  id: string;
+  title: string;
+  message: string;
+  scheduledAt: string | null;
+  sentAt: string | null;
+  sentCount: number;
+  createdAt: string;
+}
+
+export function useAnnouncements() {
+  return useQuery<AdminAnnouncement[]>({
+    queryKey: ['admin-announcements'],
+    queryFn: async () => {
+      const res = await api.get<{ data: AdminAnnouncement[] }>('/admin/announcements');
+      return res.data.data;
+    },
+  });
+}
+
+export function useCreateAnnouncement() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { title: string; message: string; scheduledAt?: string | null }) =>
+      api.post<{ data: AdminAnnouncement }>('/admin/announcements', payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-announcements'] });
+    },
+  });
+}
+
+export function useResendAnnouncement() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.post(`/admin/announcements/${id}/resend`, {}),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-announcements'] });
+    },
+  });
+}
+
+export function useDeleteAnnouncement() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/admin/announcements/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-announcements'] });
+    },
+  });
+}

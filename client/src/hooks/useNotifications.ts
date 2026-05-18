@@ -3,7 +3,7 @@ import { api } from '@/lib/api';
 
 export interface AppNotification {
   id: string;
-  type: 'DCA_REMINDER' | 'SELL_RULE_MET' | 'BUYING_RULE_MET' | 'NEW_FEEDBACK';
+  type: 'DCA_REMINDER' | 'SELL_RULE_MET' | 'BUYING_RULE_MET' | 'NEW_FEEDBACK' | 'ANNOUNCEMENT';
   title: string;
   message: string;
   isRead: boolean;
