@@ -1,7 +1,7 @@
 'use client';
 
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts';
 import { useRouter } from 'next/navigation';
@@ -141,13 +141,14 @@ export default function Dashboard() {
   const isProfitable = portfolio.totalPnl >= 0;
   const isEmpty = assetStats.length === 0 && activePlans === 0 && portfolio.totalInvested === 0;
 
-  // Pie chart data
-  const rawPieData = assetStats.filter((a) => a.currentValue > 0);
-  const totalPieValue = rawPieData.reduce((s, a) => s + a.currentValue, 0);
-  const pieData = rawPieData.map((a) => ({
+  // Pie chart data — use currentValue when price is known, fall back to totalInvested
+  const rawPieData = assetStats.filter((a) => a.currentValue > 0 || a.totalInvested > 0);
+  const pieDataValues = rawPieData.map((a) => a.currentValue > 0 ? a.currentValue : a.totalInvested);
+  const totalPieValue = pieDataValues.reduce((s, v) => s + v, 0);
+  const pieData = rawPieData.map((a, i) => ({
     name: a.asset.symbol,
-    value: a.currentValue,
-    pct: totalPieValue > 0 ? (a.currentValue / totalPieValue) * 100 : 0,
+    value: pieDataValues[i],
+    pct: totalPieValue > 0 ? (pieDataValues[i] / totalPieValue) * 100 : 0,
   }));
 
   // Monthly chart data
@@ -240,23 +241,18 @@ export default function Dashboard() {
             <div className="h-48 flex items-center justify-center text-gray-600 text-sm">No data yet</div>
           ) : (
             <ResponsiveContainer width="100%" height={200}>
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="investGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-                <XAxis dataKey="month" tick={{ fill: '#6b7280', fontSize: 11 }} />
-                <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} />
+              <BarChart data={chartData} barCategoryGap="30%">
+                <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
+                <XAxis dataKey="month" tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <Tooltip
                   contentStyle={{ background: '#111827', border: '1px solid #1f2937', borderRadius: 8 }}
                   labelStyle={{ color: '#9ca3af' }}
                   itemStyle={{ color: '#22c55e' }}
+                  cursor={{ fill: '#1f2937' }}
                 />
-                <Area type="monotone" dataKey="invested" stroke="#22c55e" fill="url(#investGrad)" strokeWidth={2} />
-              </AreaChart>
+                <Bar dataKey="invested" fill="#22c55e" radius={[4, 4, 0, 0]} />
+              </BarChart>
             </ResponsiveContainer>
           )}
         </div>
@@ -358,7 +354,15 @@ export default function Dashboard() {
                     </td>
                     <td className="px-5 py-4">
                       {stat.drawdownFromAth === null ? (
-                        <span className="text-gray-600">—</span>
+                        <div className="relative group inline-block">
+                          <span className="text-gray-600 cursor-help border-b border-dashed border-gray-700">—</span>
+                          <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-xs text-gray-300 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                            {stat.currentPrice === 0
+                              ? 'No live price available for this asset. Price data is needed to calculate drawdown.'
+                              : 'ATH not yet tracked. It will be recorded automatically on the next price refresh.'}
+                            <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-700" />
+                          </div>
+                        </div>
                       ) : stat.drawdownFromAth >= -0.5 ? (
                         <span className="text-green-400 font-mono font-medium text-xs">ATH 🔥</span>
                       ) : (
