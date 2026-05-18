@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-  // Proxy /api requests to Express backend — only in development
+  // Proxy /api requests to Express backend, only in development
   async rewrites() {
     if (isProd) return [];
     return [

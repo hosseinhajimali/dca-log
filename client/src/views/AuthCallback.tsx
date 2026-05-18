@@ -13,7 +13,7 @@ export default function AuthCallback() {
   const ran = useRef(false);
 
   useEffect(() => {
-    // Strict-mode guard — only run once
+    // Strict-mode guard, only run once
     if (ran.current) return;
     ran.current = true;
 

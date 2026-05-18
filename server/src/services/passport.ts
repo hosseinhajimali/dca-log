@@ -23,7 +23,7 @@ passport.use(
         let user = await prisma.user.findUnique({ where: { googleId: profile.id } });
 
         if (!user) {
-          // 2. Check if an email/password account exists — if so, link it
+          // 2. Check if an email/password account exists, if so, link it
           const existing = await prisma.user.findUnique({ where: { email } });
 
           if (existing) {
@@ -32,13 +32,13 @@ passport.use(
               data: { googleId: profile.id },
             });
           } else {
-            // 3. Brand new user — create account
+            // 3. Brand new user, create account
             user = await prisma.user.create({
               data: {
                 email,
                 googleId: profile.id,
                 name: profile.displayName || undefined,
-                // Don't auto-set Google photo — let user pick their avatar
+                // Don't auto-set Google photo, let user pick their avatar
               },
             });
           }

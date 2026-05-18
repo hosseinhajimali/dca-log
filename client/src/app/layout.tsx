@@ -5,7 +5,7 @@ import '../index.css';
 
 export const metadata: Metadata = {
   title: 'DCAlog | Invest consistently. Profit systematically.',
-  description: 'Track your dollar-cost averaging strategy, monitor buying opportunities, and know when to take profit — all in one place.',
+  description: 'Track your dollar-cost averaging strategy, monitor buying opportunities, and know when to take profit, all in one place.',
   openGraph: {
     type: 'website',
     url: 'https://dcalog.com/',

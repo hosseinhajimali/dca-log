@@ -15,7 +15,7 @@ app.use(cors({ origin: allowedOrigin, credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Passport (no sessions — JWT only)
+// Passport (no sessions, JWT only)
 app.use(passport.initialize());
 
 // API Routes
