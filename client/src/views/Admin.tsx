@@ -6,11 +6,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import {
   useAdminUsers, useAdminStats, useAdminFeedback,
   useDeleteUser, useMarkFeedbackRead, useMarkAllFeedbackRead, useDeleteFeedback,
+  useAnnouncements, useCreateAnnouncement, useResendAnnouncement, useDeleteAnnouncement,
+  type AdminAnnouncement,
 } from '@/hooks/useAdmin';
 import { useCurrencyFormatter } from '@/lib/format';
 import { Avatar } from '@/components/ui/Avatar';
 import { toast } from '@/lib/toast';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Send, RefreshCw, Clock } from 'lucide-react';
 
 const CATEGORIES = [
   { value: '', label: 'All' },
@@ -31,7 +33,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   OTHER: 'text-gray-400 bg-gray-500/10 border-gray-500/20',
 };
 
-type Tab = 'stats' | 'users' | 'feedback';
+type Tab = 'stats' | 'users' | 'feedback' | 'announcements';
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
@@ -248,6 +250,178 @@ function FeedbackTab() {
   );
 }
 
+function AnnouncementsTab() {
+  const { data: announcements = [], isLoading } = useAnnouncements();
+  const createAnnouncement = useCreateAnnouncement();
+  const resendAnnouncement = useResendAnnouncement();
+  const deleteAnnouncement = useDeleteAnnouncement();
+  const [title, setTitle] = useState('');
+  const [message, setMessage] = useState('');
+  const [scheduledAt, setScheduledAt] = useState('');
+  const [previewItem, setPreviewItem] = useState<AdminAnnouncement | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!title.trim() || !message.trim()) return;
+    await createAnnouncement.mutateAsync({
+      title: title.trim(),
+      message: message.trim(),
+      scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : null,
+    });
+    toast(scheduledAt ? 'Announcement scheduled' : 'Announcement sent');
+    setTitle('');
+    setMessage('');
+    setScheduledAt('');
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* delete confirm */}
+      {deleteId && (
+        <ConfirmModal
+          message="Delete this announcement? It will also be removed from all users' notification lists."
+          loading={deleteAnnouncement.isPending}
+          onConfirm={() => deleteAnnouncement.mutate(deleteId, { onSuccess: () => { setDeleteId(null); toast('Announcement deleted'); } })}
+          onCancel={() => setDeleteId(null)}
+        />
+      )}
+
+      {/* preview modal */}
+      {previewItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setPreviewItem(null)} />
+          <div className="relative bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-4">
+            <h3 className="text-base font-semibold text-gray-100">{previewItem.title}</h3>
+            <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{previewItem.message}</p>
+            <div className="flex items-center justify-between pt-2 border-t border-gray-800">
+              <span className="text-xs text-gray-600">
+                Sent {previewItem.sentAt ? new Date(previewItem.sentAt).toLocaleString() : '—'}
+                {' · '}{previewItem.sentCount} recipients
+              </span>
+              <button
+                onClick={() => setPreviewItem(null)}
+                className="text-xs px-4 py-2 rounded-lg border border-gray-700 text-gray-400 hover:text-gray-200 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* compose */}
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <h2 className="text-sm font-semibold text-gray-200 mb-4">New announcement</h2>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <input
+            type="text"
+            placeholder="Title"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            maxLength={100}
+            required
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-brand-500"
+          />
+          <textarea
+            placeholder="Message"
+            value={message}
+            onChange={e => setMessage(e.target.value)}
+            required
+            rows={4}
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-brand-500 resize-none"
+          />
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2 flex-1 min-w-48">
+              <Clock size={13} className="text-gray-600 shrink-0" />
+              <input
+                type="datetime-local"
+                value={scheduledAt}
+                onChange={e => setScheduledAt(e.target.value)}
+                style={{ colorScheme: 'dark' }}
+                className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-400 focus:outline-none focus:border-brand-500"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={createAnnouncement.isPending || !title.trim() || !message.trim()}
+              className="inline-flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-lg bg-brand-600/20 border border-brand-500/30 text-brand-400 hover:bg-brand-600/30 hover:border-brand-500/50 transition-colors disabled:opacity-50 shrink-0"
+            >
+              <Send size={13} strokeWidth={1.75} />
+              {scheduledAt ? 'Schedule' : 'Send now'}
+            </button>
+          </div>
+          {scheduledAt && (
+            <p className="text-xs text-gray-600">
+              Will be sent on {new Date(scheduledAt).toLocaleString()}
+            </p>
+          )}
+        </form>
+      </div>
+
+      {/* history */}
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold text-gray-400">History</h2>
+        {isLoading && <div className="text-gray-500 text-sm animate-pulse">Loading…</div>}
+        {!isLoading && announcements.length === 0 && (
+          <p className="text-gray-600 text-sm">No announcements yet.</p>
+        )}
+        {announcements.map(a => {
+          const isPending = !a.sentAt;
+          return (
+            <div key={a.id} className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setPreviewItem(a)}>
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <span className="text-sm font-medium text-gray-200">{a.title}</span>
+                    {isPending ? (
+                      <span className="text-xs px-1.5 py-0.5 rounded border text-amber-400 bg-amber-500/10 border-amber-500/20">
+                        scheduled
+                      </span>
+                    ) : (
+                      <span className="text-xs px-1.5 py-0.5 rounded border text-green-400 bg-green-500/10 border-green-500/20">
+                        sent
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 line-clamp-1">{a.message}</p>
+                  <div className="flex items-center gap-3 mt-1 text-xs text-gray-600">
+                    {a.scheduledAt && (
+                      <span>Scheduled {new Date(a.scheduledAt).toLocaleString()}</span>
+                    )}
+                    {a.sentAt && (
+                      <span>Sent {new Date(a.sentAt).toLocaleString()}</span>
+                    )}
+                    {a.sentCount > 0 && <span>{a.sentCount} recipients</span>}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    onClick={() => resendAnnouncement.mutate(a.id, { onSuccess: () => toast('Announcement resent') })}
+                    disabled={resendAnnouncement.isPending}
+                    title="Resend to all users"
+                    className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-300 border border-gray-800 hover:border-gray-600 px-2.5 py-1 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    <RefreshCw size={11} strokeWidth={1.75} />
+                    Resend
+                  </button>
+                  <button
+                    onClick={() => setDeleteId(a.id)}
+                    title="Delete announcement"
+                    className="flex items-center justify-center w-7 h-7 rounded-lg text-gray-700 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function AdminInner() {
   const { user } = useStore();
   const router = useRouter();
@@ -258,9 +432,10 @@ function AdminInner() {
   if (!user?.isAdmin) { router.replace('/'); return null; }
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: 'stats',    label: 'Stats' },
-    { id: 'users',    label: 'Users' },
-    { id: 'feedback', label: 'Feedback' },
+    { id: 'stats',         label: 'Stats' },
+    { id: 'users',         label: 'Users' },
+    { id: 'feedback',      label: 'Feedback' },
+    { id: 'announcements', label: 'Announcements' },
   ];
 
   return (
@@ -288,9 +463,10 @@ function AdminInner() {
       </div>
 
       <div>
-        {tab === 'stats'    && <StatsTab />}
-        {tab === 'users'    && <UsersTab />}
-        {tab === 'feedback' && <FeedbackTab />}
+        {tab === 'stats'         && <StatsTab />}
+        {tab === 'users'         && <UsersTab />}
+        {tab === 'feedback'      && <FeedbackTab />}
+        {tab === 'announcements' && <AnnouncementsTab />}
       </div>
     </div>
   );

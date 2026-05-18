@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { Bell } from 'lucide-react';
 import {
@@ -14,6 +15,7 @@ const TYPE_LABEL: Record<AppNotification['type'], string> = {
   SELL_RULE_MET:   'Sell',
   BUYING_RULE_MET: 'Buy',
   NEW_FEEDBACK:    'Msg',
+  ANNOUNCEMENT:    'News',
 };
 
 const TYPE_COLOR: Record<AppNotification['type'], string> = {
@@ -21,6 +23,7 @@ const TYPE_COLOR: Record<AppNotification['type'], string> = {
   SELL_RULE_MET:   'text-amber-400 bg-amber-500/10 border-amber-500/20',
   BUYING_RULE_MET: 'text-green-400 bg-green-500/10 border-green-500/20',
   NEW_FEEDBACK:    'text-gray-400 bg-gray-500/10 border-gray-500/20',
+  ANNOUNCEMENT:    'text-purple-400 bg-purple-500/10 border-purple-500/20',
 };
 
 export function NotificationBell() {
@@ -31,6 +34,7 @@ export function NotificationBell() {
   const clearAll = useClearAllNotifications();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [announcementModal, setAnnouncementModal] = useState<AppNotification | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
   const unread = data?.unreadCount ?? 0;
@@ -46,6 +50,32 @@ export function NotificationBell() {
 
   return (
     <div ref={ref} className="relative flex items-center">
+      {/* Announcement full-message modal — portalled to body to escape relative parent */}
+      {announcementModal && createPortal(
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setAnnouncementModal(null)} />
+          <div className="relative bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <h3 className="text-base font-semibold text-gray-100">{announcementModal.title}</h3>
+              <span className={`text-[10px] font-bold shrink-0 px-1.5 py-0.5 rounded border ${TYPE_COLOR['ANNOUNCEMENT']}`}>
+                News
+              </span>
+            </div>
+            <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{announcementModal.message}</p>
+            <div className="flex items-center justify-between pt-3 border-t border-gray-800">
+              <span className="text-xs text-gray-600">{new Date(announcementModal.createdAt).toLocaleString()}</span>
+              <button
+                onClick={() => setAnnouncementModal(null)}
+                className="text-xs px-4 py-2 rounded-lg border border-gray-700 text-gray-400 hover:text-gray-200 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
       <button
         onClick={() => setOpen(o => !o)}
         className="relative flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:text-gray-200 hover:bg-gray-800 transition-colors"
@@ -87,7 +117,10 @@ export function NotificationBell() {
                   className={`flex items-start gap-3 px-4 py-3 hover:bg-gray-800/50 transition-colors cursor-pointer ${!n.isRead ? 'bg-gray-800/30' : ''}`}
                   onClick={() => {
                     if (!n.isRead) markAsRead.mutate(n.id);
-                    if (n.metadata?.planId) {
+                    if (n.type === 'ANNOUNCEMENT') {
+                      setAnnouncementModal(n);
+                      setOpen(false);
+                    } else if (n.metadata?.planId) {
                       router.push(`/app/plans/${n.metadata.planId}`);
                       setOpen(false);
                     } else if (n.type === 'NEW_FEEDBACK') {
@@ -104,7 +137,7 @@ export function NotificationBell() {
                       <p className={`text-xs font-medium ${n.isRead ? 'text-gray-400' : 'text-gray-200'}`}>{n.title}</p>
                       {!n.isRead && <span className="w-1.5 h-1.5 rounded-full bg-brand-400 shrink-0 mt-1" />}
                     </div>
-                    <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{n.message}</p>
+                    <p className="text-xs text-gray-500 mt-0.5 leading-relaxed line-clamp-2">{n.message}</p>
                     <p className="text-xs text-gray-700 mt-1">{new Date(n.createdAt).toLocaleDateString()}</p>
                   </div>
                   <button
