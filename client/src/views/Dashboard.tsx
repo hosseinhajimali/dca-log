@@ -139,6 +139,7 @@ export default function Dashboard() {
 
   const { portfolio, assetStats, activePlans, activePlanList, monthlyData } = data;
   const isProfitable = portfolio.totalPnl >= 0;
+  const isEmpty = assetStats.length === 0 && activePlans === 0 && portfolio.totalInvested === 0;
 
   // Pie chart data
   const rawPieData = assetStats.filter((a) => a.currentValue > 0);
@@ -164,6 +165,31 @@ export default function Dashboard() {
           Last updated {formatDate(data.lastUpdated)} · {activePlans} active plan{activePlans !== 1 ? 's' : ''}
         </p>
       </div>
+
+      {/* Empty state banner */}
+      {isEmpty && (
+        <div className="bg-brand-500/10 border border-brand-500/30 rounded-2xl px-6 py-8 text-center">
+          <p className="text-2xl mb-3">👋</p>
+          <h2 className="text-lg font-semibold text-gray-100 mb-2">Welcome to DCAlog!</h2>
+          <p className="text-sm text-gray-400 max-w-md mx-auto mb-6">
+            Your dashboard is empty. Add your first asset and plan to get started — or jump straight in with ready-made sample data covering 17 months of BTC, ETH & Gold DCA.
+          </p>
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            <a
+              href="/app/plans"
+              className="inline-flex items-center gap-2 text-sm font-medium px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white transition-colors"
+            >
+              Create your first plan
+            </a>
+            <a
+              href="/app/settings#backup"
+              className="inline-flex items-center gap-2 text-sm font-medium px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 hover:text-white transition-colors"
+            >
+              Try with sample data
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* Stats row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
