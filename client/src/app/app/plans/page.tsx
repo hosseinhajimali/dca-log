@@ -1,6 +1,10 @@
-import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import DcaPlans from '@/views/DcaPlans';
 
-export const metadata: Metadata = { title: 'DCA Plans | DCAlog' };
-
-export default DcaPlans;
+export default function PlansPage() {
+  return (
+    <Suspense>
+      <DcaPlans />
+    </Suspense>
+  );
+}
