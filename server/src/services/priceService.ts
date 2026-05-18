@@ -1,7 +1,6 @@
 import { prisma } from '../lib/prisma';
 
 const COINGECKO_BASE = 'https://api.coingecko.com/api/v3';
-const METALS_BASE = 'https://api.metals.live/v1/spot';
 const FX_BASE = 'https://api.frankfurter.app/latest';
 
 function cgHeaders(): Record<string, string> {
@@ -23,9 +22,13 @@ const COINGECKO_IDS: Record<string, string> = {
   LINK:  'chainlink',
   AVAX:  'avalanche-2',
   DOGE:  'dogecoin',
+  // Metals via tokenized equivalents on CoinGecko (track spot price 1:1)
+  XAU:   'pax-gold',   // PAX Gold — 1 token = 1 troy oz gold
+  XAG:   'silver',     // Silver token on CoinGecko
 };
 
-const METAL_SYMBOLS = new Set(['XAU', 'XAG', 'XPT', 'XPD']);
+// Symbols handled via CoinGecko (including tokenized metals above)
+const METAL_SYMBOLS = new Set(['XPT', 'XPD']); // only obscure metals still use Frankfurter
 
 interface CryptoMarketData {
   priceUsd:   number;
@@ -85,30 +88,27 @@ async function fetchCryptoMarkets(
   return result;
 }
 
-// Known historical ATH seeds for metals (USD) — used as floor so drawdown is accurate from day one
+// ATH seeds for metals not on CoinGecko (XPT, XPD only — XAU/XAG now use CoinGecko)
 const METAL_ATH_SEEDS: Record<string, number> = {
-  XAU: 3500,   // Gold ATH ~$3,500/oz (2025)
-  XAG: 50,     // Silver ATH ~$50/oz (1980/2011)
   XPT: 2300,   // Platinum ATH ~$2,300/oz (2008)
   XPD: 3000,   // Palladium ATH ~$3,000/oz (2022)
 };
 
+// Frankfurter returns rates as "how many XAU per 1 USD", so price = 1 / rate
 async function fetchMetalPrices(symbols: string[]): Promise<Map<string, number>> {
   const priceMap = new Map<string, number>();
   const metalSymbols = symbols.filter((s) => METAL_SYMBOLS.has(s));
   if (!metalSymbols.length) return priceMap;
 
   try {
-    const resp = await fetch(METALS_BASE);
-    if (!resp.ok) throw new Error(`Metals API error: ${resp.status}`);
-    const data = await resp.json() as Record<string, number>;
+    const to = metalSymbols.join(',');
+    const resp = await fetch(`${FX_BASE}?from=USD&to=${to}`);
+    if (!resp.ok) throw new Error(`Frankfurter metals error: ${resp.status}`);
+    const data = await resp.json() as { rates: Record<string, number> };
 
-    const metalMap: Record<string, string> = {
-      XAU: 'gold', XAG: 'silver', XPT: 'platinum', XPD: 'palladium',
-    };
     for (const symbol of metalSymbols) {
-      const key = metalMap[symbol];
-      if (key && data[key]) priceMap.set(symbol, data[key]);
+      const rate = data.rates[symbol];
+      if (rate && rate > 0) priceMap.set(symbol, 1 / rate);
     }
   } catch (err) {
     console.error('[PriceService] Metals fetch failed:', err);
