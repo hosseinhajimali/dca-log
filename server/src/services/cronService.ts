@@ -34,7 +34,7 @@ async function checkDcaReminders(): Promise<void> {
         data: {
           userId: plan.userId,
           type: 'DCA_REMINDER',
-          title: '⏰ DCA Reminder',
+          title: 'DCA Reminder',
           message: `Time to make your scheduled purchase for "${planName}".`,
           metadata: { planId: plan.id },
         },

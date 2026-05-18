@@ -10,6 +10,67 @@ import { Transaction, Asset } from '@/types';
 import { api } from '@/lib/api';
 import { toCSVString, downloadFile, downloadXLSX, parseImportCSV, ParsedImportRow } from '@/lib/exportUtils';
 
+// ─── delete confirm modal ─────────────────────────────────────────────────────
+function DeleteConfirmModal({ tx, onConfirm, onCancel }: {
+  tx: Transaction;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const { format } = useCurrencyFormatter();
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel(); };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [onCancel]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      onClick={e => { if (e.target === e.currentTarget) onCancel(); }}
+    >
+      <div className="w-full max-w-sm bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-6 space-y-4">
+        <h2 className="text-base font-semibold text-gray-100">Delete transaction?</h2>
+        <div className="bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-3 space-y-1 text-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400">Asset</span>
+            <span
+              className="font-mono font-semibold"
+              style={tx.asset?.color ? { color: tx.asset.color } : { color: '#f3f4f6' }}
+            >{tx.asset?.symbol}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400">Type</span>
+            <span className={tx.type === 'BUY' ? 'text-green-400' : 'text-red-400'}>{tx.type}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400">Amount</span>
+            <span className="text-gray-100">{format(tx.amountUsd)}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400">Date</span>
+            <span className="text-gray-100">{formatDate(tx.purchasedAt)}</span>
+          </div>
+        </div>
+        <p className="text-xs text-gray-500">This will permanently remove the transaction and update your portfolio stats.</p>
+        <div className="flex gap-3 pt-1">
+          <button
+            onClick={onConfirm}
+            className="flex-1 bg-red-600 hover:bg-red-500 text-white text-sm font-medium py-2.5 rounded-lg transition-colors"
+          >
+            Delete
+          </button>
+          <button
+            onClick={onCancel}
+            className="flex-1 text-gray-400 hover:text-gray-200 text-sm border border-gray-700 py-2.5 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── shared field shape ───────────────────────────────────────────────────────
 interface TxFormValues {
   type: 'BUY' | 'SELL';
@@ -33,9 +94,9 @@ function txToForm(tx: Transaction): TxFormValues {
   return {
     type: tx.type ?? 'BUY',
     assetId: tx.assetId,
-    amountUsd: String(tx.amountUsd),
-    quantity: String(tx.quantity),
-    pricePerUnit: String(tx.pricePerUnit),
+    amountUsd: tx.amountUsd.toFixed(2),
+    quantity: parseFloat(tx.quantity.toFixed(8)).toString(),
+    pricePerUnit: tx.pricePerUnit.toFixed(2),
     purchasedAt: new Date(tx.purchasedAt).toISOString().slice(0, 16),
     exchange: tx.exchange ?? '',
     notes: tx.notes ?? '',
@@ -56,7 +117,7 @@ function TxFields({ form, setForm, assets, lockAsset }: TxFieldsProps) {
 
   const recalcAmount = (qty: string, price: string) => {
     const q = parseFloat(qty), p = parseFloat(price);
-    return q > 0 && p > 0 ? String(q * p) : '';
+    return q > 0 && p > 0 ? (q * p).toFixed(2) : '';
   };
 
   return (
@@ -820,7 +881,7 @@ export default function Transactions() {
   const deleteTx = useDeleteTransaction();
   const { format } = useCurrencyFormatter();
 
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deletingTx, setDeletingTx] = useState<Transaction | null>(null);
 
   const transactions = data?.data ?? [];
   const meta = data?.meta;
@@ -838,6 +899,13 @@ export default function Transactions() {
       )}
       {showImport && (
         <ImportModal assets={assets} onClose={() => setShowImport(false)} />
+      )}
+      {deletingTx && (
+        <DeleteConfirmModal
+          tx={deletingTx}
+          onConfirm={() => { deleteTx.mutate(deletingTx.id); setDeletingTx(null); }}
+          onCancel={() => setDeletingTx(null)}
+        />
       )}
 
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -941,24 +1009,10 @@ export default function Transactions() {
                         >
                           Edit
                         </button>
-                        {confirmDeleteId === tx.id ? (
-                          <span className="flex items-center gap-1.5">
-                            <span className="text-xs text-gray-400">Sure?</span>
-                            <button
-                              onClick={() => { deleteTx.mutate(tx.id); setConfirmDeleteId(null); }}
-                              className="text-xs text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-500/60 px-2 py-0.5 rounded transition-colors"
-                            >Yes</button>
-                            <button
-                              onClick={() => setConfirmDeleteId(null)}
-                              className="text-xs text-gray-500 hover:text-gray-300 border border-gray-700 px-2 py-0.5 rounded transition-colors"
-                            >No</button>
-                          </span>
-                        ) : (
-                          <button
-                            onClick={() => setConfirmDeleteId(tx.id)}
-                            className="text-xs text-red-400 hover:text-red-300 transition-colors"
-                          >Delete</button>
-                        )}
+                        <button
+                          onClick={() => setDeletingTx(tx)}
+                          className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                        >Delete</button>
                       </div>
                     </td>
                   </tr>

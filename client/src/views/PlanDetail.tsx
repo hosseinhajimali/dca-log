@@ -2,6 +2,8 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { PlusCircle } from 'lucide-react';
+import { QuickAddModal } from '@/components/QuickAddModal';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
@@ -135,6 +137,7 @@ export default function PlanDetail() {
   const { data, isLoading, error } = usePlanStats(id!);
   const { format, formatPct } = useCurrencyFormatter();
   const [showAddSellRule, setShowAddSellRule] = useState(false);
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
 
   if (isLoading) {
     return (
@@ -162,6 +165,10 @@ export default function PlanDetail() {
 
   return (
     <div className="space-y-6">
+      {showQuickAdd && (
+        <QuickAddModal plan={plan} onClose={() => setShowQuickAdd(false)} />
+      )}
+
       {/* Back + header */}
       <div>
         <button
@@ -189,26 +196,36 @@ export default function PlanDetail() {
             </p>
           </div>
 
-          {/* Simulate Plan shortcut */}
-          {(() => {
-            // Pick highest-allocation asset for simulation
-            const topAlloc = [...plan.allocations].sort((a, b) => b.allocationPct - a.allocationPct)[0];
-            if (!topAlloc) return null;
-            const params = new URLSearchParams({
-              assetId:   topAlloc.assetId,
-              startDate: plan.startDate.slice(0, 10),
-              amountUsd: String(Math.round(plan.amountUsd * (topAlloc.allocationPct / 100))),
-              frequency: plan.frequency,
-            });
-            return (
+          {/* Action buttons */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {plan.isActive && (
               <button
-                onClick={() => router.push(`/app/simulator?${params.toString()}`)}
-                className="shrink-0 flex items-center gap-1.5 text-xs text-brand-400 hover:text-brand-300 border border-brand-500/30 hover:border-brand-500/60 px-3 py-2 rounded-lg transition-colors"
+                onClick={() => setShowQuickAdd(true)}
+                className="shrink-0 flex items-center gap-1.5 text-xs text-brand-400 hover:text-brand-300 border border-brand-500/40 hover:border-brand-500/70 bg-brand-500/5 hover:bg-brand-500/10 px-3 py-2 rounded-lg transition-colors font-medium"
               >
-                <span>⏱</span> Simulate Plan
+                <PlusCircle size={12} strokeWidth={1.75} />
+                Quick Purchase
               </button>
-            );
-          })()}
+            )}
+            {(() => {
+              const topAlloc = [...plan.allocations].sort((a, b) => b.allocationPct - a.allocationPct)[0];
+              if (!topAlloc) return null;
+              const params = new URLSearchParams({
+                assetId:   topAlloc.assetId,
+                startDate: plan.startDate.slice(0, 10),
+                amountUsd: String(Math.round(plan.amountUsd * (topAlloc.allocationPct / 100))),
+                frequency: plan.frequency,
+              });
+              return (
+                <button
+                  onClick={() => router.push(`/app/simulator?${params.toString()}`)}
+                  className="shrink-0 flex items-center gap-1.5 text-xs text-gray-500 hover:text-brand-400 border border-gray-700 hover:border-brand-500/50 px-3 py-2 rounded-lg transition-colors"
+                >
+                  Simulate Plan
+                </button>
+              );
+            })()}
+          </div>
         </div>
       </div>
 
