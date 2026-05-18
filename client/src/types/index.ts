@@ -70,6 +70,7 @@ export interface DcaPlan {
   startDate: string;
   endDate?: string | null;
   nextPurchaseDate?: string;
+  scheduledTime?: string;
   notes?: string;
   createdAt: string;
   updatedAt: string;
