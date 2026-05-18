@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { prisma } from '../lib/prisma';
 import { AuthRequest } from '../types';
+import { fetchAndCachePrices } from '../services/priceService';
 
 export async function getDashboardStats(req: AuthRequest, res: Response, next: NextFunction) {
   try {
@@ -19,6 +20,14 @@ export async function getDashboardStats(req: AuthRequest, res: Response, next: N
     const prices = await prisma.priceCache.findMany({
       where: { symbol: { in: symbols } },
     });
+    const cachedSymbols = new Set(prices.map((p) => p.symbol));
+    const missingSymbols = symbols.filter((s) => !cachedSymbols.has(s));
+
+    // If any asset has no cached price, trigger a background refresh (don't await — respond fast)
+    if (missingSymbols.length > 0) {
+      fetchAndCachePrices(missingSymbols).catch(console.error);
+    }
+
     const priceMap = new Map(prices.map((p) => [p.symbol, p.priceUsd]));
 
     // Build ATH map from price cache
@@ -42,7 +51,8 @@ export async function getDashboardStats(req: AuthRequest, res: Response, next: N
       const pnl = realizedPnl + unrealizedPnl;
       const pnlPercent = totalInvested > 0 ? (pnl / totalInvested) * 100 : 0;
 
-      const ath = athMap.get(asset.symbol) ?? null;
+      // Prefer user-supplied ATH override, fall back to auto-fetched value
+      const ath = asset.athOverride ?? athMap.get(asset.symbol) ?? null;
       const drawdownFromAth =
         ath && ath > 0 && currentPrice > 0
           ? ((currentPrice - ath) / ath) * 100   // 0 = at ATH, negative = below ATH
@@ -93,7 +103,7 @@ export async function getDashboardStats(req: AuthRequest, res: Response, next: N
 
       for (const alloc of plan.allocations) {
         const price = priceMap.get(alloc.asset.symbol) ?? 0;
-        const ath   = athMap.get(alloc.asset.symbol) ?? null;
+        const ath   = alloc.asset.athOverride ?? athMap.get(alloc.asset.symbol) ?? null;
         const drawdownPct = ath && price > 0 ? ((price - ath) / ath) * 100 : null;
 
         for (const rule of plan.buyingRules) {

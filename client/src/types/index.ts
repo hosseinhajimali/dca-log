@@ -20,6 +20,7 @@ export interface Asset {
   assetType: AssetType;
   coingeckoId?: string;
   color?: string | null;
+  athOverride?: number | null;
   createdAt: string;
 }
 

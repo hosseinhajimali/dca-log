@@ -10,6 +10,7 @@ const assetSchema = z.object({
   assetType: z.enum(['CRYPTO', 'METAL', 'STOCK', 'ETF', 'OTHER']),
   coingeckoId: z.string().optional(),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional().nullable(),
+  athOverride: z.number().positive().optional().nullable(),
 });
 
 export async function getAssets(req: AuthRequest, res: Response, next: NextFunction) {
@@ -53,7 +54,14 @@ export async function updateAsset(req: AuthRequest, res: Response, next: NextFun
     const body = updateSchema.safeParse(req.body);
     if (!body.success) return next(new AppError(400, body.error.errors[0].message));
 
-    const updated = await prisma.asset.update({ where: { id: id as string }, data: body.data });
+    const updated = await prisma.asset.update({
+      where: { id: id as string },
+      data: {
+        ...body.data,
+        // Allow explicitly clearing the override by passing null
+        ...(body.data.athOverride !== undefined ? { athOverride: body.data.athOverride } : {}),
+      },
+    });
     res.json({ success: true, data: updated });
   } catch (err) {
     next(err);

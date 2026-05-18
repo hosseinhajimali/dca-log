@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell,
@@ -11,6 +13,33 @@ import { Badge } from '@/components/ui/Badge';
 import { useCurrencyFormatter, formatDate, formatQuantity } from '@/lib/format';
 import FearGreedWidget from '@/components/ui/FearGreedWidget';
 import { ActivePlanSummary } from '@/types';
+
+function HoverTooltip({ message }: { message: string }) {
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  return (
+    <>
+      <span
+        className="text-gray-500 cursor-help border-b border-dashed border-gray-600"
+        title=""
+        onMouseEnter={e => {
+          const r = e.currentTarget.getBoundingClientRect();
+          setPos({ x: r.left + r.width / 2, y: r.top });
+        }}
+        onMouseLeave={() => setPos(null)}
+      >—</span>
+      {pos && createPortal(
+        <div
+          className="fixed z-[9999] pointer-events-none w-56 rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-xs text-gray-300 shadow-lg"
+          style={{ left: pos.x, top: pos.y - 8, transform: 'translate(-50%, -100%)' }}
+        >
+          {message}
+          <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-700" />
+        </div>,
+        document.body
+      )}
+    </>
+  );
+}
 
 const COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#a78bfa', '#06b6d4', '#f97316'];
 
@@ -354,15 +383,7 @@ export default function Dashboard() {
                     </td>
                     <td className="px-5 py-4">
                       {stat.drawdownFromAth === null ? (
-                        <div className="relative group inline-block">
-                          <span className="text-gray-600 cursor-help border-b border-dashed border-gray-700">—</span>
-                          <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-xs text-gray-300 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                            {stat.currentPrice === 0
-                              ? 'No live price available for this asset. Price data is needed to calculate drawdown.'
-                              : 'ATH not yet tracked. It will be recorded automatically on the next price refresh.'}
-                            <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-700" />
-                          </div>
-                        </div>
+                        <HoverTooltip message="ATH not yet available. You can set it manually in Settings → Assets → Edit asset." />
                       ) : stat.drawdownFromAth >= -0.5 ? (
                         <span className="text-green-400 font-mono font-medium text-xs">ATH 🔥</span>
                       ) : (

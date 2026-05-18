@@ -37,6 +37,7 @@ function AssetModal({ mode, asset, onClose }: AssetModalProps) {
   const [name, setName] = useState(asset?.name ?? '');
   const [assetType, setAssetType] = useState<AssetType>(asset?.assetType ?? 'CRYPTO');
   const [coingeckoId, setCoingeckoId] = useState(asset?.coingeckoId ?? '');
+  const [athOverride, setAthOverride] = useState(asset?.athOverride != null ? String(asset.athOverride) : '');
   const [useColor, setUseColor] = useState(!!asset?.color);
   const [color, setColor] = useState(asset?.color ?? '#ffffff');
 
@@ -52,10 +53,12 @@ function AssetModal({ mode, asset, onClose }: AssetModalProps) {
     e.preventDefault();
     if (mode === 'add') {
       const sym = symbol.toUpperCase();
-      await createAsset.mutateAsync({ symbol: sym, name, assetType, coingeckoId: coingeckoId || undefined, color: useColor ? color : undefined });
+      const athVal = athOverride !== '' ? parseFloat(athOverride) : undefined;
+      await createAsset.mutateAsync({ symbol: sym, name, assetType, coingeckoId: coingeckoId || undefined, color: useColor ? color : undefined, athOverride: athVal });
       toast(`${sym} added`);
     } else if (asset) {
-      await updateAsset.mutateAsync({ id: asset.id, data: { name, coingeckoId: coingeckoId || undefined, color: useColor ? color : null } });
+      const athVal = athOverride !== '' ? parseFloat(athOverride) : null;
+      await updateAsset.mutateAsync({ id: asset.id, data: { name, coingeckoId: coingeckoId || undefined, color: useColor ? color : null, athOverride: athVal } });
       toast(`${asset.symbol} updated`);
     }
     onClose();
@@ -99,6 +102,23 @@ function AssetModal({ mode, asset, onClose }: AssetModalProps) {
               <input type="text" value={coingeckoId}
                 onChange={e => setCoingeckoId(e.target.value)}
                 placeholder="e.g. bitcoin" className={INPUT} />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-xs text-gray-400 mb-1.5">
+                ATH Override <span className="text-gray-600">(USD — optional)</span>
+              </label>
+              <input
+                type="number" min="0" step="any"
+                value={athOverride}
+                onChange={e => setAthOverride(e.target.value)}
+                placeholder={assetType === 'CRYPTO' ? 'Auto-fetched from CoinGecko' : 'e.g. 3500'}
+                className={INPUT}
+              />
+              <p className="text-xs text-gray-600 mt-1.5">
+                {assetType === 'CRYPTO'
+                  ? 'Leave blank to use the auto-fetched ATH. Set manually to override it.'
+                  : 'Enter the all-time high price in USD. Required for drawdown calculation and buying rules.'}
+              </p>
             </div>
           </div>
           <div className="border-t border-gray-800 pt-4 space-y-3">

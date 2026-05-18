@@ -81,6 +81,7 @@ model Asset {
   assetType   AssetType @map("asset_type")
   coingeckoId String?   @map("coingecko_id") // for crypto price lookup
   color       String? // optional hex color, e.g. "#f7931a"
+  athOverride Float?    @map("ath_override") // user-supplied ATH; overrides auto-fetched value
   createdAt   DateTime  @default(now()) @map("created_at")
 
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)

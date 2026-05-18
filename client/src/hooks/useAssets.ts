@@ -15,7 +15,7 @@ export function useAssets() {
 export function useCreateAsset() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { symbol: string; name: string; assetType: string; coingeckoId?: string; color?: string }) => {
+    mutationFn: async (data: { symbol: string; name: string; assetType: string; coingeckoId?: string; color?: string; athOverride?: number }) => {
       const res = await api.post<ApiResponse<Asset>>('/assets', data);
       return res.data.data;
     },
@@ -26,7 +26,7 @@ export function useCreateAsset() {
 export function useUpdateAsset() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: { name?: string; color?: string | null; coingeckoId?: string } }) => {
+    mutationFn: async ({ id, data }: { id: string; data: { name?: string; color?: string | null; coingeckoId?: string; athOverride?: number | null } }) => {
       const res = await api.patch<ApiResponse<Asset>>(`/assets/${id}`, data);
       return res.data.data;
     },
