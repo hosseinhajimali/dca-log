@@ -20,8 +20,13 @@ const FREQ_LABELS: Record<string, string> = {
 
 function daysUntil(dateStr: string | null): number | null {
   if (!dateStr) return null;
-  const diff = new Date(dateStr).getTime() - Date.now();
-  return Math.ceil(diff / 86_400_000);
+  const target = new Date(dateStr);
+  const today  = new Date();
+  // Compare dates only, ignore time
+  target.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+  const diff = target.getTime() - today.getTime();
+  return Math.round(diff / 86_400_000);
 }
 
 function ActivePlanCard({ plan, onClick }: { plan: ActivePlanSummary; onClick: () => void }) {
