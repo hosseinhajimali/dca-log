@@ -26,7 +26,8 @@ const INPUT_SM = 'bg-gray-800 border border-gray-700 rounded-lg px-2.5 py-1.5 te
 // ─── types ────────────────────────────────────────────────────────────────────
 interface PlanFormValues {
   name: string; amountUsd: string;
-  frequency: DcaFrequency; intervalDays: string; startDate: string; endDate: string; notes: string;
+  frequency: DcaFrequency; intervalDays: string; startDate: string; endDate: string;
+  scheduledTime: string; notes: string;
   perAssetRules: boolean;
 }
 
@@ -45,7 +46,8 @@ interface SourceSellRule {
 
 const emptyForm = (): PlanFormValues => ({
   name: '', amountUsd: '', frequency: 'MONTHLY',
-  intervalDays: '', startDate: new Date().toISOString().slice(0, 10), endDate: '', notes: '',
+  intervalDays: '', startDate: new Date().toISOString().slice(0, 10), endDate: '',
+  scheduledTime: '08:00', notes: '',
   perAssetRules: false,
 });
 
@@ -56,6 +58,7 @@ function planToForm(plan: DcaPlan): PlanFormValues {
     intervalDays: plan.intervalDays ? String(plan.intervalDays) : '',
     startDate: new Date(plan.startDate).toISOString().slice(0, 10),
     endDate: plan.endDate ? new Date(plan.endDate).toISOString().slice(0, 10) : '',
+    scheduledTime: plan.scheduledTime ?? '08:00',
     notes: plan.notes ?? '',
     perAssetRules: plan.perAssetRules ?? false,
   };
@@ -247,6 +250,11 @@ function PlanFields({ form, setForm, assets, allocations, setAllocations }: {
         <label className="block text-xs text-gray-400 mb-1.5">Start date *</label>
         <input type="date" required value={form.startDate}
           onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))} className={INPUT} />
+      </div>
+      <div>
+        <label className="block text-xs text-gray-400 mb-1.5">Purchase time</label>
+        <input type="time" value={form.scheduledTime}
+          onChange={e => setForm(f => ({ ...f, scheduledTime: e.target.value }))} className={INPUT} />
       </div>
       <div>
         <label className="block text-xs text-gray-400 mb-1.5">End date <span className="text-gray-600">(optional)</span></label>
@@ -457,6 +465,7 @@ function CreateModal({ assets, initialForm, initialAllocs, sourceRules, sourceSe
       intervalDays: form.frequency === 'CUSTOM' ? parseInt(form.intervalDays) : undefined,
       startDate: new Date(form.startDate).toISOString(),
       endDate: form.endDate ? new Date(form.endDate).toISOString() : undefined,
+      scheduledTime: form.scheduledTime || '08:00',
       notes: form.notes || undefined,
       perAssetRules: form.perAssetRules,
       allocations: allocations.map(a => ({ assetId: a.assetId, allocationPct: a.allocationPct })),
@@ -602,6 +611,7 @@ function EditModal({ plan, assets, onClose }: {
           intervalDays: form.frequency === 'CUSTOM' ? parseInt(form.intervalDays) : undefined,
           startDate: new Date(form.startDate).toISOString(),
           endDate: form.endDate ? new Date(form.endDate).toISOString() : null,
+          scheduledTime: form.scheduledTime || '08:00',
           notes: form.notes || undefined,
           perAssetRules: form.perAssetRules,
           allocations: allocations.map(a => ({ assetId: a.assetId, allocationPct: a.allocationPct })),
@@ -1179,6 +1189,7 @@ export default function DcaPlans() {
       intervalDays: source.intervalDays ? String(source.intervalDays) : '',
       startDate: new Date().toISOString().slice(0, 10),
       endDate: '',
+      scheduledTime: source.scheduledTime ?? '08:00',
       notes: source.notes ?? '',
       perAssetRules: source.perAssetRules ?? false,
     },
@@ -1284,7 +1295,10 @@ export default function DcaPlans() {
                         <span>Ends <span className="text-gray-300">{formatDate(plan.endDate)}</span></span>
                       )}
                       {plan.nextPurchaseDate && (
-                        <span>Next: <span className="text-gray-300">{formatDate(plan.nextPurchaseDate)}</span></span>
+                        <span>
+                          Next: <span className="text-gray-300">{formatDate(plan.nextPurchaseDate)}</span>
+                          <span className="text-gray-500 ml-1">@ {plan.scheduledTime ?? '08:00'}</span>
+                        </span>
                       )}
                       {plan.notes && (
                         <span className="text-gray-600 italic truncate max-w-xs">{plan.notes}</span>
