@@ -34,6 +34,28 @@ export async function downloadBackup(req: AuthRequest, res: Response, next: Next
   }
 }
 
+// ─── CLEAR ───────────────────────────────────────────────────────────────────
+
+export async function clearAllData(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const userId = req.userId!;
+
+    await prisma.$transaction(async (tx) => {
+      await tx.transaction.deleteMany({ where: { userId } });
+      await tx.goal.deleteMany({ where: { userId } });
+      await tx.sellRule.deleteMany({ where: { dcaPlan: { userId } } });
+      await tx.buyingRule.deleteMany({ where: { dcaPlan: { userId } } });
+      await tx.planAllocation.deleteMany({ where: { plan: { userId } } });
+      await tx.dcaPlan.deleteMany({ where: { userId } });
+      await tx.asset.deleteMany({ where: { userId } });
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
 // ─── RESTORE ─────────────────────────────────────────────────────────────────
 
 export async function restoreBackup(req: AuthRequest, res: Response, next: NextFunction) {
