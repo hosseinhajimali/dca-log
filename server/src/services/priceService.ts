@@ -85,6 +85,14 @@ async function fetchCryptoMarkets(
   return result;
 }
 
+// Known historical ATH seeds for metals (USD) — used as floor so drawdown is accurate from day one
+const METAL_ATH_SEEDS: Record<string, number> = {
+  XAU: 3500,   // Gold ATH ~$3,500/oz (2025)
+  XAG: 50,     // Silver ATH ~$50/oz (1980/2011)
+  XPT: 2300,   // Platinum ATH ~$2,300/oz (2008)
+  XPD: 3000,   // Palladium ATH ~$3,000/oz (2022)
+};
+
 async function fetchMetalPrices(symbols: string[]): Promise<Map<string, number>> {
   const priceMap = new Map<string, number>();
   const metalSymbols = symbols.filter((s) => METAL_SYMBOLS.has(s));
@@ -152,12 +160,18 @@ export async function fetchAndCachePrices(symbols?: string[]): Promise<void> {
     });
   }
 
-  // Upsert metal entries (no ATH available)
+  // Upsert metal entries — track ATH ourselves since the metals API doesn't provide it
   for (const [symbol, priceUsd] of metalPrices) {
+    const existing = await prisma.priceCache.findUnique({ where: { symbol } });
+    const seedAth   = METAL_ATH_SEEDS[symbol] ?? null;
+    const currentAth = existing?.ath ?? seedAth;
+    const newAth = currentAth === null || priceUsd > currentAth ? priceUsd : currentAth;
+    const athDate = newAth !== (existing?.ath ?? null) ? new Date() : (existing?.athDate ?? new Date());
+
     await prisma.priceCache.upsert({
       where:  { symbol },
-      update: { priceUsd, fetchedAt: new Date() },
-      create: { symbol, priceUsd, fetchedAt: new Date() },
+      update: { priceUsd, ath: newAth, athDate, fetchedAt: new Date() },
+      create: { symbol, priceUsd, ath: newAth, athDate, fetchedAt: new Date() },
     });
   }
 
