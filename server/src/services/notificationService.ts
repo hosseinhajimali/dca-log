@@ -18,12 +18,19 @@ export async function maybeNotify(
   const db = prisma as any;
   if (!db.notification) return; // table not yet migrated
 
+  // Build metadata path filters — more reliable than { equals: obj } for JSON columns
+  const metadataFilter = metadata
+    ? Object.entries(metadata).map(([key, val]) => ({
+        metadata: { path: [key], equals: val },
+      }))
+    : [];
+
   const existing = await db.notification.findFirst({
     where: {
       userId,
       type,
-      metadata: metadata ? { equals: metadata as object } : undefined,
       createdAt: { gte: startOfDay },
+      ...(metadataFilter.length > 0 ? { AND: metadataFilter } : {}),
     },
   });
 
