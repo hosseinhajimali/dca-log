@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import { fetchAndCachePrices } from './priceService';
 import { prisma } from '../lib/prisma';
+import { dispatchAnnouncement } from '../controllers/announcementsController';
 
 // ─── DCA Reminder notifications ───────────────────────────────────────────────
 async function checkDcaReminders(): Promise<void> {
@@ -60,6 +61,24 @@ export function startCronJobs(): void {
     await checkDcaReminders().catch(err =>
       console.error('[Cron] DCA reminder error:', err)
     );
+  });
+
+  // Scheduled announcements — run every minute
+  cron.schedule('* * * * *', async () => {
+    try {
+      const due = await prisma.announcement.findMany({
+        where: {
+          sentAt:      null,
+          scheduledAt: { lte: new Date() },
+        },
+      });
+      for (const a of due) {
+        const count = await dispatchAnnouncement(a.id);
+        console.log(`[Cron] Announcement "${a.title}" sent to ${count} users`);
+      }
+    } catch (err) {
+      console.error('[Cron] Announcement error:', err);
+    }
   });
 
   console.log(`⏰ Price refresh cron running every ${intervalMinutes} minutes`);
