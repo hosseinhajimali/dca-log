@@ -44,7 +44,7 @@ export async function listGoals(req: AuthRequest, res: Response, next: NextFunct
     }
     const totalPortfolioValue = Array.from(assetValueMap.values()).reduce((s, v) => s + v, 0);
 
-    // Monthly investment totals — buys only
+    // Monthly investment totals, buys only
     const monthlyInvested = new Map<string, number>();
     for (const tx of transactions) {
       if (tx.type !== 'BUY') continue;

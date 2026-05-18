@@ -34,7 +34,7 @@ export function downloadFile(content: string | Blob, filename: string, mime = 't
 // ─── XLSX export (requires `xlsx` npm package) ────────────────────────────────
 
 export async function downloadXLSX(rows: Record<string, unknown>[], filename: string): Promise<void> {
-  // Dynamic import — will throw if package not installed
+  // Dynamic import, will throw if package not installed
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const XLSX: any = await import('xlsx');
 

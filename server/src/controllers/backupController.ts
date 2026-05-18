@@ -49,7 +49,7 @@ export async function restoreBackup(req: AuthRequest, res: Response, next: NextF
 
     const { assets = [], dcaPlans = [], allocations = [], buyingRules = [], sellRules = [], goals = [], transactions = [] } = backup.data;
 
-    // Run everything in a transaction — all or nothing
+    // Run everything in a transaction, all or nothing
     await prisma.$transaction(async (tx) => {
       // 1. Wipe existing data in reverse FK order
       await tx.transaction.deleteMany({ where: { userId } });

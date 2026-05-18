@@ -230,7 +230,7 @@ async function fireRuleNotifications(
       nextPurchaseDate?: string | null; allocations: AllocWithAsset[];
     };
 
-    // DCA_REMINDER — next purchase is tomorrow
+    // DCA_REMINDER, next purchase is tomorrow
     if (p.nextPurchaseDate && p.nextPurchaseDate.toString().slice(0, 10) === tomorrowStr) {
       const label = p.name ?? p.allocations.map(a => a.asset.symbol).join('/');
       await maybeNotify(userId, 'DCA_REMINDER', 'DCA purchase tomorrow',
@@ -239,21 +239,21 @@ async function fireRuleNotifications(
       );
     }
 
-    // BUYING_RULE_MET — drawdown is in a rule range
+    // BUYING_RULE_MET, drawdown is in a rule range
     const drawdownPct = p.drawdownFromAth !== null ? Math.abs(p.drawdownFromAth) : null;
     if (drawdownPct !== null) {
       for (const rule of p.buyingRules) {
         if (drawdownPct >= rule.minDrawdown && drawdownPct <= rule.maxDrawdown) {
           const label = p.name ?? p.allocations.map(a => a.asset.symbol).join('/');
           await maybeNotify(userId, 'BUYING_RULE_MET', 'Buy rule triggered',
-            `Plan "${label}" is down ${drawdownPct.toFixed(1)}% from ATH — a buying rule is active.`,
+            `Plan "${label}" is down ${drawdownPct.toFixed(1)}% from ATH, a buying rule is active.`,
             { planId: p.id, ruleId: (rule as { id?: string }).id },
           );
         }
       }
     }
 
-    // SELL_RULE_MET — P&L is in a rule range
+    // SELL_RULE_MET, P&L is in a rule range
     for (const alloc of p.allocations) {
       const price   = priceMap.get(alloc.asset.symbol)?.priceUsd ?? 0;
       const avgCost = avgCostMap.get(alloc.assetId) ?? 0;
@@ -263,7 +263,7 @@ async function fireRuleNotifications(
         if (profitPct >= rule.minProfit && profitPct <= rule.maxProfit) {
           const label = p.name ?? p.allocations.map(a => a.asset.symbol).join('/');
           await maybeNotify(userId, 'SELL_RULE_MET', 'Take-profit rule triggered',
-            `${alloc.asset.symbol} in plan "${label}" is up ${profitPct.toFixed(1)}% — a sell rule is active.`,
+            `${alloc.asset.symbol} in plan "${label}" is up ${profitPct.toFixed(1)}% a sell rule is active.`,
             { planId: p.id, ruleId: rule.id, assetId: alloc.assetId },
           );
         }
@@ -390,7 +390,7 @@ export async function updateDcaPlan(req: AuthRequest, res: Response, next: NextF
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updated = await (prisma as any).$transaction(async (tx: any) => {
-      // Build update payload explicitly — never spread unknown fields into Prisma
+      // Build update payload explicitly, never spread unknown fields into Prisma
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const updateData: Record<string, any> = {};
       if (planData.name        !== undefined) updateData.name        = planData.name;
@@ -493,7 +493,7 @@ export async function getPlanStats(req: AuthRequest, res: Response, next: NextFu
     const totalPnl         = totalCurrentValue - totalInvested;
     const totalPnlPercent  = totalInvested > 0 ? (totalPnl / totalInvested) * 100 : 0;
 
-    // Monthly chart — last 12 months
+    // Monthly chart, last 12 months
     const twelveMonthsAgo = new Date();
     twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11);
     twelveMonthsAgo.setDate(1);

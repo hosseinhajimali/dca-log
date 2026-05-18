@@ -1,5 +1,5 @@
 /**
- * Historical price service — uses Binance public klines API.
+ * Historical price service, uses Binance public klines API.
  * No API key required. Covers all major crypto pairs.
  */
 
@@ -57,7 +57,7 @@ export function toBinancePair(symbol: string): string {
  */
 async function fetchAllCandles(pair: string): Promise<PriceSeries> {
   const prices: PriceSeries = [];
-  // Start from a date before any crypto — Binance will snap to its earliest data
+  // Start from a date before any crypto, Binance will snap to its earliest data
   let startTime = new Date('2010-01-01').getTime();
   const MAX_REQUESTS = 15; // safety cap
 
@@ -68,7 +68,7 @@ async function fetchAllCandles(pair: string): Promise<PriceSeries> {
     const resp = await fetch(url);
 
     if (resp.status === 400) {
-      // Invalid symbol — asset not listed on Binance
+      // Invalid symbol, asset not listed on Binance
       throw new Error(`${pair} is not available on Binance. Only major crypto assets are supported.`);
     }
     if (!resp.ok) {

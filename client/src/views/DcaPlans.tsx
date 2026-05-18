@@ -280,7 +280,7 @@ function PlanFields({ form, setForm, assets, allocations, setAllocations }: {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
               <span className="text-sm font-medium text-gray-200">Evaluate rules per asset</span>
-              <Tooltip text="When OFF (default): a weighted-average drawdown across all assets triggers one rule, and the total buy amount is split by allocation percentages — every asset gets the same multiplier regardless of its individual drawdown. When ON: each asset's own drawdown is checked independently. Assets in a deep correction buy more (higher multiplier) while assets still near ATH buy their base share. This lets one asset's crash trigger its rule without dragging the others along.">
+              <Tooltip text="When OFF (default): a weighted-average drawdown across all assets triggers one rule, and the total buy amount is split by allocation percentages, every asset gets the same multiplier regardless of its individual drawdown. When ON: each asset's own drawdown is checked independently. Assets in a deep correction buy more (higher multiplier) while assets still near ATH buy their base share. This lets one asset's crash trigger its rule without dragging the others along.">
                 <span className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-gray-600 text-gray-500 text-[10px] cursor-help hover:border-gray-400 hover:text-gray-300 transition-colors">?</span>
               </Tooltip>
             </div>
@@ -298,7 +298,7 @@ function PlanFields({ form, setForm, assets, allocations, setAllocations }: {
 }
 
 // ─── shared multiplier rule form (used for add + inline edit) ────────────────
-// NOTE: intentionally NOT a <form> — nested inside another <form>.
+// NOTE: intentionally NOT a <form>, nested inside another <form>.
 const MULT_PRESETS = [0.25, 0.5, 1, 1.5, 2, 3, 5];
 
 function RuleEditForm({
@@ -565,7 +565,7 @@ function CreateModal({ assets, initialForm, initialAllocs, sourceRules, sourceSe
   );
 }
 
-// ─── edit modal — plan fields + allocations only ──────────────────────────────
+// ─── edit modal, plan fields + allocations only ──────────────────────────────
 function EditModal({ plan, assets, onClose }: {
   plan: DcaPlan;
   assets: { id: string; symbol: string; name: string; color?: string | null }[];
@@ -659,7 +659,7 @@ function EditModal({ plan, assets, onClose }: {
   );
 }
 
-// ─── inline rules panel (on plan card — add/delete fire immediately) ──────────
+// ─── inline rules panel (on plan card, add/delete fire immediately) ──────────
 function PlanRulesPanel({ plan, baseAmount }: { plan: DcaPlan; baseAmount?: number }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -1313,7 +1313,7 @@ export default function DcaPlans() {
                   </div>
                 </div>
 
-                {/* actions row — bottom of card, full-width on mobile */}
+                {/* actions row, bottom of card, full-width on mobile */}
                 <div className="flex items-center gap-2 pt-3 border-t border-gray-800">
                   <button
                     onClick={() => router.push(`/app/plans/${plan.id}`)}

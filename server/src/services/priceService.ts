@@ -35,7 +35,7 @@ interface CryptoMarketData {
   athDate:    Date   | null;
 }
 
-// Uses /coins/markets — returns price + ATH in one call
+// Uses /coins/markets, returns price + ATH in one call
 async function fetchCryptoMarkets(
   symbols: string[]
 ): Promise<Map<string, CryptoMarketData>> {

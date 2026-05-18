@@ -41,7 +41,7 @@ export function useSimulator(params: SimulationParams | null) {
       return res.data.data as SimulationResult;
     },
     enabled: !!params,
-    staleTime: 5 * 60_000, // 5 min — historical data changes rarely
+    staleTime: 5 * 60_000, // 5 min, historical data changes rarely
     retry: false,
   });
 }

@@ -16,7 +16,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401 globally — clear everything and redirect
+// Handle 401 globally, clear everything and redirect
 api.interceptors.response.use(
   (res) => res,
   (err) => {

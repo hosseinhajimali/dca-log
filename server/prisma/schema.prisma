@@ -51,16 +51,16 @@ enum DcaFrequency {
 }
 
 model User {
-  id           String        @id @default(cuid())
-  email        String        @unique
-  passwordHash String?       @map("password_hash")   // null for Google-only accounts
-  googleId     String?       @unique @map("google_id")
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String?  @map("password_hash") // null for Google-only accounts
+  googleId     String?  @unique @map("google_id")
   name         String?
-  currency     String        @default("USD")
-  avatar       String?       @map("avatar")
-  isAdmin      Boolean       @default(false) @map("is_admin")
-  createdAt    DateTime      @default(now()) @map("created_at")
-  updatedAt    DateTime      @updatedAt @map("updated_at")
+  currency     String   @default("USD")
+  avatar       String?  @map("avatar")
+  isAdmin      Boolean  @default(false) @map("is_admin")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   assets        Asset[]
   dcaPlans      DcaPlan[]
@@ -73,17 +73,17 @@ model User {
 }
 
 model Asset {
-  id        String    @id @default(cuid())
-  userId    String    @map("user_id")
-  symbol    String    // e.g. "BTC", "ETH", "XAU"
-  name      String    // e.g. "Bitcoin", "Gold"
-  assetType AssetType @map("asset_type")
-  coingeckoId String? @map("coingecko_id") // for crypto price lookup
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  symbol      String // e.g. "BTC", "ETH", "XAU"
+  name        String // e.g. "Bitcoin", "Gold"
+  assetType   AssetType @map("asset_type")
+  coingeckoId String?   @map("coingecko_id") // for crypto price lookup
   color       String? // optional hex color, e.g. "#f7931a"
-  createdAt DateTime  @default(now()) @map("created_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
 
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  dcaPlans        DcaPlan[]        // legacy: single-asset plans
+  dcaPlans        DcaPlan[] // legacy: single-asset plans
   planAllocations PlanAllocation[]
   transactions    Transaction[]
   goals           Goal[]
@@ -95,9 +95,9 @@ model Asset {
 model DcaPlan {
   id               String       @id @default(cuid())
   userId           String       @map("user_id")
-  assetId          String?      @map("asset_id")   // nullable — kept for legacy plans only
-  name             String?      // optional label, e.g. "Monthly BTC stack"
-  amountUsd        Float        @map("amount_usd")  // total USD to buy each time
+  assetId          String?      @map("asset_id") // nullable, kept for legacy plans only
+  name             String? // optional label, e.g. "Monthly BTC stack"
+  amountUsd        Float        @map("amount_usd") // total USD to buy each time
   frequency        DcaFrequency
   intervalDays     Int?         @map("interval_days") // only for CUSTOM frequency
   isActive         Boolean      @default(true) @map("is_active")
@@ -135,11 +135,11 @@ model PlanAllocation {
 }
 
 model BuyingRule {
-  id          String  @id @default(cuid())
-  dcaPlanId   String  @map("dca_plan_id")
-  minDrawdown Float   @map("min_drawdown") // e.g. 20  (positive %, price is this far below ATH)
-  maxDrawdown Float   @map("max_drawdown") // e.g. 40
-  buyAmount   Float   @map("buy_amount")   // USD to buy when drawdown is in this range
+  id          String   @id @default(cuid())
+  dcaPlanId   String   @map("dca_plan_id")
+  minDrawdown Float    @map("min_drawdown") // e.g. 20  (positive %, price is this far below ATH)
+  maxDrawdown Float    @map("max_drawdown") // e.g. 40
+  buyAmount   Float    @map("buy_amount") // USD to buy when drawdown is in this range
   createdAt   DateTime @default(now()) @map("created_at")
 
   dcaPlan DcaPlan @relation(fields: [dcaPlanId], references: [id], onDelete: Cascade)
@@ -150,9 +150,9 @@ model BuyingRule {
 model SellRule {
   id             String   @id @default(cuid())
   dcaPlanId      String   @map("dca_plan_id")
-  minProfit      Float    @map("min_profit")       // e.g. 10  (positive %, price is this far above avg buy)
-  maxProfit      Float    @map("max_profit")       // e.g. 25
-  sellAmount     Float    @map("sell_amount")      // amount to sell — USD or % depending on sellAmountType
+  minProfit      Float    @map("min_profit") // e.g. 10  (positive %, price is this far above avg buy)
+  maxProfit      Float    @map("max_profit") // e.g. 25
+  sellAmount     Float    @map("sell_amount") // amount to sell, USD or % depending on sellAmountType
   sellAmountType String   @default("USD") @map("sell_amount_type") // 'USD' | 'PCT'
   createdAt      DateTime @default(now()) @map("created_at")
 
@@ -167,8 +167,8 @@ model Transaction {
   assetId      String          @map("asset_id")
   dcaPlanId    String?         @map("dca_plan_id")
   type         TransactionType @default(BUY)
-  amountUsd    Float           @map("amount_usd")  // USD spent (buy) or received (sell)
-  quantity     Float                                // units bought or sold
+  amountUsd    Float           @map("amount_usd") // USD spent (buy) or received (sell)
+  quantity     Float // units bought or sold
   pricePerUnit Float           @map("price_per_unit")
   purchasedAt  DateTime        @map("purchased_at")
   exchange     String?
@@ -184,31 +184,31 @@ model Transaction {
 }
 
 model PriceCache {
-  id         String    @id @default(cuid())
-  symbol     String    @unique
-  priceUsd   Float     @map("price_usd")
-  change24h  Float?    @map("change_24h")   // 24h change %
-  marketCap  Float?    @map("market_cap")
-  ath        Float?                          // all-time high in USD
-  athDate    DateTime? @map("ath_date")
-  fetchedAt  DateTime  @map("fetched_at")
+  id        String    @id @default(cuid())
+  symbol    String    @unique
+  priceUsd  Float     @map("price_usd")
+  change24h Float?    @map("change_24h") // 24h change %
+  marketCap Float?    @map("market_cap")
+  ath       Float? // all-time high in USD
+  athDate   DateTime? @map("ath_date")
+  fetchedAt DateTime  @map("fetched_at")
 
   @@map("price_cache")
 }
 
 model Goal {
-  id          String    @id @default(cuid())
-  userId      String    @map("user_id")
-  type        GoalType
-  name        String
-  notes       String?
+  id     String   @id @default(cuid())
+  userId String   @map("user_id")
+  type   GoalType
+  name   String
+  notes  String?
 
   // ACCUMULATION
-  assetId     String?   @map("asset_id")
-  targetQty   Float?    @map("target_qty")
+  assetId   String? @map("asset_id")
+  targetQty Float?  @map("target_qty")
 
   // PORTFOLIO_VALUE
-  targetValue Float?    @map("target_value")
+  targetValue Float? @map("target_value")
 
   // INVESTMENT_COMMITMENT
   targetMonthlyAmount Float? @map("target_monthly_amount")
@@ -233,7 +233,7 @@ model Notification {
   title     String
   message   String
   isRead    Boolean          @default(false) @map("is_read")
-  metadata  Json?            // e.g. { planId, ruleId }
+  metadata  Json? // e.g. { planId, ruleId }
   createdAt DateTime         @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -255,9 +255,9 @@ model Feedback {
 }
 
 model ExchangeRate {
-  id         String   @id @default(cuid())
-  fromCurrency String @map("from_currency") // always USD
-  toCurrency   String @map("to_currency")
+  id           String   @id @default(cuid())
+  fromCurrency String   @map("from_currency") // always USD
+  toCurrency   String   @map("to_currency")
   rate         Float
   fetchedAt    DateTime @map("fetched_at")
 
