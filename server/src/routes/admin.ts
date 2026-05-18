@@ -10,6 +10,12 @@ import {
   markAllFeedbackRead,
   deleteFeedback,
 } from '../controllers/adminController';
+import {
+  createAnnouncement,
+  getAnnouncements,
+  resendAnnouncement,
+  deleteAnnouncement,
+} from '../controllers/announcementsController';
 
 const router = Router();
 
@@ -23,5 +29,10 @@ router.get('/feedback',              getFeedback);
 router.patch('/feedback/read-all',   markAllFeedbackRead);
 router.patch('/feedback/:id/read',   markFeedbackRead);
 router.delete('/feedback/:id',       deleteFeedback);
+
+router.get('/announcements',             getAnnouncements);
+router.post('/announcements',            createAnnouncement);
+router.post('/announcements/:id/resend', resendAnnouncement);
+router.delete('/announcements/:id',      deleteAnnouncement);
 
 export default router;

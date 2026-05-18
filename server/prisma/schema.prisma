@@ -31,6 +31,7 @@ enum NotificationType {
   SELL_RULE_MET
   BUYING_RULE_MET
   NEW_FEEDBACK
+  ANNOUNCEMENT
 }
 
 enum FeedbackCategory {
@@ -264,4 +265,16 @@ model ExchangeRate {
 
   @@unique([fromCurrency, toCurrency])
   @@map("exchange_rates")
+}
+
+model Announcement {
+  id          String    @id @default(cuid())
+  title       String
+  message     String
+  scheduledAt DateTime? @map("scheduled_at") // null = send immediately
+  sentAt      DateTime? @map("sent_at")       // null = not yet sent
+  sentCount   Int       @default(0) @map("sent_count")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@map("announcements")
 }
