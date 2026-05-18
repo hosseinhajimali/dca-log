@@ -9,11 +9,18 @@ import {
   type AppNotification,
 } from '@/hooks/useNotifications';
 
-const TYPE_ICON: Record<AppNotification['type'], string> = {
-  DCA_REMINDER:    '📅',
-  SELL_RULE_MET:   '📈',
-  BUYING_RULE_MET: '📉',
-  NEW_FEEDBACK:    '💬',
+const TYPE_LABEL: Record<AppNotification['type'], string> = {
+  DCA_REMINDER:    'DCA',
+  SELL_RULE_MET:   'Sell',
+  BUYING_RULE_MET: 'Buy',
+  NEW_FEEDBACK:    'Msg',
+};
+
+const TYPE_COLOR: Record<AppNotification['type'], string> = {
+  DCA_REMINDER:    'text-brand-400 bg-brand-500/10 border-brand-500/20',
+  SELL_RULE_MET:   'text-amber-400 bg-amber-500/10 border-amber-500/20',
+  BUYING_RULE_MET: 'text-green-400 bg-green-500/10 border-green-500/20',
+  NEW_FEEDBACK:    'text-gray-400 bg-gray-500/10 border-gray-500/20',
 };
 
 export function NotificationBell() {
@@ -89,7 +96,9 @@ export function NotificationBell() {
                     }
                   }}
                 >
-                  <span className="text-base shrink-0 mt-0.5">{TYPE_ICON[n.type]}</span>
+                  <span className={`text-[10px] font-bold shrink-0 mt-0.5 px-1.5 py-0.5 rounded border ${TYPE_COLOR[n.type]}`}>
+                    {TYPE_LABEL[n.type]}
+                  </span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <p className={`text-xs font-medium ${n.isRead ? 'text-gray-400' : 'text-gray-200'}`}>{n.title}</p>

@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { Eye, PlusCircle } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { useRouter } from 'next/navigation';
+import { QuickAddModal } from '@/components/QuickAddModal';
 import {
   useDcaPlans, useCreateDcaPlan, useUpdateDcaPlan, useDeleteDcaPlan,
 } from '@/hooks/useDcaPlans';
@@ -254,7 +256,8 @@ function PlanFields({ form, setForm, assets, allocations, setAllocations }: {
       <div>
         <label className="block text-xs text-gray-400 mb-1.5">Purchase time</label>
         <input type="time" value={form.scheduledTime}
-          onChange={e => setForm(f => ({ ...f, scheduledTime: e.target.value }))} className={INPUT} />
+          onChange={e => setForm(f => ({ ...f, scheduledTime: e.target.value }))}
+          className={INPUT} style={{ colorScheme: 'dark' }} />
       </div>
       <div>
         <label className="block text-xs text-gray-400 mb-1.5">End date <span className="text-gray-600">(optional)</span></label>
@@ -1173,6 +1176,9 @@ export default function DcaPlans() {
   const { format } = useCurrencyFormatter();
   const router = useRouter();
 
+  // Quick Purchase modal
+  const [quickAddPlan, setQuickAddPlan] = useState<DcaPlan | null>(null);
+
   // null = closed, object = open (form=undefined means new plan; form=object means duplicate)
   const [createModal, setCreateModal] = useState<{
     form?: PlanFormValues; allocs: AllocDraft[]; sourceRules?: SourceRule[]; sourceSellRules?: SourceSellRule[];
@@ -1206,6 +1212,12 @@ export default function DcaPlans() {
 
   return (
     <div className="space-y-6">
+      {quickAddPlan && (
+        <QuickAddModal
+          plan={quickAddPlan}
+          onClose={() => setQuickAddPlan(null)}
+        />
+      )}
       {createModal && (
         <CreateModal
           assets={assets}
@@ -1246,7 +1258,7 @@ export default function DcaPlans() {
         <div className="text-gray-500 text-sm animate-pulse">Loading plans...</div>
       ) : plans.length === 0 ? (
         <div className="text-center py-20 text-gray-600">
-          <p className="text-4xl mb-3">♻</p>
+          <p className="text-4xl mb-3 text-gray-700">○</p>
           <p className="font-medium text-gray-400">No DCA plans yet</p>
           <p className="text-sm mt-1">Create your first plan to start tracking</p>
         </div>
@@ -1331,10 +1343,20 @@ export default function DcaPlans() {
                 <div className="flex items-center gap-2 pt-3 border-t border-gray-800">
                   <button
                     onClick={() => router.push(`/app/plans/${plan.id}`)}
-                    className="flex-1 md:flex-none text-xs text-gray-500 hover:text-brand-400 border border-gray-700 hover:border-brand-500/50 px-3 py-2 md:py-1.5 rounded-lg transition-colors text-center"
+                    className="flex-1 md:flex-none text-xs text-gray-500 hover:text-brand-400 border border-gray-700 hover:border-brand-500/50 px-3 py-2 md:py-1.5 rounded-lg transition-colors inline-flex items-center justify-center gap-1.5"
                   >
+                    <Eye size={12} strokeWidth={1.75} />
                     View
                   </button>
+                  {plan.isActive && (
+                    <button
+                      onClick={() => setQuickAddPlan(plan)}
+                      className="flex-1 md:flex-none text-xs text-brand-400 hover:text-brand-300 border border-brand-500/40 hover:border-brand-500/70 bg-brand-500/5 hover:bg-brand-500/10 px-3 py-2 md:py-1.5 rounded-lg transition-colors font-medium inline-flex items-center justify-center gap-1.5"
+                    >
+                      <PlusCircle size={12} strokeWidth={1.75} />
+                      Quick Purchase
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       const topAlloc = [...plan.allocations].sort((a, b) => b.allocationPct - a.allocationPct)[0];
