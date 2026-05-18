@@ -39,10 +39,14 @@ export default function Blog() {
               className="group bg-gray-900 border border-gray-800 hover:border-gray-700 rounded-2xl p-6 flex flex-col gap-4 transition-colors"
             >
               <div className="flex items-center gap-2 flex-wrap">
-                <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border ${CATEGORY_COLORS[post.category] ?? 'text-gray-400 bg-gray-800 border-gray-700'}`}>
+                <Link
+                  href={`/blog/category/${post.category.toLowerCase().replace(/\s+/g, '-')}`}
+                  onClick={e => e.stopPropagation()}
+                  className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border transition-opacity hover:opacity-70 ${CATEGORY_COLORS[post.category] ?? 'text-gray-400 bg-gray-800 border-gray-700'}`}
+                >
                   <Tag size={10} />
                   {post.category}
-                </span>
+                </Link>
                 <span className="text-xs text-gray-600 flex items-center gap-1">
                   <Clock size={11} />
                   {post.readTime}
