@@ -27,7 +27,7 @@
 }
 
 /* =====================================================
-   Select — remove native arrow, inject custom SVG chevron
+   Select, remove native arrow, inject custom SVG chevron
    ===================================================== */
 
 select {
@@ -50,7 +50,7 @@ html.dark input[type="datetime-local"] {
   color-scheme: dark;
 }
 
-/* Calendar picker icon — cursor and subtle opacity */
+/* Calendar picker icon, cursor and subtle opacity */
 html.dark input[type="date"]::-webkit-calendar-picker-indicator,
 html.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   opacity: 0.6;
@@ -82,7 +82,7 @@ html.light .bg-gray-800   { background-color: #f1f5f9; }
 html.light .bg-gray-700   { background-color: #e2e8f0; }
 html.light .bg-gray-600   { background-color: #cbd5e1; }
 
-/* Opacity backgrounds — top bar, modals etc. */
+/* Opacity backgrounds, top bar, modals etc. */
 html.light .bg-gray-900\/80  { background-color: rgba(255,255,255,0.88) !important; }
 html.light .bg-gray-800\/50  { background-color: rgba(241,245,249,0.7) !important; }
 html.light .bg-gray-900\/50  { background-color: rgba(255,255,255,0.6) !important; }

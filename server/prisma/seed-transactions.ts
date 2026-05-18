@@ -1,5 +1,5 @@
 /**
- * Seed script — import transactions from CSV data
+ * Seed script, import transactions from CSV data
  * Run: npx tsx prisma/seed-transactions.ts
  */
 import 'dotenv/config';
@@ -138,7 +138,7 @@ async function main() {
     created++;
   }
 
-  console.log(`\n🎉 Done — ${created} transactions imported.`);
+  console.log(`\n🎉 Done, ${created} transactions imported.`);
 }
 
 main()

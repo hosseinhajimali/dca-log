@@ -55,7 +55,7 @@ export default function Login() {
   };
 
   const handleGoogleSignIn = () => {
-    // Must go directly to Express — Next.js proxy can't handle OAuth redirect chain
+    // Must go directly to Express, Next.js proxy can't handle OAuth redirect chain
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
     window.location.href = `${apiUrl}/api/auth/google`;
   };

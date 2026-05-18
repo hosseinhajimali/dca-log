@@ -1,4 +1,4 @@
-// Premade avatar system — 6 tech + 6 finance personas
+// Premade avatar system, 6 tech + 6 finance personas
 
 export type AvatarId =
   | 'coder' | 'terminal' | 'robot' | 'neural' | 'satellite' | 'atom'

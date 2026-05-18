@@ -435,7 +435,7 @@ function ExportModal({ assets, onClose }: ExportModalProps) {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : '';
       if (msg.includes('Cannot find module') || msg.includes("Failed to resolve import")) {
-        setError('XLSX not installed. Run: cd client && npm install xlsx — then try again.');
+        setError('XLSX not installed. Run: cd client && npm install xlsx, then try again.');
       } else {
         setError('Export failed. Please try again.');
       }

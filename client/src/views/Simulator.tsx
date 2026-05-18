@@ -203,7 +203,7 @@ function SimulatorInner() {
 
   const simulatableAssets = assets.filter(a => isSimulatable(a.assetType, a.symbol));
 
-  // Form state — pre-filled from URL params when coming from Plan Detail
+  // Form state, pre-filled from URL params when coming from Plan Detail
   const [form, setForm] = useState<FormState>({
     assetId:   searchParams?.get('assetId')   || '',
     startDate: searchParams?.get('startDate') || defaultStartDate(),
