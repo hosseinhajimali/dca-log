@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, Clock, Tag, ArrowRight } from 'lucide-react';
 import { getBlogPost, BLOG_POSTS } from '@/data/blogPosts';
 import { PublicNavbar } from '@/components/layout/PublicNavbar';
+import { PublicFooter } from '@/components/layout/PublicFooter';
 
 const CATEGORY_COLORS: Record<string, string> = {
   Basics:          'text-blue-400 bg-blue-500/10 border-blue-500/20',
@@ -96,12 +97,7 @@ export default function BlogPost() {
         </section>
       )}
 
-      <footer className="border-t border-gray-800">
-        <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <a href="/"><img src="/logo-horizontal.svg" alt="DCAlog" className="h-7 w-auto opacity-60 hover:opacity-100 transition-opacity" /></a>
-          <p className="text-xs text-gray-600">© {new Date().getFullYear()} DCAlog · Think in years, not months.</p>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   );
 }

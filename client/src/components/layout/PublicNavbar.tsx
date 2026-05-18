@@ -65,6 +65,7 @@ export function PublicNavbar() {
   }, [menuOpen]);
 
   const isBlogActive = pathname?.startsWith('/blog') ?? false;
+  const isContactActive = pathname === '/contact';
 
   const navLinkCls = (active: boolean) =>
     `px-3 py-1.5 rounded-lg transition-colors text-sm ${
@@ -88,6 +89,7 @@ export function PublicNavbar() {
               </button>
             ))}
             <Link href="/blog" className={navLinkCls(isBlogActive)}>Blog</Link>
+            <Link href="/contact" className={navLinkCls(isContactActive)}>Contact</Link>
           </nav>
 
           <div className="flex items-center gap-3">
@@ -172,6 +174,13 @@ export function PublicNavbar() {
             className={`block ${navLinkCls(isBlogActive)}`}
           >
             Blog
+          </Link>
+          <Link
+            href="/contact"
+            onClick={() => setMobileOpen(false)}
+            className={`block ${navLinkCls(isContactActive)}`}
+          >
+            Contact
           </Link>
           {token && (
             <Link
