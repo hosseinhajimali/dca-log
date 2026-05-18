@@ -79,7 +79,7 @@ export async function getAnnouncements(req: AuthRequest, res: Response, next: Ne
 // ─── DELETE /admin/announcements/:id ─────────────────────────────────────────
 export async function deleteAnnouncement(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const exists = await prisma.announcement.findUnique({ where: { id } });
     if (!exists) { res.status(404).json({ error: 'Announcement not found' }); return; }
 
@@ -98,7 +98,7 @@ export async function deleteAnnouncement(req: AuthRequest, res: Response, next: 
 // ─── POST /admin/announcements/:id/resend ─────────────────────────────────────
 export async function resendAnnouncement(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const exists = await prisma.announcement.findUnique({ where: { id } });
     if (!exists) { res.status(404).json({ error: 'Announcement not found' }); return; }
 
