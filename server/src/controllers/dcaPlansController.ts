@@ -26,6 +26,7 @@ const planSchema = z.object({
   intervalDays: z.number().int().positive().optional(),
   startDate: z.string().datetime(),
   endDate: z.string().datetime().optional().nullable(),
+  scheduledTime: z.string().regex(/^\d{2}:\d{2}$/).optional().default('08:00'),
   notes: z.string().optional(),
   perAssetRules: z.boolean().optional(),
   allocations: allocationSchema,
@@ -350,7 +351,7 @@ export async function createDcaPlan(req: AuthRequest, res: Response, next: NextF
     }
 
     const startDate = new Date(body.data.startDate);
-    const nextPurchaseDate = computeNextPurchaseDate(startDate, body.data.frequency, body.data.intervalDays);
+    const nextPurchaseDate = computeNextPurchaseDate(startDate, body.data.frequency, body.data.intervalDays, body.data.scheduledTime);
     const { allocations, ...planData } = body.data;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -406,11 +407,14 @@ export async function updateDcaPlan(req: AuthRequest, res: Response, next: NextF
       }
 
       // Recalculate nextPurchaseDate whenever start date, frequency or interval changes
-      if (planData.startDate !== undefined || planData.frequency !== undefined || planData.intervalDays !== undefined) {
-        const base         = updateData.startDate  ?? plan.startDate;
-        const freq         = (updateData.frequency ?? plan.frequency) as import('@prisma/client').DcaFrequency;
-        const intervalDays = updateData.intervalDays !== undefined ? updateData.intervalDays : plan.intervalDays;
-        updateData.nextPurchaseDate = computeNextPurchaseDate(base, freq, intervalDays);
+      if (planData.scheduledTime !== undefined) updateData.scheduledTime = planData.scheduledTime;
+
+      if (planData.startDate !== undefined || planData.frequency !== undefined || planData.intervalDays !== undefined || planData.scheduledTime !== undefined) {
+        const base          = updateData.startDate    ?? plan.startDate;
+        const freq          = (updateData.frequency   ?? plan.frequency) as import('@prisma/client').DcaFrequency;
+        const intervalDays  = updateData.intervalDays !== undefined ? updateData.intervalDays : plan.intervalDays;
+        const scheduledTime = updateData.scheduledTime ?? plan.scheduledTime;
+        updateData.nextPurchaseDate = computeNextPurchaseDate(base, freq, intervalDays, scheduledTime);
       }
 
       await tx.dcaPlan.update({ where: { id }, data: updateData });
