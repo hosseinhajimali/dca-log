@@ -10,6 +10,7 @@ import {
 import { useAssets } from '@/hooks/useAssets';
 import { useAssetPrice } from '@/hooks/usePrices';
 import { useCurrencyFormatter } from '@/lib/format';
+import { useStore } from '@/store/useStore';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -216,6 +217,8 @@ function HorizonRow({
 export default function ProjectionCalculator() {
   const { data: assets = [] } = useAssets();
   const { format } = useCurrencyFormatter();
+  const theme = useStore((s) => s.theme);
+  const isLight = theme === 'light' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
 
   // ── Form state ─────────────────────────────────────────────────────────────
   const [assetId,      setAssetId]      = useState('');
@@ -550,8 +553,8 @@ export default function ProjectionCalculator() {
                   width={60}
                 />
                 <Tooltip
-                  contentStyle={{ background: '#111827', border: '1px solid #1f2937', borderRadius: 8, fontSize: 12 }}
-                  labelStyle={{ color: '#9ca3af' }}
+                  contentStyle={{ background: isLight ? '#ffffff' : '#111827', border: `1px solid ${isLight ? '#e8ecf1' : '#1f2937'}`, borderRadius: 8, fontSize: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                  labelStyle={{ color: isLight ? '#475569' : '#9ca3af' }}
                   formatter={(value: number, name: string) => {
                     const s = SCENARIOS.find(sc => sc.key === name);
                     return [

@@ -126,8 +126,8 @@ export default function BlogPost() {
 
       <article className="max-w-2xl mx-auto px-6 pt-12 pb-20">
 
-        <Link href="/blog" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-300 transition-colors mb-10">
-          <ArrowLeft size={14} /> Back to blog
+        <Link href="/blog" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-300 transition-all duration-150 hover:-translate-x-0.5 mb-10 group">
+          <ArrowLeft size={14} className="transition-transform duration-150 group-hover:-translate-x-0.5" /> Back to blog
         </Link>
 
         <div className="flex items-center gap-3 flex-wrap mb-6">

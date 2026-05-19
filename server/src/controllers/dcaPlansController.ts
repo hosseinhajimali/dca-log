@@ -525,10 +525,24 @@ export async function getPlanStats(req: AuthRequest, res: Response, next: NextFu
     // Recent transactions (newest first, capped at 50)
     const recentTransactions = [...transactions].reverse().slice(0, 50);
 
+    // Compute weighted drawdown from ATH for the plan (mirrors enrichGroupMethod)
+    let weightedDrawdown: number | null = null;
+    let totalWeight = 0;
+    for (const stat of assetStats) {
+      if (stat.ath && stat.ath > 0 && stat.currentPrice > 0) {
+        const dd = ((stat.currentPrice - stat.ath) / stat.ath) * 100;
+        weightedDrawdown = (weightedDrawdown ?? 0) + dd * (stat.allocationPct / 100);
+        totalWeight += stat.allocationPct;
+      }
+    }
+    if (weightedDrawdown !== null && totalWeight > 0 && totalWeight < 100) {
+      weightedDrawdown = (weightedDrawdown / totalWeight) * 100;
+    }
+
     res.json({
       success: true,
       data: {
-        plan,
+        plan: { ...plan, drawdownFromAth: weightedDrawdown },
         portfolio: { totalInvested, totalCurrentValue, totalPnl, totalPnlPercent },
         assetStats,
         monthlyData,

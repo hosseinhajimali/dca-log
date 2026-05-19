@@ -21,9 +21,28 @@ export const metadata: Metadata = {
   },
 };
 
+const themeScript = `
+(function() {
+  try {
+    var stored = localStorage.getItem('dcalog-store');
+    var theme = stored ? JSON.parse(stored).state?.theme : null;
+    var resolved = theme === 'light' ? 'light'
+      : theme === 'dark' ? 'dark'
+      : theme === 'system' || !theme
+        ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        : 'dark';
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(resolved);
+  } catch (e) {}
+})();
+`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>
         <Providers>{children}</Providers>
         <Analytics />

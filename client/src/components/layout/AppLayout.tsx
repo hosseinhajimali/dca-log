@@ -69,14 +69,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <NotificationBell />
-            <div ref={menuRef} className="relative flex items-center gap-2 ms-3">
-              <span className="text-sm font-medium text-gray-300 hidden sm:block">{user?.name || 'You'}</span>
+            <div ref={menuRef} className="relative flex items-center ms-1">
               <button
                 onClick={() => setMenuOpen(o => !o)}
-                className="flex items-center"
+                className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-800 transition-colors"
                 aria-label="Account menu"
               >
-                <Avatar id={user?.avatar} size={28} className="hover:ring-2 hover:ring-brand-500/50 hover:ring-offset-1 hover:ring-offset-gray-900 transition-all" />
+                <Avatar id={user?.avatar} size={28} />
+                <span className="text-sm font-medium text-gray-300 hidden sm:block">{user?.name || 'You'}</span>
               </button>
 
               {menuOpen && (

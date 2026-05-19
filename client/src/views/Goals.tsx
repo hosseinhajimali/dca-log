@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useStore } from '@/store/useStore';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Layers, DollarSign, CalendarCheck, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import { useGoals, useCreateGoal, useUpdateGoal, useDeleteGoal, GoalPayload } from '@/hooks/useGoals';
@@ -79,21 +80,25 @@ function MonthlyBarsChart({
   target: number;
 }) {
   const { format } = useCurrencyFormatter();
+  const theme = useStore((s) => s.theme);
+  const isLight = theme === 'light' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
   return (
     <ResponsiveContainer width="100%" height={80}>
       <BarChart data={history} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
         <XAxis dataKey="month" tick={{ fill: '#6b7280', fontSize: 9 }} tickFormatter={(v) => v.slice(5)} />
         <YAxis hide domain={[0, Math.max(target * 1.3, 1)]} />
         <Tooltip
-          contentStyle={{ background: '#111827', border: '1px solid #1f2937', borderRadius: 8, fontSize: 11 }}
-          labelStyle={{ color: '#9ca3af' }}
+          contentStyle={{ background: isLight ? '#ffffff' : '#111827', border: `1px solid ${isLight ? '#e8ecf1' : '#1f2937'}`, borderRadius: 8, fontSize: 11, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
+          labelStyle={{ color: isLight ? '#475569' : '#9ca3af' }}
+          itemStyle={{ color: isLight ? '#1e293b' : '#e5e7eb' }}
+          cursor={{ fill: isLight ? 'rgba(241,245,249,0.8)' : 'rgba(255,255,255,0.05)' }}
           formatter={(v: number) => [format(v), 'Invested']}
         />
-        {history.map((entry, i) => (
-          <Bar key={i} dataKey="invested" radius={[3, 3, 0, 0]}>
-            <Cell fill={entry.invested >= target ? '#22c55e' : '#4b5563'} />
-          </Bar>
-        ))}
+        <Bar dataKey="invested" radius={[3, 3, 0, 0]}>
+          {history.map((entry, i) => (
+            <Cell key={i} fill={entry.invested >= target ? '#22c55e' : isLight ? '#cbd5e1' : '#6b7280'} />
+          ))}
+        </Bar>
       </BarChart>
     </ResponsiveContainer>
   );
