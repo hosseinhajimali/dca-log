@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
+import { useStore } from '@/store/useStore';
 import {
   RefreshCw, Zap, FlaskConical, TrendingUp,
   BarChart2, Bell, ShieldCheck, ArrowRight,
@@ -61,19 +62,22 @@ const STEPS = [
   },
 ];
 
-function BrowserFrame({ src, alt }: { src: string; alt: string }) {
+function BrowserFrame({ src, srcLight, alt }: { src: string; srcLight?: string; alt: string }) {
   return (
-    <div className="rounded-xl border border-gray-700/60 overflow-hidden shadow-2xl bg-gray-900">
+    <div className="rounded-xl border overflow-hidden shadow-2xl border-gray-700/60 bg-gray-900 light-browser-frame">
       {/* fake browser toolbar */}
-      <div className="flex items-center gap-1.5 px-4 py-3 bg-gray-800/80 border-b border-gray-700/50 shrink-0">
+      <div className="flex items-center gap-1.5 px-4 py-3 border-b shrink-0 bg-gray-800/80 border-gray-700/50 light-browser-toolbar">
         <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
         <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
         <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
-        <div className="flex-1 mx-3 bg-gray-700/50 rounded h-5 flex items-center px-3">
+        <div className="flex-1 mx-3 bg-gray-700/50 rounded h-5 flex items-center px-3 light-browser-urlbar">
           <span className="text-[11px] text-gray-500">dcalog.com</span>
         </div>
       </div>
-      <img src={src} alt={alt} className="w-full block" />
+      {/* dark screenshot — hidden in light mode */}
+      <img src={src} alt={alt} className="w-full block screenshot-dark" />
+      {/* light screenshot — hidden in dark mode */}
+      {srcLight && <img src={srcLight} alt={alt} className="w-full block screenshot-light" />}
     </div>
   );
 }
@@ -81,6 +85,7 @@ function BrowserFrame({ src, alt }: { src: string; alt: string }) {
 export default function Landing() {
   const pathname = usePathname();
   const hash = typeof window !== 'undefined' ? window.location.hash : '';
+  const token = useStore((s) => s.token);
 
   // When navigated here with a hash (e.g. /#features from blog), scroll to that section
   useEffect(() => {
@@ -114,19 +119,31 @@ export default function Landing() {
           and tells you when it's time to take profit, all in one place.
         </p>
         <div className="flex items-center justify-center gap-4 flex-wrap mb-14 sm:mb-20">
-          <Link
-            href="/login"
-            className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white font-semibold px-6 py-3 rounded-xl transition-colors text-sm"
-          >
-            Start tracking for free
-            <ArrowRight size={15} />
-          </Link>
-          <Link
-            href="/login"
-            className="text-sm text-gray-400 hover:text-gray-100 border border-gray-700 hover:border-gray-500 px-6 py-3 rounded-xl transition-colors"
-          >
-            Sign in to your account
-          </Link>
+          {token ? (
+            <>
+              <Link
+                href="/app"
+                className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white font-semibold px-6 py-3 rounded-xl transition-colors text-sm"
+              >
+                Go to dashboard
+                <ArrowRight size={15} />
+              </Link>
+              <Link
+                href="/app/plans"
+                className="text-sm text-gray-400 hover:text-gray-100 border border-gray-700 hover:border-gray-500 px-6 py-3 rounded-xl transition-colors"
+              >
+                View my plans
+              </Link>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white font-semibold px-6 py-3 rounded-xl transition-colors text-sm"
+            >
+              Start tracking for free
+              <ArrowRight size={15} />
+            </Link>
+          )}
         </div>
 
         {/* ── Hero screenshot ── */}
@@ -134,7 +151,7 @@ export default function Landing() {
           {/* glow behind the frame */}
           <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-40 bg-brand-500/10 blur-3xl pointer-events-none" />
           <div className="relative">
-            <BrowserFrame src="/screenshots/dashboard.png" alt="DCAlog dashboard showing portfolio overview, active plans and fear & greed index" />
+            <BrowserFrame src="/screenshots/dashboard.png" srcLight="/screenshots/dashboard-light.png" alt="DCAlog dashboard showing portfolio overview, active plans and fear & greed index" />
           </div>
         </div>
       </section>
@@ -192,7 +209,7 @@ export default function Landing() {
           <div className="relative">
             <div className="absolute -inset-4 bg-brand-500/5 blur-2xl rounded-full pointer-events-none" />
             <div className="relative">
-              <BrowserFrame src="/screenshots/plans.png" alt="DCA Plans page showing ETH and BTC plans with smart buying rules" />
+              <BrowserFrame src="/screenshots/plans.png" srcLight="/screenshots/plans-light.png" alt="DCA Plans page showing ETH and BTC plans with smart buying rules" />
             </div>
           </div>
         </div>
@@ -202,7 +219,7 @@ export default function Landing() {
           <div className="order-2 lg:order-1 relative">
             <div className="absolute -inset-4 bg-brand-500/5 blur-2xl rounded-full pointer-events-none" />
             <div className="relative">
-              <BrowserFrame src="/screenshots/simulator.png" alt="DCA Simulator showing portfolio value vs total invested over time" />
+              <BrowserFrame src="/screenshots/simulator.png" srcLight="/screenshots/simulator-light.png" alt="DCA Simulator showing portfolio value vs total invested over time" />
             </div>
           </div>
           <div className="order-1 lg:order-2">

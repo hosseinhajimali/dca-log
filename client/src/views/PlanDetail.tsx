@@ -2,130 +2,386 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useStore } from '@/store/useStore';
 import { PlusCircle } from 'lucide-react';
 import { QuickAddModal } from '@/components/QuickAddModal';
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
-import { usePlanStats } from '@/hooks/useDcaPlans';
+import { usePlanStats, useCreateBuyingRule, useDeleteBuyingRule } from '@/hooks/useDcaPlans';
 import { useCreateSellRule, useUpdateSellRule, useDeleteSellRule } from '@/hooks/useSellRules';
 import { StatCard } from '@/components/ui/StatCard';
 import { Badge } from '@/components/ui/Badge';
 import { useCurrencyFormatter, formatDate, formatQuantity } from '@/lib/format';
-import { SellRule } from '@/types';
+import { SellRule, BuyingRule } from '@/types';
+import { api } from '@/lib/api';
+import { toast } from '@/lib/toast';
 
 const FREQ_LABELS: Record<string, string> = {
   DAILY: 'Daily', WEEKLY: 'Weekly', BIWEEKLY: 'Bi-weekly', MONTHLY: 'Monthly', CUSTOM: 'Custom',
 };
 
-// ─── Sell Rules Section ───────────────────────────────────────────────────────
+const INPUT_SM = 'bg-gray-800 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-brand-500 w-full';
+const MULT_PRESETS = [0.25, 0.5, 1, 1.5, 2, 3, 5];
 
-function SellRuleRow({
-  rule, planId, profitPct,
-}: { rule: SellRule; planId: string; profitPct: number | null }) {
-  const updateRule = useUpdateSellRule();
-  const deleteRule = useDeleteSellRule();
-  const { format } = useCurrencyFormatter();
-  const [editing, setEditing] = useState(false);
-  const [min, setMin] = useState(String(rule.minProfit));
-  const [max, setMax] = useState(String(rule.maxProfit));
-  const [amount, setAmount] = useState(String(rule.sellAmount));
-  const [amtType, setAmtType] = useState<'USD' | 'PCT'>(rule.sellAmountType ?? 'USD');
+// ─── Buying Rule Form (matches DcaPlans RuleEditForm) ────────────────────────
 
-  const isTriggered = profitPct !== null && profitPct >= rule.minProfit && profitPct <= rule.maxProfit;
+function BuyRuleForm({
+  initialMin = '', initialMax = '', initialMult = '1',
+  baseAmount, onSave, onCancel, submitLabel = 'Add rule', isPending = false,
+}: {
+  initialMin?: string; initialMax?: string; initialMult?: string;
+  baseAmount: number;
+  onSave: (min: number, max: number, amount: number) => void;
+  onCancel?: () => void;
+  submitLabel?: string;
+  isPending?: boolean;
+}) {
+  const [min, setMin] = useState(initialMin);
+  const [max, setMax] = useState(initialMax);
+  const [mult, setMult] = useState(initialMult);
+  const [err, setErr] = useState('');
 
-  async function handleSave() {
-    await updateRule.mutateAsync({ id: rule.id, minProfit: Number(min), maxProfit: Number(max), sellAmount: Number(amount), sellAmountType: amtType });
-    setEditing(false);
-  }
+  const multNum = parseFloat(mult);
+  const computedAmount = baseAmount > 0 && !isNaN(multNum) && multNum > 0
+    ? +(multNum * baseAmount).toFixed(2) : null;
 
-  const amtLabel = rule.sellAmountType === 'PCT' ? `${rule.sellAmount}%` : format(rule.sellAmount);
-
-  if (editing) {
-    return (
-      <div className="py-2 space-y-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          <input type="number" value={min} onChange={e => setMin(e.target.value)} placeholder="Min %" className="w-20 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-brand-500" />
-          <span className="text-gray-600 text-xs">% –</span>
-          <input type="number" value={max} onChange={e => setMax(e.target.value)} placeholder="Max %" className="w-20 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-brand-500" />
-          <span className="text-gray-600 text-xs">% profit → sell</span>
-          <div className="flex items-center gap-1">
-            <div className="flex rounded overflow-hidden border border-gray-700 text-xs">
-              {(['USD', 'PCT'] as const).map(t => (
-                <button key={t} type="button" onClick={() => setAmtType(t)}
-                  className={`px-2 py-1 transition-colors ${amtType === t ? 'bg-amber-600 text-white' : 'bg-gray-800 text-gray-500 hover:text-gray-300'}`}>
-                  {t === 'USD' ? '$' : '%'}
-                </button>
-              ))}
-            </div>
-            <input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder={amtType === 'USD' ? 'USD' : '%'} className="w-20 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-brand-500" />
-            {amtType === 'PCT' && <span className="text-gray-600 text-xs">% of holdings</span>}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={handleSave} className="text-xs bg-brand-600 hover:bg-brand-500 text-white px-3 py-1.5 rounded-lg transition-colors">Save</button>
-          <button onClick={() => setEditing(false)} className="text-xs text-gray-500 hover:text-gray-300 border border-gray-700 px-3 py-1.5 rounded-lg transition-colors">Cancel</button>
-        </div>
-      </div>
-    );
-  }
+  const handle = () => {
+    setErr('');
+    const minV = parseFloat(min), maxV = parseFloat(max);
+    if (isNaN(minV) || isNaN(maxV)) return setErr('Drawdown range is required.');
+    if (minV < 0 || maxV > 100) return setErr('Drawdown must be 0–100%.');
+    if (maxV <= minV) return setErr('Max must be greater than min.');
+    if (!computedAmount || computedAmount <= 0) return setErr('Buy amount must be positive.');
+    onSave(minV, maxV, computedAmount);
+  };
 
   return (
-    <div className={`flex items-center justify-between py-2 px-3 rounded-lg ${isTriggered ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-gray-800/50'}`}>
-      <div className="flex items-center gap-3">
-        {isTriggered && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />}
-        <span className="text-xs font-mono text-amber-400/80">+{rule.minProfit}% – +{rule.maxProfit}%</span>
-        <span className="text-gray-600 text-xs">→</span>
-        <span className="text-xs font-mono text-gray-200 font-medium">sell {amtLabel}</span>
-        {rule.sellAmountType === 'PCT' && <span className="text-xs text-gray-600">of holdings</span>}
-        {isTriggered && <Badge variant="yellow">Active</Badge>}
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">Drop from ATH <span className="text-red-400/70">− min %</span></label>
+          <input type="number" min="0" max="99" step="1" value={min} onChange={e => setMin(e.target.value)} placeholder="20" className={INPUT_SM} />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">Drop from ATH <span className="text-red-400/70">− max %</span></label>
+          <input type="number" min="1" max="100" step="1" value={max} onChange={e => setMax(e.target.value)} placeholder="40" className={INPUT_SM} />
+        </div>
       </div>
-      <div className="flex items-center gap-3">
-        <button onClick={() => setEditing(true)} className="text-xs text-gray-500 hover:text-gray-300 transition-colors">Edit</button>
-        <button onClick={() => deleteRule.mutate(rule.id)} className="text-xs text-red-400/60 hover:text-red-400 transition-colors">Remove</button>
+      <div>
+        <label className="block text-xs text-gray-500 mb-2">Multiplier</label>
+        <div className="flex items-center gap-1.5 flex-wrap mb-2">
+          {MULT_PRESETS.map(p => (
+            <button key={p} type="button" onClick={() => setMult(String(p))}
+              className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${
+                multNum === p
+                  ? 'border-brand-500/60 text-brand-400 bg-brand-500/10'
+                  : 'border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-300'
+              }`}>
+              {p}×
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            <input type="number" min="0.01" step="0.01" value={mult} onChange={e => setMult(e.target.value)} placeholder="1"
+              className="bg-gray-800 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-gray-100 w-20 focus:outline-none focus:border-brand-500 placeholder-gray-600" />
+            <span className="text-sm text-gray-500">×</span>
+          </div>
+          {computedAmount !== null && (
+            <span className="text-sm text-gray-500">= <span className="font-mono font-semibold text-gray-200">${computedAmount}</span></span>
+          )}
+        </div>
+      </div>
+      {err && <p className="text-xs text-red-400">{err}</p>}
+      <div className="flex items-center gap-2 pt-0.5">
+        <button type="button" onClick={handle} disabled={isPending}
+          className="text-xs bg-brand-600 hover:bg-brand-500 disabled:opacity-40 text-white font-medium px-3 py-1.5 rounded-lg transition-colors">
+          {isPending ? 'Saving…' : submitLabel}
+        </button>
+        {onCancel && (
+          <button type="button" onClick={onCancel}
+            className="text-xs text-gray-500 hover:text-gray-300 border border-gray-700 px-3 py-1.5 rounded-lg transition-colors">
+            Cancel
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
-function AddSellRuleRow({ planId, onDone }: { planId: string; onDone: () => void }) {
-  const createRule = useCreateSellRule();
-  const [min, setMin] = useState('');
-  const [max, setMax] = useState('');
-  const [amount, setAmount] = useState('');
-  const [amtType, setAmtType] = useState<'USD' | 'PCT'>('USD');
+// ─── Sell Rule Form (matches DcaPlans SellRuleEditForm) ──────────────────────
 
-  async function handleAdd() {
-    if (!min || !max || !amount) return;
-    await createRule.mutateAsync({ dcaPlanId: planId, minProfit: Number(min), maxProfit: Number(max), sellAmount: Number(amount), sellAmountType: amtType });
-    onDone();
-  }
+function SellRuleForm({
+  initialMin = '', initialMax = '', initialAmount = '', initialType = 'USD' as 'USD' | 'PCT',
+  onSave, onCancel, submitLabel = 'Add rule', isPending = false,
+}: {
+  initialMin?: string; initialMax?: string; initialAmount?: string; initialType?: 'USD' | 'PCT';
+  onSave: (min: number, max: number, amt: number, type: 'USD' | 'PCT') => void;
+  onCancel?: () => void;
+  submitLabel?: string;
+  isPending?: boolean;
+}) {
+  const [min, setMin] = useState(initialMin);
+  const [max, setMax] = useState(initialMax);
+  const [amount, setAmount] = useState(initialAmount);
+  const [amtType, setAmtType] = useState<'USD' | 'PCT'>(initialType);
 
   return (
-    <div className="py-2 space-y-2">
+    <div className="space-y-2">
       <div className="flex items-center gap-2 flex-wrap">
-        <input type="number" value={min} onChange={e => setMin(e.target.value)} placeholder="Min %" className="w-20 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-brand-500" />
+        <input type="number" value={min} onChange={e => setMin(e.target.value)} placeholder="Min %"
+          className="w-20 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-amber-500" />
         <span className="text-gray-600 text-xs">% –</span>
-        <input type="number" value={max} onChange={e => setMax(e.target.value)} placeholder="Max %" className="w-20 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-brand-500" />
+        <input type="number" value={max} onChange={e => setMax(e.target.value)} placeholder="Max %"
+          className="w-20 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-amber-500" />
         <span className="text-gray-600 text-xs">% profit → sell</span>
         <div className="flex items-center gap-1">
+          <input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder={amtType === 'USD' ? 'USD' : '%'}
+            className="w-20 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-amber-500" />
           <div className="flex rounded overflow-hidden border border-gray-700 text-xs">
             {(['USD', 'PCT'] as const).map(t => (
               <button key={t} type="button" onClick={() => setAmtType(t)}
-                className={`px-2 py-1 transition-colors ${amtType === t ? 'bg-amber-600 text-white' : 'bg-gray-800 text-gray-500 hover:text-gray-300'}`}>
+                className={`px-2 py-1 transition-colors ${amtType === t ? 'bg-brand-600 text-white' : 'bg-gray-800 text-gray-500 hover:text-gray-300'}`}>
                 {t === 'USD' ? '$' : '%'}
               </button>
             ))}
           </div>
-          <input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder={amtType === 'USD' ? 'USD' : '%'} className="w-20 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-brand-500" />
-          {amtType === 'PCT' && <span className="text-gray-600 text-xs">% of holdings</span>}
+          {amtType === 'PCT' && <span className="text-gray-600 text-xs">of holdings</span>}
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        <button onClick={handleAdd} disabled={createRule.isPending} className="text-xs bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white px-3 py-1.5 rounded-lg transition-colors">
-          {createRule.isPending ? 'Adding…' : 'Add rule'}
+      <div className="flex items-center gap-2 pt-0.5">
+        <button type="button" disabled={isPending}
+          onClick={() => onSave(Number(min), Number(max), Number(amount), amtType)}
+          className="text-xs bg-brand-600 hover:bg-brand-500 disabled:opacity-40 text-white font-medium px-3 py-1.5 rounded-lg transition-colors">
+          {isPending ? 'Saving…' : submitLabel}
         </button>
-        <button onClick={onDone} className="text-xs text-gray-500 hover:text-gray-300 border border-gray-700 px-3 py-1.5 rounded-lg transition-colors">Cancel</button>
+        {onCancel && (
+          <button type="button" onClick={onCancel}
+            className="text-xs text-gray-500 hover:text-gray-300 border border-gray-700 px-3 py-1.5 rounded-lg transition-colors">
+            Cancel
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Buying Rules Card ────────────────────────────────────────────────────────
+
+function BuyingRulesCard({ planId, baseAmount, rules, drawdownPct, anyActive }: {
+  planId: string; baseAmount: number; rules: BuyingRule[];
+  drawdownPct: number | null; anyActive: boolean;
+}) {
+  const qc = useQueryClient();
+  const createRule = useCreateBuyingRule(planId);
+  const deleteRule = useDeleteBuyingRule();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [addKey, setAddKey] = useState(0);
+
+  async function handleAdd(min: number, max: number, amount: number) {
+    await createRule.mutateAsync({ minDrawdown: min, maxDrawdown: max, buyAmount: amount });
+    await qc.invalidateQueries({ queryKey: ['plan-stats', planId] });
+    setAddKey(k => k + 1);
+    toast('Buying rule added');
+  }
+
+  async function handleUpdate(ruleId: string, min: number, max: number, amount: number) {
+    try {
+      await api.patch(`/buying-rules/${ruleId}`, { minDrawdown: min, maxDrawdown: max, buyAmount: amount });
+      await qc.invalidateQueries({ queryKey: ['plan-stats', planId] });
+      setEditingId(null);
+      toast('Rule updated');
+    } catch { toast('Failed to update rule', 'error'); }
+  }
+
+  async function handleDelete(ruleId: string) {
+    try {
+      await deleteRule.mutateAsync(ruleId);
+      await qc.invalidateQueries({ queryKey: ['plan-stats', planId] });
+    } catch { toast('Failed to delete rule', 'error'); }
+  }
+
+  return (
+    <div className={`bg-gray-900 border rounded-xl overflow-hidden ${anyActive ? 'border-brand-500/30' : 'border-gray-800'}`}>
+      <div className="px-5 py-4 border-b border-gray-800">
+        <h2 className="text-sm font-semibold text-gray-300">Buying Rules</h2>
+        <p className="text-xs text-gray-500 mt-0.5">
+          Current drawdown:{' '}
+          {drawdownPct !== null ? (
+            <span className={`font-mono font-medium ${drawdownPct > 5 ? 'text-red-400' : 'text-green-400'}`}>
+              −{drawdownPct.toFixed(1)}%
+            </span>
+          ) : <span className="text-gray-600">no ATH data</span>}
+          {anyActive && <span className="ml-2 text-brand-400 font-medium">· rule triggered</span>}
+        </p>
+      </div>
+      <div className="px-5 py-4 space-y-2">
+        {rules.map(rule => {
+          const mult = baseAmount > 0 ? +(rule.buyAmount / baseAmount).toFixed(2) : null;
+          const isActive = drawdownPct !== null && drawdownPct >= rule.minDrawdown && drawdownPct <= rule.maxDrawdown;
+          const isEditing = editingId === rule.id;
+          return (
+            <div key={rule.id} className={`rounded-lg border overflow-hidden transition-colors ${
+              isEditing ? 'border-brand-500/40 bg-gray-900'
+              : isActive ? 'border-brand-500/30 bg-brand-500/10'
+              : 'border-gray-700/50 bg-gray-800/50'
+            }`}>
+              <div className="flex items-center justify-between px-3 py-2 text-sm">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {isActive && <span className="w-1.5 h-1.5 rounded-full bg-brand-400 shrink-0" />}
+                  <span className="font-mono text-red-400/80">−{rule.minDrawdown}% – −{rule.maxDrawdown}%</span>
+                  <span className="text-gray-600">→</span>
+                  <span className={`font-semibold font-mono ${isActive ? 'text-brand-300' : 'text-gray-200'}`}>{mult}×</span>
+                  <span className="text-gray-500 text-xs">(${rule.buyAmount})</span>
+                  {isActive && <Badge variant="green">active</Badge>}
+                </div>
+                <div className="flex items-center gap-1.5 ml-3 shrink-0">
+                  {confirmingId !== rule.id && !isEditing && (
+                    <button type="button" onClick={() => { setEditingId(rule.id); setConfirmingId(null); }}
+                      className="text-xs px-2 py-0.5 border rounded-md transition-colors border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-300 hover:bg-gray-700/50">
+                      edit
+                    </button>
+                  )}
+                  {confirmingId === rule.id ? (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs text-gray-400">Delete?</span>
+                      <button type="button" onClick={() => { handleDelete(rule.id); setConfirmingId(null); }}
+                        className="text-xs text-red-400 hover:text-red-300 border border-red-500/30 px-2 py-0.5 rounded-md transition-colors">Yes</button>
+                      <button type="button" onClick={() => setConfirmingId(null)}
+                        className="text-xs text-gray-500 hover:text-gray-300 border border-gray-700 px-2 py-0.5 rounded-md transition-colors">No</button>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => { setConfirmingId(rule.id); setEditingId(null); }}
+                      className="text-gray-600 hover:text-red-400 w-6 h-6 flex items-center justify-center rounded transition-colors text-sm">×</button>
+                  )}
+                </div>
+              </div>
+              {isEditing && (
+                <div className="px-3 py-3 border-t border-gray-700/60 bg-gray-900/60">
+                  <BuyRuleForm
+                    initialMin={String(rule.minDrawdown)}
+                    initialMax={String(rule.maxDrawdown)}
+                    initialMult={mult !== null ? String(mult) : '1'}
+                    baseAmount={baseAmount}
+                    onSave={(min, max, amount) => handleUpdate(rule.id, min, max, amount)}
+                    onCancel={() => setEditingId(null)}
+                    submitLabel="Update rule"
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        <div className="rounded-xl border border-dashed border-gray-700 bg-gray-800/30 p-4">
+          <p className="text-xs font-medium text-gray-500 mb-3">Add a rule</p>
+          <BuyRuleForm key={addKey} baseAmount={baseAmount} onSave={handleAdd} isPending={createRule.isPending} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Sell Rules Card ──────────────────────────────────────────────────────────
+
+function SellRulesCard({ planId, rules, profitPct, anyTriggered }: {
+  planId: string; rules: SellRule[]; profitPct: number; anyTriggered: boolean;
+}) {
+  const createRule = useCreateSellRule();
+  const updateRule = useUpdateSellRule();
+  const deleteRule = useDeleteSellRule();
+  const { format } = useCurrencyFormatter();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [addKey, setAddKey] = useState(0);
+
+  async function handleAdd(min: number, max: number, amt: number, type: 'USD' | 'PCT') {
+    await createRule.mutateAsync({ dcaPlanId: planId, minProfit: min, maxProfit: max, sellAmount: amt, sellAmountType: type });
+    setAddKey(k => k + 1);
+    toast('Sell rule added');
+  }
+
+  return (
+    <div className={`bg-gray-900 border rounded-xl overflow-hidden ${anyTriggered ? 'border-amber-500/30' : 'border-gray-800'}`}>
+      <div className="px-5 py-4 border-b border-gray-800">
+        <h2 className="text-sm font-semibold text-gray-300">Take Profit Rules</h2>
+        <p className="text-xs text-gray-500 mt-0.5">
+          Current profit:{' '}
+          <span className={`font-mono font-medium ${profitPct >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            {profitPct >= 0 ? '+' : ''}{profitPct.toFixed(2)}%
+          </span>
+          {anyTriggered && <span className="ml-2 text-amber-400 font-medium">· rule triggered</span>}
+        </p>
+      </div>
+      <div className="px-5 py-4 space-y-2">
+        {rules.map(rule => {
+          const isTriggered = profitPct >= rule.minProfit && profitPct <= rule.maxProfit;
+          const isEditing = editingId === rule.id;
+          const amtLabel = rule.sellAmountType === 'PCT' ? `${rule.sellAmount}%` : format(rule.sellAmount);
+          return (
+            <div key={rule.id} className={`rounded-lg border overflow-hidden transition-colors ${
+              isEditing ? 'border-amber-500/40 bg-gray-900'
+              : isTriggered ? 'border-amber-500/30 bg-amber-500/10'
+              : 'border-gray-700/50 bg-gray-800/50'
+            }`}>
+              <div className="flex items-center justify-between px-3 py-2 text-sm">
+                <span className="font-mono flex items-center gap-2">
+                  {isTriggered && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />}
+                  <span className="text-amber-400/80">+{rule.minProfit}% – +{rule.maxProfit}%</span>
+                  <span className="text-gray-600">→ sell</span>
+                  <span className="font-semibold text-gray-200">{amtLabel}</span>
+                  {rule.sellAmountType === 'PCT' && <span className="text-gray-600 text-xs font-normal">of holdings</span>}
+                  {isTriggered && <Badge variant="yellow">active</Badge>}
+                </span>
+                <div className="flex items-center gap-1.5 ml-3 shrink-0">
+                  {confirmingId !== rule.id && !isEditing && (
+                    <button type="button" onClick={() => { setEditingId(rule.id); setConfirmingId(null); }}
+                      className="text-xs px-2 py-0.5 border rounded-md transition-colors border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-300 hover:bg-gray-700/50">
+                      edit
+                    </button>
+                  )}
+                  {confirmingId === rule.id ? (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs text-gray-400">Delete?</span>
+                      <button type="button" onClick={() => { deleteRule.mutate(rule.id); setConfirmingId(null); }}
+                        className="text-xs text-red-400 hover:text-red-300 border border-red-500/30 px-2 py-0.5 rounded-md">Yes</button>
+                      <button type="button" onClick={() => setConfirmingId(null)}
+                        className="text-xs text-gray-500 hover:text-gray-300 border border-gray-700 px-2 py-0.5 rounded-md">No</button>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => { setConfirmingId(rule.id); setEditingId(null); }}
+                      className="text-gray-600 hover:text-red-400 w-6 h-6 flex items-center justify-center rounded transition-colors text-sm">×</button>
+                  )}
+                </div>
+              </div>
+              {isEditing && (
+                <div className="px-3 py-3 border-t border-gray-700/60 bg-gray-900/60">
+                  <SellRuleForm
+                    initialMin={String(rule.minProfit)}
+                    initialMax={String(rule.maxProfit)}
+                    initialAmount={String(rule.sellAmount)}
+                    initialType={rule.sellAmountType ?? 'USD'}
+                    isPending={updateRule.isPending}
+                    onSave={async (min, max, amt, type) => {
+                      await updateRule.mutateAsync({ id: rule.id, minProfit: min, maxProfit: max, sellAmount: amt, sellAmountType: type });
+                      setEditingId(null);
+                    }}
+                    onCancel={() => setEditingId(null)}
+                    submitLabel="Update rule"
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        <div className="rounded-xl border border-dashed border-gray-700 bg-gray-800/30 p-3">
+          <p className="text-xs font-medium text-gray-500 mb-2">Add take profit rule</p>
+          <SellRuleForm key={addKey} onSave={handleAdd} isPending={createRule.isPending} submitLabel="Add rule" />
+        </div>
       </div>
     </div>
   );
@@ -136,8 +392,9 @@ export default function PlanDetail() {
   const router = useRouter();
   const { data, isLoading, error } = usePlanStats(id!);
   const { format, formatPct } = useCurrencyFormatter();
-  const [showAddSellRule, setShowAddSellRule] = useState(false);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const theme = useStore((s) => s.theme);
+  const isLight = theme === 'light' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
 
   if (isLoading) {
     return (
@@ -248,23 +505,18 @@ export default function PlanDetail() {
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
           <h2 className="text-sm font-semibold text-gray-300 mb-4">Monthly Investment (last 12 months)</h2>
           <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={chartData}>
-              <defs>
-                <linearGradient id="planGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#22c55e" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-              <XAxis dataKey="month" tick={{ fill: '#6b7280', fontSize: 11 }} />
-              <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} />
+            <BarChart data={chartData} barCategoryGap="30%">
+              <CartesianGrid strokeDasharray="3 3" stroke={isLight ? '#e8ecf1' : '#1f2937'} vertical={false} />
+              <XAxis dataKey="month" tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip
-                contentStyle={{ background: '#111827', border: '1px solid #1f2937', borderRadius: 8 }}
-                labelStyle={{ color: '#9ca3af' }}
+                contentStyle={{ background: isLight ? '#ffffff' : '#111827', border: `1px solid ${isLight ? '#e8ecf1' : '#1f2937'}`, borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                labelStyle={{ color: isLight ? '#475569' : '#9ca3af' }}
                 itemStyle={{ color: '#22c55e' }}
+                cursor={{ fill: isLight ? '#f1f5f9' : '#1f2937' }}
               />
-              <Area type="monotone" dataKey="invested" stroke="#22c55e" fill="url(#planGrad)" strokeWidth={2} />
-            </AreaChart>
+              <Bar dataKey="invested" fill="#22c55e" radius={[4, 4, 0, 0]} />
+            </BarChart>
           </ResponsiveContainer>
         </div>
       )}
@@ -327,50 +579,36 @@ export default function PlanDetail() {
         </div>
       </div>
 
+      {/* Buying Rules */}
+      {(() => {
+        const drawdownPct = plan.drawdownFromAth != null && !isNaN(plan.drawdownFromAth) ? Math.abs(plan.drawdownFromAth) : null;
+        const sorted = [...plan.buyingRules].sort((a, b) => a.minDrawdown - b.minDrawdown);
+        const anyActive = sorted.some(
+          (r) => drawdownPct !== null && drawdownPct >= r.minDrawdown && drawdownPct <= r.maxDrawdown,
+        );
+        return (
+          <BuyingRulesCard
+            planId={plan.id}
+            baseAmount={plan.amountUsd}
+            rules={sorted}
+            drawdownPct={drawdownPct}
+            anyActive={anyActive}
+          />
+        );
+      })()}
+
       {/* Take Profit / Sell Rules */}
       {(() => {
         const profitPct = portfolio.totalPnlPercent;
-        const anyTriggered = plan.sellRules.some(
-          (r) => profitPct >= r.minProfit && profitPct <= r.maxProfit,
-        );
+        const sorted = [...plan.sellRules].sort((a, b) => a.minProfit - b.minProfit);
+        const anyTriggered = sorted.some((r) => profitPct >= r.minProfit && profitPct <= r.maxProfit);
         return (
-          <div className={`bg-gray-900 border rounded-xl overflow-hidden ${anyTriggered ? 'border-amber-500/30' : 'border-gray-800'}`}>
-            <div className="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
-              <div>
-                <h2 className="text-sm font-semibold text-gray-300">Take Profit Rules</h2>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Current profit:{' '}
-                  <span className={`font-mono font-medium ${profitPct >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {profitPct >= 0 ? '+' : ''}{profitPct.toFixed(2)}%
-                  </span>
-                  {anyTriggered && (
-                    <span className="ml-2 text-amber-400 font-medium">· rule triggered</span>
-                  )}
-                </p>
-              </div>
-              {!showAddSellRule && (
-                <button
-                  onClick={() => setShowAddSellRule(true)}
-                  className="text-xs text-brand-400 hover:text-brand-300 border border-brand-500/30 hover:border-brand-500/60 px-3 py-1.5 rounded-lg transition-colors"
-                >
-                  + Add rule
-                </button>
-              )}
-            </div>
-            <div className="px-5 py-4 space-y-2">
-              {plan.sellRules.length === 0 && !showAddSellRule && (
-                <p className="text-sm text-gray-600 text-center py-4">
-                  No take profit rules yet. Add one to get sell suggestions on the dashboard.
-                </p>
-              )}
-              {plan.sellRules.map((rule) => (
-                <SellRuleRow key={rule.id} rule={rule} planId={plan.id} profitPct={profitPct} />
-              ))}
-              {showAddSellRule && (
-                <AddSellRuleRow planId={plan.id} onDone={() => setShowAddSellRule(false)} />
-              )}
-            </div>
-          </div>
+          <SellRulesCard
+            planId={plan.id}
+            rules={sorted}
+            profitPct={profitPct}
+            anyTriggered={anyTriggered}
+          />
         );
       })()}
 

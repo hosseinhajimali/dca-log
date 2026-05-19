@@ -12,6 +12,7 @@ import { useAssets } from '@/hooks/useAssets';
 import { useSimulator, SimulationParams, SimulationResult } from '@/hooks/useSimulator';
 import { StatCard } from '@/components/ui/StatCard';
 import { useCurrencyFormatter, formatQuantity } from '@/lib/format';
+import { useStore } from '@/store/useStore';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -53,6 +54,8 @@ function ResultsSection({ data }: { data: SimulationResult }) {
   const { format } = useCurrencyFormatter();
   const { summary, chartData, recentBuys, asset } = data;
   const profitable = summary.totalReturn >= 0;
+  const theme = useStore((s) => s.theme);
+  const isLight = theme === 'light' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
 
   // Thin chart data for readability (max 120 points)
   const displayChart = chartData.length > 120
@@ -126,8 +129,8 @@ function ResultsSection({ data }: { data: SimulationResult }) {
               width={52}
             />
             <Tooltip
-              contentStyle={{ background: '#111827', border: '1px solid #1f2937', borderRadius: 8, fontSize: 12 }}
-              labelStyle={{ color: '#9ca3af' }}
+              contentStyle={{ background: isLight ? '#ffffff' : '#111827', border: `1px solid ${isLight ? '#e8ecf1' : '#1f2937'}`, borderRadius: 8, fontSize: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+              labelStyle={{ color: isLight ? '#475569' : '#9ca3af' }}
               formatter={(value: number, name: string) => [
                 `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
                 name === 'portfolioValue' ? 'Portfolio value' : 'Total invested',
