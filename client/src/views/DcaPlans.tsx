@@ -578,7 +578,7 @@ function CreateModal({ assets, initialForm, initialAllocs, sourceRules, sourceSe
 }
 
 // ─── edit modal, plan fields + allocations only ──────────────────────────────
-function EditModal({ plan, assets, onClose }: {
+export function EditModal({ plan, assets, onClose }: {
   plan: DcaPlan;
   assets: { id: string; symbol: string; name: string; color?: string | null }[];
   onClose: () => void;
