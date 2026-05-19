@@ -8,6 +8,7 @@ import {
 } from 'recharts';
 import { useRouter } from 'next/navigation';
 import { useDashboard } from '@/hooks/useDashboard';
+import { useStore } from '@/store/useStore';
 import { StatCard } from '@/components/ui/StatCard';
 import { Badge } from '@/components/ui/Badge';
 import { useCurrencyFormatter, formatDate, formatQuantity } from '@/lib/format';
@@ -78,7 +79,7 @@ function ActivePlanCard({ plan, onClick }: { plan: ActivePlanSummary; onClick: (
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left p-4 rounded-xl border transition-colors hover:border-gray-600 ${urgencyColors[urgency]}`}
+      className={`w-full text-left p-4 rounded-xl border transition-all duration-150 hover:border-gray-600 hover:bg-gray-800/50 hover:shadow-sm hover:-translate-y-px cursor-pointer ${urgencyColors[urgency]}`}
     >
       {/* Asset symbols */}
       <div className="flex items-center gap-1.5 flex-wrap mb-2">
@@ -149,6 +150,8 @@ export default function Dashboard() {
   const { data, isLoading, error } = useDashboard();
   const { format, formatPct } = useCurrencyFormatter();
   const router = useRouter();
+  const theme = useStore((s) => s.theme);
+  const isLight = theme === 'light' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
 
   if (isLoading) {
     return (
@@ -241,9 +244,9 @@ export default function Dashboard() {
             <h2 className="text-sm font-semibold text-gray-300">Active Plans</h2>
             <button
               onClick={() => router.push('/app/plans')}
-              className="text-xs text-gray-500 hover:text-brand-400 transition-colors"
+              className="text-xs text-gray-500 hover:text-brand-400 transition-all duration-150 hover:gap-1 group flex items-center gap-0.5"
             >
-              Manage →
+              Manage <span className="inline-block transition-transform duration-150 group-hover:translate-x-0.5">→</span>
             </button>
           </div>
           <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -271,14 +274,14 @@ export default function Dashboard() {
           ) : (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={chartData} barCategoryGap="30%">
-                <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={isLight ? '#e8ecf1' : '#1f2937'} vertical={false} />
                 <XAxis dataKey="month" tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <Tooltip
-                  contentStyle={{ background: '#111827', border: '1px solid #1f2937', borderRadius: 8 }}
-                  labelStyle={{ color: '#9ca3af' }}
+                  contentStyle={{ background: isLight ? '#ffffff' : '#111827', border: `1px solid ${isLight ? '#e8ecf1' : '#1f2937'}`, borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                  labelStyle={{ color: isLight ? '#475569' : '#9ca3af' }}
                   itemStyle={{ color: '#22c55e' }}
-                  cursor={{ fill: '#1f2937' }}
+                  cursor={{ fill: isLight ? '#f1f5f9' : '#1f2937' }}
                 />
                 <Bar dataKey="invested" fill="#22c55e" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -301,9 +304,9 @@ export default function Dashboard() {
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{ background: '#111827', border: '1px solid #1f2937', borderRadius: 8, color: '#f3f4f6' }}
-                    itemStyle={{ color: '#f3f4f6' }}
-                    labelStyle={{ color: '#9ca3af' }}
+                    contentStyle={{ background: isLight ? '#ffffff' : '#111827', border: `1px solid ${isLight ? '#e8ecf1' : '#1f2937'}`, borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                    itemStyle={{ color: isLight ? '#1e293b' : '#f3f4f6' }}
+                    labelStyle={{ color: isLight ? '#475569' : '#9ca3af' }}
                     formatter={(v: number, _name: string, props: { payload?: { pct?: number } }) => [
                       `${format(v)}  (${props.payload?.pct?.toFixed(1) ?? '0.0'}%)`,
                       'Value',

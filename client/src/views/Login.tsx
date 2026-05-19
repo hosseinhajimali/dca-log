@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLogin, useRegister } from '@/hooks/useAuth';
 import { useStore } from '@/store/useStore';
+import { PublicNavbar } from '@/components/layout/PublicNavbar';
+import { PublicFooter } from '@/components/layout/PublicFooter';
 
 function GoogleIcon() {
   return (
@@ -23,6 +25,8 @@ const ERROR_MESSAGES: Record<string, string> = {
 
 export default function Login() {
   const token = useStore((s) => s.token);
+  const theme = useStore((s) => s.theme);
+  const isLight = theme === 'light' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
   const router = useRouter();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
@@ -61,12 +65,11 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <div className="flex justify-center mb-8">
-          <a href="/"><img src="/logo-horizontal.svg" alt="DCAlog" className="h-10 w-auto" /></a>
-        </div>
+    <div className="min-h-screen bg-gray-950 flex flex-col">
+      <PublicNavbar />
 
+      <div className="flex-1 flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-sm">
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl space-y-5">
 
           {/* Google button */}
@@ -158,6 +161,9 @@ export default function Login() {
           </form>
         </div>
       </div>
+      </div>
+
+      <PublicFooter />
     </div>
   );
 }
