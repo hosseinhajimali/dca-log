@@ -161,14 +161,9 @@ export function PublicNavbar() {
                 </Link>
               </>
             ) : (
-              <>
-                <Link href="/login" className="hidden sm:block text-sm text-gray-400 hover:text-gray-100 transition-colors px-3 py-1.5">
-                  Sign in
-                </Link>
-                <Link href="/login" className="bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
-                  Get started
-                </Link>
-              </>
+              <Link href="/login" className="text-sm font-medium text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors">
+                Sign in
+              </Link>
             )}
           </div>
         </div>
