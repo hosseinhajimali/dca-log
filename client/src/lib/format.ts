@@ -26,7 +26,10 @@ export function useCurrencyFormatter() {
 }
 
 export function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-US', {
+  // Parse only the date part as local time to avoid UTC-offset day shift
+  const [datePart] = dateStr.split('T');
+  const [y, m, d] = datePart.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString('en-US', {
     year: 'numeric', month: 'short', day: 'numeric',
   });
 }

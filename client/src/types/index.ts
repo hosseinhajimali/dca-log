@@ -57,6 +57,7 @@ export interface SuggestedAllocation {
   color?: string | null;
   allocationPct: number;
   amount: number; // USD portion for this asset
+  drawdownPct?: number | null; // only present when perAssetRules=true
 }
 
 export interface DcaPlan {
@@ -122,13 +123,14 @@ export interface AssetStats {
 }
 
 export interface ActivePlanSummary {
-  id:                  string;
-  name:                string | null;
-  amountUsd:           number;
-  suggestedAmount:     number;
-  suggestedSellAmount: number | null;
-  frequency:           string;
-  nextPurchaseDate:    string | null;
+  id:                   string;
+  name:                 string | null;
+  amountUsd:            number;
+  suggestedAmount:      number;
+  suggestedAllocations: { symbol: string; color: string | null; allocationPct: number; amount: number }[];
+  suggestedSellAmount:  number | null;
+  frequency:            string;
+  nextPurchaseDate:     string | null;
   allocations: {
     allocationPct: number;
     asset: { symbol: string; color: string | null };

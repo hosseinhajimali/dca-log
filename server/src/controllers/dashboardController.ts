@@ -2,6 +2,7 @@ import { Response, NextFunction } from 'express';
 import { prisma } from '../lib/prisma';
 import { AuthRequest } from '../types';
 import { fetchAndCachePrices } from '../services/priceService';
+import { computeNextPurchaseDate } from '../services/dcaService';
 
 export async function getDashboardStats(req: AuthRequest, res: Response, next: NextFunction) {
   try {
@@ -96,37 +97,71 @@ export async function getDashboardStats(req: AuthRequest, res: Response, next: N
       orderBy: { nextPurchaseDate: 'asc' as const },
     });
 
-    const activePlanList = activePlanRows.map((plan) => {
-      // ── Buy suggestions (drawdown from ATH) ──────────────────────────────
-      let suggestedAmount = plan.amountUsd;
-      const matchedBuyAmounts: number[] = [];
+    // Helper: find first matching rule (highest minDrawdown wins, same as plan enrichment)
+    function matchRule(dd: number | null, rules: { minDrawdown: number; maxDrawdown: number; buyAmount: number }[]) {
+      if (dd === null || rules.length === 0) return null;
+      return [...rules]
+        .sort((a, b) => b.minDrawdown - a.minDrawdown)
+        .find(r => dd >= r.minDrawdown && dd <= r.maxDrawdown) ?? null;
+    }
 
-      for (const alloc of plan.allocations) {
+    const activePlanList = activePlanRows.map((plan) => {
+      // Per-asset drawdowns
+      const assetDrawdowns = plan.allocations.map(alloc => {
         const price = priceMap.get(alloc.asset.symbol) ?? 0;
         const ath   = alloc.asset.athOverride ?? athMap.get(alloc.asset.symbol) ?? null;
-        const drawdownPct = ath && price > 0 ? ((price - ath) / ath) * 100 : null;
+        const dd    = ath && price > 0 ? Math.abs(((price - ath) / ath) * 100) : null;
+        return { alloc, dd };
+      });
 
-        for (const rule of plan.buyingRules) {
-          if (drawdownPct !== null) {
-            const dd = Math.abs(drawdownPct);
-            if (dd >= rule.minDrawdown && dd <= rule.maxDrawdown) {
-              matchedBuyAmounts.push(rule.buyAmount);
+      // ── Buy suggestions ───────────────────────────────────────────────────
+      let suggestedAmount: number;
+      let suggestedAllocations: { symbol: string; color: string | null; allocationPct: number; amount: number }[];
+
+      if (plan.perAssetRules) {
+        // Per-asset method: each asset gets its own rule match
+        let total = 0;
+        suggestedAllocations = assetDrawdowns.map(({ alloc, dd }) => {
+          const baseShare  = plan.amountUsd * (alloc.allocationPct / 100);
+          const activeRule = matchRule(dd, plan.buyingRules);
+          const multiplier = activeRule ? activeRule.buyAmount / plan.amountUsd : 1;
+          const amount     = +(baseShare * multiplier).toFixed(2);
+          total += amount;
+          return { symbol: alloc.asset.symbol, color: alloc.asset.color, allocationPct: alloc.allocationPct, amount };
+        });
+        suggestedAmount = +total.toFixed(2);
+      } else {
+        // Group method: weighted average drawdown → one rule for the whole plan
+        let weightedDd: number | null = null;
+        let totalWeight = 0;
+        for (const { alloc, dd } of assetDrawdowns) {
+          if (dd !== null) {
+            const prc = priceMap.get(alloc.asset.symbol) ?? 0;
+            const ath = alloc.asset.athOverride ?? athMap.get(alloc.asset.symbol) ?? null;
+            if (ath && prc > 0) {
+              const raw = ((prc - ath) / ath) * 100; // signed
+              weightedDd  = (weightedDd ?? 0) + raw * (alloc.allocationPct / 100);
+              totalWeight += alloc.allocationPct;
             }
           }
         }
-      }
-      if (matchedBuyAmounts.length > 0) {
-        suggestedAmount = Math.max(plan.amountUsd, ...matchedBuyAmounts);
+        const groupDd    = weightedDd !== null && totalWeight > 0 ? Math.abs(weightedDd) : null;
+        const activeRule = matchRule(groupDd, plan.buyingRules);
+        suggestedAmount  = activeRule ? activeRule.buyAmount : plan.amountUsd;
+        suggestedAllocations = plan.allocations.map(a => ({
+          symbol:        a.asset.symbol,
+          color:         a.asset.color,
+          allocationPct: a.allocationPct,
+          amount:        +(suggestedAmount * (a.allocationPct / 100)).toFixed(2),
+        }));
       }
 
-      // ── Sell suggestions (profit % from avg buy) ──────────────────────────
+      // ── Sell suggestions ──────────────────────────────────────────────────
       const matchedSellAmounts: number[] = [];
-
       for (const alloc of plan.allocations) {
         const price   = priceMap.get(alloc.asset.symbol) ?? 0;
         const avgCost = avgCostMap.get(alloc.asset.id) ?? 0;
         const profitPct = avgCost > 0 && price > 0 ? ((price - avgCost) / avgCost) * 100 : null;
-
         for (const rule of plan.sellRules) {
           if (profitPct !== null && profitPct >= rule.minProfit && profitPct <= rule.maxProfit) {
             matchedSellAmounts.push(rule.sellAmount);
@@ -134,18 +169,29 @@ export async function getDashboardStats(req: AuthRequest, res: Response, next: N
         }
       }
       const suggestedSellAmount = matchedSellAmounts.length > 0
-        ? Math.max(...matchedSellAmounts)
+        ? Math.max(...matchedSellAmounts) : null;
+
+      // Always recompute next date from the stored value so it stays current
+      // even if the user hasn't recorded a purchase since the last scheduled date.
+      const effectiveNext = plan.nextPurchaseDate
+        ? computeNextPurchaseDate(
+            plan.nextPurchaseDate,
+            plan.frequency,
+            plan.intervalDays,
+            plan.scheduledTime,
+          )
         : null;
 
       return {
-        id:                  plan.id,
-        name:                plan.name ?? null,
-        amountUsd:           plan.amountUsd,
+        id:                   plan.id,
+        name:                 plan.name ?? null,
+        amountUsd:            plan.amountUsd,
         suggestedAmount,
+        suggestedAllocations,
         suggestedSellAmount,
-        frequency:           plan.frequency,
-        nextPurchaseDate:    plan.nextPurchaseDate?.toISOString() ?? null,
-        allocations:         plan.allocations.map((a) => ({
+        frequency:            plan.frequency,
+        nextPurchaseDate:     effectiveNext?.toISOString() ?? null,
+        allocations:          plan.allocations.map((a) => ({
           allocationPct: a.allocationPct,
           asset: { symbol: a.asset.symbol, color: a.asset.color },
         })),

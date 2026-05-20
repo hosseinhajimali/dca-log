@@ -333,6 +333,7 @@ const MULT_PRESETS = [0.25, 0.5, 1, 1.5, 2, 3, 5];
 function RuleEditForm({
   initialMin = '', initialMax = '', initialMult = '1', initialRawAmount = '',
   baseAmount, onSave, onCancel, submitLabel = 'Add rule',
+  existingRules = [], editingRuleId,
 }: {
   initialMin?: string; initialMax?: string;
   initialMult?: string; initialRawAmount?: string;
@@ -340,6 +341,8 @@ function RuleEditForm({
   onSave: (min: number, max: number, amount: number) => void;
   onCancel?: () => void;
   submitLabel?: string;
+  existingRules?: { id: string; minDrawdown: number; maxDrawdown: number }[];
+  editingRuleId?: string; // exclude this rule from overlap check when editing
 }) {
   const [min, setMin] = useState(initialMin);
   const [max, setMax] = useState(initialMax);
@@ -362,6 +365,16 @@ function RuleEditForm({
     if (maxV <= minV) return setErr('Max must be greater than min.');
     const amtV = base ? computedAmount! : parseFloat(rawAmount);
     if (isNaN(amtV) || amtV <= 0) return setErr('Buy amount must be positive.');
+
+    // Overlap check — ranges must not intersect with any other rule
+    const others = existingRules.filter(r => r.id !== editingRuleId);
+    const overlapping = others.find(r => minV < r.maxDrawdown && maxV > r.minDrawdown);
+    if (overlapping) {
+      return setErr(
+        `Range overlaps with existing rule (−${overlapping.minDrawdown}% – −${overlapping.maxDrawdown}%). Ranges must not intersect.`
+      );
+    }
+
     onSave(minV, maxV, amtV);
   };
 
@@ -724,6 +737,23 @@ function PlanRulesPanel({ plan, baseAmount }: { plan: DcaPlan; baseAmount?: numb
   const drawdownPct = plan.drawdownFromAth !== null ? Math.abs(plan.drawdownFromAth) : null;
   const sorted = [...plan.buyingRules].sort((a, b) => b.minDrawdown - a.minDrawdown);
 
+  // Per-asset mode: build a map of ruleId → assets that are currently in that rule's range
+  const perAssetActiveMap = new Map<string, { symbol: string; color?: string | null }[]>();
+  if (plan.perAssetRules && plan.suggestedAllocations?.length > 0) {
+    for (const alloc of plan.suggestedAllocations) {
+      if (alloc.drawdownPct == null) continue;
+      // find matching rule (same logic as server: highest minDrawdown first)
+      const match = sorted.find(
+        r => alloc.drawdownPct! >= r.minDrawdown && alloc.drawdownPct! <= r.maxDrawdown
+      );
+      if (match) {
+        const list = perAssetActiveMap.get(match.id) ?? [];
+        list.push({ symbol: alloc.symbol, color: alloc.color });
+        perAssetActiveMap.set(match.id, list);
+      }
+    }
+  }
+
   const handleDelete = async (ruleId: string) => {
     try {
       await api.delete(`/buying-rules/${ruleId}`);
@@ -766,8 +796,20 @@ function PlanRulesPanel({ plan, baseAmount }: { plan: DcaPlan; baseAmount?: numb
         {plan.buyingRules.length === 0
           ? 'Add buying rules'
           : `${plan.buyingRules.length} buying rule${plan.buyingRules.length !== 1 ? 's' : ''}`}
-        {drawdownPct !== null && plan.buyingRules.length > 0 && (
-          <span className="text-red-400/70 ml-1">−{drawdownPct.toFixed(1)}% ATH</span>
+        {plan.buyingRules.length > 0 && (
+          plan.perAssetRules
+            ? plan.suggestedAllocations?.length > 0 && (
+                <span className="flex items-center gap-1 ml-1">
+                  {plan.suggestedAllocations.map(a => a.drawdownPct != null && (
+                    <span key={a.symbol} className="text-red-400/70" style={a.color ? { color: a.color + 'bb' } : undefined}>
+                      {a.symbol} −{Math.abs(a.drawdownPct).toFixed(1)}%
+                    </span>
+                  ))}
+                </span>
+              )
+            : drawdownPct !== null && (
+                <span className="text-red-400/70 ml-1">−{drawdownPct.toFixed(1)}% ATH</span>
+              )
         )}
       </button>
 
@@ -776,9 +818,16 @@ function PlanRulesPanel({ plan, baseAmount }: { plan: DcaPlan; baseAmount?: numb
           {/* existing rules */}
           {sorted.map(rule => {
             const mult = +(rule.buyAmount / base).toFixed(2);
-            const isActive = drawdownPct !== null
-              && drawdownPct >= rule.minDrawdown && drawdownPct <= rule.maxDrawdown;
             const isEditing = editingId === rule.id;
+
+            // Group method: single active flag based on weighted drawdown
+            // Per-asset method: list of assets currently in this rule's range
+            const activeAssets = plan.perAssetRules
+              ? (perAssetActiveMap.get(rule.id) ?? [])
+              : [];
+            const isActive = plan.perAssetRules
+              ? activeAssets.length > 0
+              : drawdownPct !== null && drawdownPct >= rule.minDrawdown && drawdownPct <= rule.maxDrawdown;
 
             return (
               <div key={rule.id} className={`rounded-lg border overflow-hidden transition-colors ${
@@ -790,14 +839,31 @@ function PlanRulesPanel({ plan, baseAmount }: { plan: DcaPlan; baseAmount?: numb
               }`}>
                 <div className="flex items-center justify-between px-3 py-2 text-sm">
                   <div className="flex items-center gap-2 flex-wrap">
-                    {isActive && <span className="w-1.5 h-1.5 rounded-full bg-brand-400 shrink-0" />}
+                    {isActive && !plan.perAssetRules && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-brand-400 shrink-0" />
+                    )}
                     <span className="font-mono text-red-400/80">−{rule.minDrawdown}% – −{rule.maxDrawdown}%</span>
                     <span className="text-gray-600">→</span>
                     <span className={`font-semibold font-mono ${isActive ? 'text-brand-300' : 'text-gray-200'}`}>
                       {mult}×
                     </span>
                     <span className="text-gray-500 text-xs">(${rule.buyAmount})</span>
-                    {isActive && <Badge variant="green">active</Badge>}
+                    {/* Per-asset mode: show which assets are in this rule's range */}
+                    {plan.perAssetRules && activeAssets.length > 0 && (
+                      <span className="flex items-center gap-1 flex-wrap">
+                        {activeAssets.map(a => (
+                          <span
+                            key={a.symbol}
+                            className="inline-flex items-center gap-1 text-xs font-mono font-bold px-1.5 py-0.5 rounded bg-brand-500/15 border border-brand-500/25"
+                            style={a.color ? { color: a.color } : { color: '#93c5fd' }}
+                          >
+                            {a.symbol}
+                          </span>
+                        ))}
+                      </span>
+                    )}
+                    {/* Group method: single active badge */}
+                    {!plan.perAssetRules && isActive && <Badge variant="green">active</Badge>}
                   </div>
                   <div className="flex items-center gap-1.5 ml-3 shrink-0">
                     {confirmingId !== rule.id && !isEditing && (
@@ -840,6 +906,8 @@ function PlanRulesPanel({ plan, baseAmount }: { plan: DcaPlan; baseAmount?: numb
                       onSave={(min, max, amount) => handleUpdate(rule.id, min, max, amount)}
                       onCancel={() => setEditingId(null)}
                       submitLabel="Update rule"
+                      existingRules={plan.buyingRules.map(r => ({ id: r.id, minDrawdown: r.minDrawdown, maxDrawdown: r.maxDrawdown }))}
+                      editingRuleId={rule.id}
                     />
                   </div>
                 )}
@@ -855,6 +923,7 @@ function PlanRulesPanel({ plan, baseAmount }: { plan: DcaPlan; baseAmount?: numb
               baseAmount={base}
               onSave={handleAdd}
               submitLabel="Add rule"
+              existingRules={plan.buyingRules.map(r => ({ id: r.id, minDrawdown: r.minDrawdown, maxDrawdown: r.maxDrawdown }))}
             />
           </div>
         </div>
@@ -1257,8 +1326,8 @@ export default function DcaPlans() {
       amountUsd: String(source.amountUsd),
       frequency: source.frequency,
       intervalDays: source.intervalDays ? String(source.intervalDays) : '',
-      startDate: new Date().toISOString().slice(0, 10),
-      endDate: '',
+      startDate: source.startDate ? source.startDate.slice(0, 10) : new Date().toISOString().slice(0, 10),
+      endDate: source.endDate ? source.endDate.slice(0, 10) : '',
       scheduledTime: utcTimeToLocal(source.scheduledTime ?? '08:00'),
       notes: source.notes ?? '',
       perAssetRules: source.perAssetRules ?? false,

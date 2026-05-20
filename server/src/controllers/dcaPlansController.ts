@@ -247,17 +247,16 @@ async function fireRuleNotifications(
       p.nextPurchaseDate.toString().slice(0, 10) === todayStr;
 
     if (isScheduledToday) {
-      // BUYING_RULE_MET, drawdown is in a rule range
+      // BUYING_RULE_MET — use matchRule so only one notification fires even if ranges overlap
       const drawdownPct = p.drawdownFromAth !== null ? Math.abs(p.drawdownFromAth) : null;
       if (drawdownPct !== null) {
-        for (const rule of p.buyingRules) {
-          if (drawdownPct >= rule.minDrawdown && drawdownPct <= rule.maxDrawdown) {
-            const label = p.name ?? p.allocations.map(a => a.asset.symbol).join('/');
-            await maybeNotify(userId, 'BUYING_RULE_MET', 'Buy rule triggered',
-              `Plan "${label}" is down ${drawdownPct.toFixed(1)}% from ATH - a buying rule is active for today's purchase.`,
-              { planId: p.id, ruleId: (rule as { id?: string }).id },
-            );
-          }
+        const activeRule = matchRule(drawdownPct, p.buyingRules);
+        if (activeRule) {
+          const label = p.name ?? p.allocations.map(a => a.asset.symbol).join('/');
+          await maybeNotify(userId, 'BUYING_RULE_MET', 'Buy rule triggered',
+            `Plan "${label}" is down ${drawdownPct.toFixed(1)}% from ATH - a buying rule is active for today's purchase.`,
+            { planId: p.id, ruleId: (activeRule as { id?: string }).id },
+          );
         }
       }
 

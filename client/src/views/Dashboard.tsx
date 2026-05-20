@@ -50,10 +50,11 @@ const FREQ_LABELS: Record<string, string> = {
 
 function daysUntil(dateStr: string | null): number | null {
   if (!dateStr) return null;
-  const target = new Date(dateStr);
+  // Parse date part as local time to avoid UTC-offset day shift
+  const [datePart] = dateStr.split('T');
+  const [y, m, d] = datePart.split('-').map(Number);
+  const target = new Date(y, m - 1, d);
   const today  = new Date();
-  // Compare dates only, ignore time
-  target.setHours(0, 0, 0, 0);
   today.setHours(0, 0, 0, 0);
   const diff = target.getTime() - today.getTime();
   return Math.round(diff / 86_400_000);
@@ -66,7 +67,7 @@ function ActivePlanCard({ plan, onClick }: { plan: ActivePlanSummary; onClick: (
 
   const urgency =
     days === null     ? 'gray'
-    : days <= 0       ? 'green'   // today or overdue
+    : days <= 0       ? 'green'   // today
     : days <= 3       ? 'yellow'
     : 'gray';
 
@@ -101,7 +102,7 @@ function ActivePlanCard({ plan, onClick }: { plan: ActivePlanSummary; onClick: (
       </div>
 
       {/* Next date + amount */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs text-gray-500 mb-0.5">Next purchase</p>
           {plan.nextPurchaseDate ? (
@@ -130,6 +131,19 @@ function ActivePlanCard({ plan, onClick }: { plan: ActivePlanSummary; onClick: (
             </p>
             {isBoosted && (
               <p className="text-xs text-gray-500 line-through">{format(plan.amountUsd)}</p>
+            )}
+            {/* Per-asset breakdown — only show when there are multiple assets */}
+            {plan.suggestedAllocations?.length > 1 && (
+              <div className="mt-1 space-y-0.5">
+                {plan.suggestedAllocations.map(a => (
+                  <p key={a.symbol} className="text-xs font-mono flex items-center justify-end gap-1">
+                    <span style={a.color ? { color: a.color } : { color: '#9ca3af' }}>
+                      {a.symbol}
+                    </span>
+                    <span className="text-gray-400">{format(a.amount)}</span>
+                  </p>
+                ))}
+              </div>
             )}
           </div>
           {plan.suggestedSellAmount != null && (
