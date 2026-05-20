@@ -10,7 +10,7 @@ import { maybeNotify } from '../services/notificationService';
 
 const allocationSchema = z.array(
   z.object({
-    assetId: z.string().cuid(),
+    assetId: z.string().min(1),
     allocationPct: z.number().positive().max(100),
   })
 ).min(1, 'At least one asset allocation is required')

@@ -6,13 +6,15 @@ import { dispatchAnnouncement } from '../controllers/announcementsController';
 // ─── DCA Reminder notifications ───────────────────────────────────────────────
 async function checkDcaReminders(): Promise<void> {
   const now = new Date();
-  const oneMinuteAgo = new Date(now.getTime() - 60 * 1000);
+  // Use a 10-minute window to avoid missing notifications due to timing drift or brief server restarts.
+  // The duplicate-check below prevents double-firing within that window.
+  const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
 
   const duePlans = await prisma.dcaPlan.findMany({
     where: {
       isActive: true,
       nextPurchaseDate: {
-        gte: oneMinuteAgo,
+        gte: tenMinutesAgo,
         lte: now,
       },
     },

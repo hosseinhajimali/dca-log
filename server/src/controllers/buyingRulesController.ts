@@ -55,6 +55,16 @@ export async function updateBuyingRule(req: AuthRequest, res: Response, next: Ne
     const body = ruleUpdateSchema.safeParse(req.body);
     if (!body.success) return next(new AppError(400, body.error.errors[0].message));
 
+    // Validate the merged (existing + patch) values to prevent invalid states
+    const merged = {
+      minDrawdown: body.data.minDrawdown ?? rule.minDrawdown,
+      maxDrawdown: body.data.maxDrawdown ?? rule.maxDrawdown,
+      buyAmount:   body.data.buyAmount   ?? rule.buyAmount,
+    };
+    if (merged.maxDrawdown <= merged.minDrawdown) {
+      return next(new AppError(400, 'maxDrawdown must be greater than minDrawdown'));
+    }
+
     const updated = await prisma.buyingRule.update({ where: { id: ruleId as string }, data: body.data });
     res.json({ success: true, data: updated });
   } catch (err) {

@@ -22,6 +22,22 @@ const FREQ_LABELS: Record<DcaFrequency, string> = {
   DAILY: 'Daily', WEEKLY: 'Weekly', BIWEEKLY: 'Bi-weekly', MONTHLY: 'Monthly', CUSTOM: 'Custom',
 };
 
+// ─── timezone helpers ─────────────────────────────────────────────────────────
+// The server stores scheduledTime as UTC (HH:MM). The UI shows/accepts local time.
+// These helpers convert so the user always sees their local time.
+function localTimeToUtc(localTime: string): string {
+  const [h, m] = localTime.split(':').map(Number);
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
+}
+function utcTimeToLocal(utcTime: string): string {
+  const [h, m] = utcTime.split(':').map(Number);
+  const d = new Date();
+  d.setUTCHours(h, m, 0, 0);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
 const INPUT = 'w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-brand-500 disabled:opacity-50';
 const INPUT_SM = 'bg-gray-800 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-brand-500 w-full';
 
@@ -43,7 +59,7 @@ interface SourceRule {
   minDrawdown: number; maxDrawdown: number; buyAmount: number;
 }
 interface SourceSellRule {
-  minProfit: number; maxProfit: number; sellAmount: number;
+  minProfit: number; maxProfit: number; sellAmount: number; sellAmountType: 'USD' | 'PCT';
 }
 
 const emptyForm = (): PlanFormValues => ({
@@ -60,7 +76,7 @@ function planToForm(plan: DcaPlan): PlanFormValues {
     intervalDays: plan.intervalDays ? String(plan.intervalDays) : '',
     startDate: new Date(plan.startDate).toISOString().slice(0, 10),
     endDate: plan.endDate ? new Date(plan.endDate).toISOString().slice(0, 10) : '',
-    scheduledTime: plan.scheduledTime ?? '08:00',
+    scheduledTime: utcTimeToLocal(plan.scheduledTime ?? '08:00'),
     notes: plan.notes ?? '',
     perAssetRules: plan.perAssetRules ?? false,
   };
@@ -254,7 +270,9 @@ function PlanFields({ form, setForm, assets, allocations, setAllocations }: {
           onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))} className={INPUT} />
       </div>
       <div>
-        <label className="block text-xs text-gray-400 mb-1.5">Purchase time</label>
+        <label className="block text-xs text-gray-400 mb-1.5">
+          Purchase time <span className="text-gray-600">(your local time)</span>
+        </label>
         <input type="time" value={form.scheduledTime}
           onChange={e => setForm(f => ({ ...f, scheduledTime: e.target.value }))}
           className={INPUT} style={{ colorScheme: 'dark' }} />
@@ -448,6 +466,7 @@ function CreateModal({ assets, initialForm, initialAllocs, sourceRules, sourceSe
   const [form, setForm] = useState<PlanFormValues>(initialForm ?? emptyForm());
   const [allocations, setAllocations] = useState<AllocDraft[]>(initialAllocs ?? []);
   const [copyRules, setCopyRules] = useState(true);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -457,45 +476,67 @@ function CreateModal({ assets, initialForm, initialAllocs, sourceRules, sourceSe
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
     const allocTotal = allocations.reduce((s, a) => s + a.allocationPct, 0);
     if (allocations.length === 0) return;
     if (Math.abs(allocTotal - 100) >= 0.01) return;
 
-    const plan = await createPlan.mutateAsync({
+    let plan: Awaited<ReturnType<typeof createPlan.mutateAsync>>;
+    try {
+      plan = await createPlan.mutateAsync({
       name: form.name || undefined,
       amountUsd: parseFloat(form.amountUsd),
       frequency: form.frequency,
       intervalDays: form.frequency === 'CUSTOM' ? parseInt(form.intervalDays) : undefined,
       startDate: new Date(form.startDate).toISOString(),
       endDate: form.endDate ? new Date(form.endDate).toISOString() : undefined,
-      scheduledTime: form.scheduledTime || '08:00',
+      scheduledTime: localTimeToUtc(form.scheduledTime || '08:00'),
       notes: form.notes || undefined,
       perAssetRules: form.perAssetRules,
       allocations: allocations.map(a => ({ assetId: a.assetId, allocationPct: a.allocationPct })),
     } as Parameters<typeof createPlan.mutateAsync>[0]);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
+        ?? 'Failed to create plan. Please check your inputs and try again.';
+      setSubmitError(msg);
+      return;
+    }
 
     if (copyRules) {
+      let skipped = 0;
       if (sourceRules && sourceRules.length > 0) {
         for (const rule of sourceRules) {
-          await api.post(`/dca-plans/${plan.id}/rules`, {
-            minDrawdown: rule.minDrawdown,
-            maxDrawdown: rule.maxDrawdown,
-            buyAmount: rule.buyAmount,
-          });
+          try {
+            await api.post(`/dca-plans/${plan.id}/rules`, {
+              minDrawdown: rule.minDrawdown,
+              maxDrawdown: rule.maxDrawdown,
+              buyAmount: rule.buyAmount,
+            });
+          } catch {
+            skipped++;
+          }
         }
       }
       if (sourceSellRules && sourceSellRules.length > 0) {
         for (const rule of sourceSellRules) {
-          await api.post('/sell-rules', {
-            dcaPlanId: plan.id,
-            minProfit: rule.minProfit,
-            maxProfit: rule.maxProfit,
-            sellAmount: rule.sellAmount,
-          });
+          try {
+            await api.post('/sell-rules', {
+              dcaPlanId: plan.id,
+              minProfit: rule.minProfit,
+              maxProfit: rule.maxProfit,
+              sellAmount: rule.sellAmount,
+              sellAmountType: rule.sellAmountType,
+            });
+          } catch {
+            skipped++;
+          }
         }
       }
       if ((sourceRules?.length ?? 0) + (sourceSellRules?.length ?? 0) > 0) {
         qc.invalidateQueries({ queryKey: ['dca-plans'] });
+      }
+      if (skipped > 0) {
+        toast(`Plan duplicated. ${skipped} rule${skipped > 1 ? 's' : ''} with invalid data were skipped.`, 'error');
       }
     }
 
@@ -557,9 +598,9 @@ function CreateModal({ assets, initialForm, initialAllocs, sourceRules, sourceSe
             );
           })()}
           <div className="flex gap-3 flex-wrap">
-            {(createPlan.isError || allocError) && (
+            {(submitError || allocError) && (
               <p className="text-xs text-red-400 self-center mr-2 w-full">
-                {allocError || 'Failed to create. Try again.'}
+                {allocError || submitError}
               </p>
             )}
             <button type="submit" form="create-plan-form" disabled={createPlan.isPending || !!allocError}
@@ -614,7 +655,7 @@ export function EditModal({ plan, assets, onClose }: {
           intervalDays: form.frequency === 'CUSTOM' ? parseInt(form.intervalDays) : undefined,
           startDate: new Date(form.startDate).toISOString(),
           endDate: form.endDate ? new Date(form.endDate).toISOString() : null,
-          scheduledTime: form.scheduledTime || '08:00',
+          scheduledTime: localTimeToUtc(form.scheduledTime || '08:00'),
           notes: form.notes || undefined,
           perAssetRules: form.perAssetRules,
           allocations: allocations.map(a => ({ assetId: a.assetId, allocationPct: a.allocationPct })),
@@ -862,6 +903,53 @@ function SuggestedBadge({ plan }: { plan: DcaPlan }) {
   );
 }
 
+// ─── delete plan modal ────────────────────────────────────────────────────────
+function DeletePlanModal({ plan, onConfirm, onClose }: {
+  plan: DcaPlan;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  const label = plan.allocations.map(a => a.asset.symbol).join(' · ');
+  const name = plan.name ? ` "${plan.name}"` : '';
+
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="w-full max-w-sm bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-6">
+        <h2 className="text-base font-semibold text-gray-100 mb-2">Delete plan?</h2>
+        <p className="text-sm text-gray-400 mb-1">
+          <span className="font-medium text-gray-200">{label}{name}</span> will be permanently deleted.
+        </p>
+        <p className="text-sm text-gray-500 mb-6">
+          All buying rules and sell rules for this plan will also be removed. Transactions linked to this plan will remain in your history.
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={() => { onConfirm(); onClose(); }}
+            className="flex-1 bg-red-600 hover:bg-red-500 text-white font-semibold text-sm py-2.5 rounded-lg transition-colors"
+          >
+            Delete plan
+          </button>
+          <button
+            onClick={onClose}
+            className="flex-1 text-gray-400 hover:text-gray-200 border border-gray-700 hover:border-gray-500 text-sm py-2.5 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── plan card 3-dot menu ─────────────────────────────────────────────────────
 function PlanMenu({ plan, onEdit, onDuplicate, onToggleActive, onDelete }: {
   plan: DcaPlan;
@@ -871,28 +959,20 @@ function PlanMenu({ plan, onEdit, onDuplicate, onToggleActive, onDelete }: {
   onDelete: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [confirming, setConfirming] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Close on outside click
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-        setConfirming(false);
-      }
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
-  // Close on Escape
   useEffect(() => {
     if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { setOpen(false); setConfirming(false); }
-    };
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [open]);
@@ -900,7 +980,7 @@ function PlanMenu({ plan, onEdit, onDuplicate, onToggleActive, onDelete }: {
   return (
     <div ref={ref} className="relative shrink-0">
       <button
-        onClick={() => { setOpen(o => !o); setConfirming(false); }}
+        onClick={() => setOpen(o => !o)}
         className="text-gray-500 hover:text-gray-200 hover:bg-gray-800 rounded-lg w-8 h-8 flex items-center justify-center transition-colors"
         aria-label="Plan actions"
       >
@@ -927,30 +1007,13 @@ function PlanMenu({ plan, onEdit, onDuplicate, onToggleActive, onDelete }: {
           >
             {plan.isActive ? 'Pause' : 'Resume'}
           </button>
-
           <div className="border-t border-gray-800 mt-1 pt-1">
-            {confirming ? (
-              <div className="px-4 py-2.5 space-y-2">
-                <p className="text-xs text-gray-400">Delete this plan?</p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => { onDelete(); setOpen(false); }}
-                    className="text-xs text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-500/60 px-3 py-1 rounded-lg transition-colors"
-                  >Yes, delete</button>
-                  <button
-                    onClick={() => setConfirming(false)}
-                    className="text-xs text-gray-500 hover:text-gray-300 border border-gray-700 px-3 py-1 rounded-lg transition-colors"
-                  >Cancel</button>
-                </div>
-              </div>
-            ) : (
-              <button
-                onClick={() => setConfirming(true)}
-                className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-gray-800 transition-colors"
-              >
-                Delete
-              </button>
-            )}
+            <button
+              onClick={() => { onDelete(); setOpen(false); }}
+              className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-gray-800 transition-colors"
+            >
+              Delete
+            </button>
           </div>
         </div>
       )}
@@ -1184,6 +1247,7 @@ export default function DcaPlans() {
     form?: PlanFormValues; allocs: AllocDraft[]; sourceRules?: SourceRule[]; sourceSellRules?: SourceSellRule[];
   } | null>(null);
   const [editingPlan, setEditingPlan] = useState<DcaPlan | null>(null);
+  const [planToDelete, setPlanToDelete] = useState<DcaPlan | null>(null);
 
   const openNew = () => setCreateModal({ allocs: [] });
 
@@ -1195,7 +1259,7 @@ export default function DcaPlans() {
       intervalDays: source.intervalDays ? String(source.intervalDays) : '',
       startDate: new Date().toISOString().slice(0, 10),
       endDate: '',
-      scheduledTime: source.scheduledTime ?? '08:00',
+      scheduledTime: utcTimeToLocal(source.scheduledTime ?? '08:00'),
       notes: source.notes ?? '',
       perAssetRules: source.perAssetRules ?? false,
     },
@@ -1206,7 +1270,7 @@ export default function DcaPlans() {
       minDrawdown: r.minDrawdown, maxDrawdown: r.maxDrawdown, buyAmount: r.buyAmount,
     })),
     sourceSellRules: (source.sellRules ?? []).map(r => ({
-      minProfit: r.minProfit, maxProfit: r.maxProfit, sellAmount: r.sellAmount,
+      minProfit: r.minProfit, maxProfit: r.maxProfit, sellAmount: r.sellAmount, sellAmountType: r.sellAmountType,
     })),
   });
 
@@ -1233,6 +1297,13 @@ export default function DcaPlans() {
           plan={plans.find(p => p.id === editingPlan.id) ?? editingPlan}
           assets={assets}
           onClose={() => setEditingPlan(null)}
+        />
+      )}
+      {planToDelete && (
+        <DeletePlanModal
+          plan={planToDelete}
+          onConfirm={() => deletePlan.mutate(planToDelete.id)}
+          onClose={() => setPlanToDelete(null)}
         />
       )}
 
@@ -1334,7 +1405,7 @@ export default function DcaPlans() {
                       onEdit={() => setEditingPlan(plan)}
                       onDuplicate={() => openDuplicate(plan)}
                       onToggleActive={() => updatePlan.mutate({ id: plan.id, data: { isActive: !plan.isActive } })}
-                      onDelete={() => deletePlan.mutate(plan.id)}
+                      onDelete={() => setPlanToDelete(plan)}
                     />
                   </div>
                 </div>
@@ -1381,7 +1452,7 @@ export default function DcaPlans() {
                       onEdit={() => setEditingPlan(plan)}
                       onDuplicate={() => openDuplicate(plan)}
                       onToggleActive={() => updatePlan.mutate({ id: plan.id, data: { isActive: !plan.isActive } })}
-                      onDelete={() => deletePlan.mutate(plan.id)}
+                      onDelete={() => setPlanToDelete(plan)}
                     />
                   </div>
                 </div>
