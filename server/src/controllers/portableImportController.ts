@@ -1,6 +1,28 @@
 import { Response, NextFunction } from 'express';
+import { AssetType, DcaFrequency, GoalType } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { AuthRequest } from '../types';
+
+const VALID_ASSET_TYPES  = new Set<string>(['CRYPTO','METAL','STOCK','ETF','OTHER']);
+const VALID_FREQUENCIES  = new Set<string>(['DAILY','WEEKLY','BIWEEKLY','MONTHLY','CUSTOM']);
+const VALID_GOAL_TYPES   = new Set<string>(['ACCUMULATION','PORTFOLIO_VALUE','INVESTMENT_COMMITMENT']);
+
+function toAssetType(v: unknown): AssetType {
+  const s = String(v ?? '').toUpperCase();
+  return (VALID_ASSET_TYPES.has(s) ? s : 'CRYPTO') as AssetType;
+}
+function toFrequency(v: unknown): DcaFrequency {
+  const s = String(v ?? '').toUpperCase();
+  return (VALID_FREQUENCIES.has(s) ? s : 'MONTHLY') as DcaFrequency;
+}
+function toGoalType(v: unknown): GoalType {
+  const s = String(v ?? '').toUpperCase();
+  return (VALID_GOAL_TYPES.has(s) ? s : 'ACCUMULATION') as GoalType;
+}
+function orUndef(v: unknown): string | undefined {
+  if (v === null || v === undefined || v === '') return undefined;
+  return String(v);
+}
 
 // ─── Portable Import (v2 custom export format) ───────────────────────────────
 //
@@ -39,7 +61,7 @@ export async function portableImport(req: AuthRequest, res: Response, next: Next
             userId,
             symbol: sym,
             name:          String(a.name ?? sym),
-            assetType:     (a.assetType as string) ?? 'CRYPTO',
+            assetType:     toAssetType(a.assetType),
             coingeckoId:   (a.coingeckoId as string) ?? null,
             color:         (a.color as string) ?? null,
             athOverride:   a.athOverride != null ? Number(a.athOverride) : null,
@@ -85,14 +107,14 @@ export async function portableImport(req: AuthRequest, res: Response, next: Next
           data: {
             userId,
             name:          (p.name as string) || null,
-            frequency:     (p.frequency as string) || 'MONTHLY',
+            frequency:     toFrequency(p.frequency),
             intervalDays:  p.intervalDays != null ? Number(p.intervalDays) : null,
             amountUsd:     Number(p.amountUsd) || 0,
             isActive:      (p.isActive as boolean) ?? true,
             perAssetRules: (p.perAssetRules as boolean) ?? false,
             startDate:     p.startDate ? new Date(p.startDate as string) : new Date(),
             endDate:       p.endDate   ? new Date(p.endDate as string)   : null,
-            scheduledTime: (p.scheduledTime as string) || null,
+            scheduledTime: orUndef(p.scheduledTime),
             notes:         (p.notes as string) || null,
           },
         });
@@ -142,7 +164,7 @@ export async function portableImport(req: AuthRequest, res: Response, next: Next
           data: {
             userId,
             name:                 String(g.name || 'Imported goal'),
-            type:                 (g.type as string) || 'ACCUMULATION',
+            type:                 toGoalType(g.type),
             notes:                (g.notes as string) || null,
             assetId,
             targetQty:            g.targetQty            != null ? Number(g.targetQty)            : null,
