@@ -71,6 +71,15 @@ function DeleteConfirmModal({ tx, onConfirm, onCancel }: {
   );
 }
 
+// ─── helpers ──────────────────────────────────────────────────────────────────
+// Format a Date (or ISO string) as YYYY-MM-DDTHH:mm in the user's LOCAL timezone.
+// datetime-local inputs have no timezone — they always represent local time.
+function toLocalDatetimeString(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 // ─── shared field shape ───────────────────────────────────────────────────────
 interface TxFormValues {
   type: 'BUY' | 'SELL';
@@ -86,7 +95,7 @@ interface TxFormValues {
 const emptyForm = (): TxFormValues => ({
   type: 'BUY',
   assetId: '', amountUsd: '', quantity: '', pricePerUnit: '',
-  purchasedAt: new Date().toISOString().slice(0, 16),
+  purchasedAt: toLocalDatetimeString(new Date()),
   exchange: '', notes: '',
 });
 
@@ -97,7 +106,7 @@ function txToForm(tx: Transaction): TxFormValues {
     amountUsd: tx.amountUsd.toFixed(2),
     quantity: parseFloat(tx.quantity.toFixed(8)).toString(),
     pricePerUnit: tx.pricePerUnit.toFixed(2),
-    purchasedAt: new Date(tx.purchasedAt).toISOString().slice(0, 16),
+    purchasedAt: toLocalDatetimeString(tx.purchasedAt),
     exchange: tx.exchange ?? '',
     notes: tx.notes ?? '',
   };
