@@ -10,8 +10,9 @@ interface AssetRow {
   assetId: string;
   symbol: string;
   color?: string | null;
-  amountUsd: string;  // editable string for input
-  price: string;
+  qty: string;       // editable
+  price: string;     // editable
+  amountUsd: string; // editable — stays in sync with qty × price
   checked: boolean;
 }
 
@@ -40,36 +41,55 @@ export function QuickAddModal({ plan, onClose }: QuickAddModalProps) {
     const hasSuggestion = plan.suggestedAllocations?.length > 0 &&
       plan.suggestedAmount !== plan.amountUsd;
 
+    // Store intended USD amounts temporarily to compute qty once prices arrive
+    const amountsMap = new Map<string, number>();
+
     const initial: AssetRow[] = hasSuggestion
-      ? plan.suggestedAllocations.map(sa => ({
-          assetId: sa.assetId,
-          symbol: sa.symbol,
-          color: sa.color,
-          amountUsd: String(sa.amount),
-          price: '',
-          checked: true,
-        }))
-      : plan.allocations.map(a => ({
-          assetId: a.assetId,
-          symbol: a.asset.symbol,
-          color: a.asset.color,
-          amountUsd: String(+(plan.amountUsd * (a.allocationPct / 100)).toFixed(2)),
-          price: '',
-          checked: true,
-        }));
+      ? plan.suggestedAllocations.map(sa => {
+          amountsMap.set(sa.assetId, sa.amount);
+          return {
+            assetId: sa.assetId,
+            symbol: sa.symbol,
+            color: sa.color,
+            qty: '',
+            price: '',
+            amountUsd: String(sa.amount),
+            checked: true,
+          };
+        })
+      : plan.allocations.map(a => {
+          const usd = +(plan.amountUsd * (a.allocationPct / 100)).toFixed(2);
+          amountsMap.set(a.assetId, usd);
+          return {
+            assetId: a.assetId,
+            symbol: a.asset.symbol,
+            color: a.asset.color,
+            qty: '',
+            price: '',
+            amountUsd: String(usd),
+            checked: true,
+          };
+        });
 
     setRows(initial);
 
-    // Pre-fill prices from cache
+    // Pre-fill prices then derive qty = usdAmount / price
     const symbols = initial.map(r => r.symbol).join(',');
     api.get(`/prices?symbols=${symbols}`)
       .then(res => {
         const prices: { symbol: string; priceUsd: number }[] = res.data.data;
         const priceMap = new Map(prices.map(p => [p.symbol, p.priceUsd]));
-        setRows(prev => prev.map(r => ({
-          ...r,
-          price: priceMap.has(r.symbol) ? String(priceMap.get(r.symbol)) : '',
-        })));
+        setRows(prev => prev.map(r => {
+          const price = priceMap.get(r.symbol);
+          const usd = amountsMap.get(r.assetId) ?? 0;
+          const qty = price && price > 0 ? String(+(usd / price).toFixed(8)) : '';
+          return {
+            ...r,
+            price: price ? String(price) : '',
+            qty,
+            amountUsd: String(usd),
+          };
+        }));
       })
       .catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -82,8 +102,27 @@ export function QuickAddModal({ plan, onClose }: QuickAddModalProps) {
     return () => window.removeEventListener('keydown', h);
   }, [onClose]);
 
-  const updateRow = (assetId: string, field: 'price' | 'amountUsd' | 'checked', value: string | boolean) =>
-    setRows(prev => prev.map(r => r.assetId === assetId ? { ...r, [field]: value } : r));
+  const updateRow = (assetId: string, field: 'price' | 'qty' | 'amountUsd' | 'checked', value: string | boolean) =>
+    setRows(prev => prev.map(r => {
+      if (r.assetId !== assetId) return r;
+      const updated = { ...r, [field]: value };
+      if (field === 'qty' || field === 'price') {
+        // qty or price changed → recompute amountUsd
+        const q = parseFloat(updated.qty);
+        const p = parseFloat(updated.price);
+        if (!isNaN(q) && q > 0 && !isNaN(p) && p > 0) {
+          updated.amountUsd = String(+(q * p).toFixed(2));
+        }
+      } else if (field === 'amountUsd') {
+        // total changed → recompute qty from price
+        const usd = parseFloat(updated.amountUsd);
+        const p = parseFloat(updated.price);
+        if (!isNaN(usd) && usd > 0 && !isNaN(p) && p > 0) {
+          updated.qty = String(+(usd / p).toFixed(8));
+        }
+      }
+      return updated;
+    }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,14 +132,19 @@ export function QuickAddModal({ plan, onClose }: QuickAddModalProps) {
     if (checked.length === 0) { setSubmitError('Select at least one asset.'); return; }
 
     for (const row of checked) {
-      const amt = parseFloat(row.amountUsd);
-      if (!row.amountUsd || isNaN(amt) || amt <= 0) {
-        setSubmitError(`Enter a valid amount for ${row.symbol}.`);
+      const q = parseFloat(row.qty);
+      if (!row.qty || isNaN(q) || q <= 0) {
+        setSubmitError(`Enter a valid quantity for ${row.symbol}.`);
         return;
       }
       const p = parseFloat(row.price);
       if (!row.price || isNaN(p) || p <= 0) {
         setSubmitError(`Enter a valid price for ${row.symbol}.`);
+        return;
+      }
+      const usd = parseFloat(row.amountUsd);
+      if (!row.amountUsd || isNaN(usd) || usd <= 0) {
+        setSubmitError(`Enter a valid amount for ${row.symbol}.`);
         return;
       }
     }
@@ -111,13 +155,13 @@ export function QuickAddModal({ plan, onClose }: QuickAddModalProps) {
 
       for (const row of checked) {
         const price = parseFloat(row.price);
-        const amount = parseFloat(row.amountUsd);
-        const quantity = +(amount / price);
+        const quantity = parseFloat(row.qty);
+        const amountUsd = parseFloat(row.amountUsd);
         await api.post('/transactions', {
           assetId: row.assetId,
           dcaPlanId: plan.id,
           type: 'BUY',
-          amountUsd: amount,
+          amountUsd,
           quantity,
           pricePerUnit: price,
           purchasedAt,
@@ -168,67 +212,68 @@ export function QuickAddModal({ plan, onClose }: QuickAddModalProps) {
           {/* asset rows */}
           <div className="space-y-1">
             {/* header */}
-            <div className={`grid gap-x-3 items-center text-xs text-gray-600 pb-2 ${isMulti ? 'grid-cols-[16px_auto_1fr_1fr_56px]' : 'grid-cols-[auto_1fr_1fr_56px]'}`}>
+            <div className={`grid gap-x-3 items-center text-xs text-gray-600 pb-2 ${isMulti ? 'grid-cols-[16px_auto_1fr_1fr_1fr]' : 'grid-cols-[auto_1fr_1fr_1fr]'}`}>
               {isMulti && <span />}
               <span>Asset</span>
-              <span>Amount (USD)</span>
+              <span>Quantity</span>
               <span>Price (USD)</span>
-              <span>Qty</span>
+              <span>Total (USD)</span>
             </div>
 
-            {rows.map(row => {
-              const price = parseFloat(row.price);
-              const amount = parseFloat(row.amountUsd);
-              const qty = !isNaN(price) && price > 0 && !isNaN(amount) && amount > 0
-                ? (amount / price).toFixed(6).replace(/\.?0+$/, '')
-                : '—';
-
-              return (
-                <div key={row.assetId}
-                  className={`grid gap-x-3 items-center py-2.5 px-2.5 rounded-xl transition-colors ${isMulti ? 'grid-cols-[16px_auto_1fr_1fr_56px]' : 'grid-cols-[auto_1fr_1fr_56px]'} ${
-                    row.checked ? 'bg-gray-800/40' : 'opacity-40'
-                  }`}
-                >
-                  {isMulti && (
-                    <input
-                      type="checkbox"
-                      checked={row.checked}
-                      onChange={e => updateRow(row.assetId, 'checked', e.target.checked)}
-                      className="accent-brand-500 cursor-pointer"
-                    />
+            {rows.map(row => (
+              <div key={row.assetId}
+                className={`grid gap-x-3 items-center py-2.5 px-2.5 rounded-xl transition-colors ${isMulti ? 'grid-cols-[16px_auto_1fr_1fr_1fr]' : 'grid-cols-[auto_1fr_1fr_1fr]'} ${
+                  row.checked ? 'bg-gray-800/40' : 'opacity-40'
+                }`}
+              >
+                {isMulti && (
+                  <input
+                    type="checkbox"
+                    checked={row.checked}
+                    onChange={e => updateRow(row.assetId, 'checked', e.target.checked)}
+                    className="accent-brand-500 cursor-pointer"
+                  />
+                )}
+                <div className="flex items-center gap-1.5 min-w-0">
+                  {row.color && (
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: row.color }} />
                   )}
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    {row.color && (
-                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: row.color }} />
-                    )}
-                    <span className="font-mono font-bold text-sm" style={row.color ? { color: row.color } : { color: '#f3f4f6' }}>
-                      {row.symbol}
-                    </span>
-                  </div>
-                  <input
-                    type="number"
-                    min="0.01"
-                    step="any"
-                    value={row.amountUsd}
-                    onChange={e => updateRow(row.assetId, 'amountUsd', e.target.value)}
-                    disabled={!row.checked}
-                    placeholder="0.00"
-                    className="bg-gray-800 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-brand-500 placeholder-gray-600 disabled:opacity-40 w-full"
-                  />
-                  <input
-                    type="number"
-                    min="0.000001"
-                    step="any"
-                    value={row.price}
-                    onChange={e => updateRow(row.assetId, 'price', e.target.value)}
-                    disabled={!row.checked}
-                    placeholder="0.00"
-                    className="bg-gray-800 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-brand-500 placeholder-gray-600 disabled:opacity-40 w-full"
-                  />
-                  <span className="font-mono text-xs text-gray-400">{qty}</span>
+                  <span className="font-mono font-bold text-sm" style={row.color ? { color: row.color } : { color: '#f3f4f6' }}>
+                    {row.symbol}
+                  </span>
                 </div>
-              );
-            })}
+                <input
+                  type="number"
+                  min="0.000001"
+                  step="any"
+                  value={row.qty}
+                  onChange={e => updateRow(row.assetId, 'qty', e.target.value)}
+                  disabled={!row.checked}
+                  placeholder="0.00000000"
+                  className="bg-gray-800 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-brand-500 placeholder-gray-600 disabled:opacity-40 w-full"
+                />
+                <input
+                  type="number"
+                  min="0.000001"
+                  step="any"
+                  value={row.price}
+                  onChange={e => updateRow(row.assetId, 'price', e.target.value)}
+                  disabled={!row.checked}
+                  placeholder="0.00"
+                  className="bg-gray-800 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-brand-500 placeholder-gray-600 disabled:opacity-40 w-full"
+                />
+                <input
+                  type="number"
+                  min="0.01"
+                  step="any"
+                  value={row.amountUsd}
+                  onChange={e => updateRow(row.assetId, 'amountUsd', e.target.value)}
+                  disabled={!row.checked}
+                  placeholder="0.00"
+                  className="bg-gray-800 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-brand-500 placeholder-gray-600 disabled:opacity-40 w-full"
+                />
+              </div>
+            ))}
           </div>
 
           {/* date + time */}
