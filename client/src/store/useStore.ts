@@ -27,7 +27,7 @@ export const useStore = create<AppState>()(
       token: null,
       currency: 'USD',
       exchangeRates: {},
-      theme: 'dark' as Theme,
+      theme: 'system' as Theme,
 
       setAuth: (user, token) => {
         localStorage.setItem('dcalog_token', token);
