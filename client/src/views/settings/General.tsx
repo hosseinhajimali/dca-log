@@ -8,6 +8,8 @@ import { Asset, AssetType } from '@/types';
 import { toast } from '@/lib/toast';
 import { api } from '@/lib/api';
 import { useQueryClient } from '@tanstack/react-query';
+import { DataExportModal } from '@/components/DataExportModal';
+import { DataImportModal } from '@/components/DataImportModal';
 
 const CURRENCIES = ['USD', 'EUR', 'CZK', 'GBP', 'JPY', 'CHF'];
 
@@ -221,6 +223,9 @@ export default function General() {
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [showExport, setShowExport] = useState(false);
+  const [showImport, setShowImport] = useState(false);
+
   // Clear all data state
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [clearInput, setClearInput] = useState('');
@@ -298,6 +303,8 @@ export default function General() {
     <div className="space-y-8">
       {showAddModal && <AssetModal mode="add" onClose={() => setShowAddModal(false)} />}
       {editingAsset && <AssetModal mode="edit" asset={editingAsset} onClose={() => setEditingAsset(null)} />}
+      {showExport && <DataExportModal onClose={() => setShowExport(false)} />}
+      {showImport && <DataImportModal onClose={() => setShowImport(false)} />}
 
       {/* Currency */}
       <section className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
@@ -371,39 +378,61 @@ export default function General() {
         </div>
       </section>
 
-      {/* Backup & Restore */}
+      {/* Export / Import */}
       <section id="backup" className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
         <div>
-          <h2 className="text-sm font-semibold text-gray-300">Backup & Restore</h2>
+          <h2 className="text-sm font-semibold text-gray-300">Export & Import</h2>
           <p className="text-xs text-gray-500 mt-1">
-            Download all your data as a JSON file, or restore from a previous backup. Restore replaces all current data.
+            Export any part of your data and share it — or import a file someone sent you.
           </p>
         </div>
 
+        {/* Export + Import */}
         <div className="flex flex-wrap gap-3">
           <button
-            onClick={handleDownloadBackup}
-            disabled={backupLoading}
-            className="px-4 py-2 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+            onClick={() => setShowExport(true)}
+            className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            {backupLoading ? 'Preparing…' : '⬇ Download backup'}
+            ⬇ Export…
           </button>
-
           <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={restoreLoading}
-            className="px-4 py-2 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 border border-gray-700 text-gray-300 text-sm font-medium rounded-lg transition-colors"
+            onClick={() => setShowImport(true)}
+            className="px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 text-sm font-medium rounded-lg transition-colors"
           >
-            {restoreLoading ? 'Restoring…' : '⬆ Restore from file'}
+            ⬆ Import…
           </button>
+        </div>
+        <p className="text-xs text-gray-600">
+          Export selects exactly what to include — transactions by asset, individual plans, goals, or settings. Import adds data without touching anything else. Great for sharing plans with friends.
+        </p>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".json"
-            className="hidden"
-            onChange={handleFileChange}
-          />
+        {/* Full backup (advanced) */}
+        <div className="border-t border-gray-800 pt-4 space-y-3">
+          <p className="text-xs font-medium text-gray-400">Full backup <span className="ml-1.5 font-normal text-gray-600">(for safekeeping &amp; migration)</span></p>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={handleDownloadBackup}
+              disabled={backupLoading}
+              className="px-4 py-2 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 border border-gray-700 text-gray-300 text-sm font-medium rounded-lg transition-colors"
+            >
+              {backupLoading ? 'Preparing…' : '⬇ Download backup'}
+            </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={restoreLoading}
+              className="px-4 py-2 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 border border-gray-700 text-gray-300 text-sm font-medium rounded-lg transition-colors"
+            >
+              {restoreLoading ? 'Restoring…' : '⬆ Restore from backup'}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+          </div>
+          <p className="text-xs text-gray-600">Full backup replaces all existing data on restore. Not the same as import.</p>
         </div>
 
         <div className="border-t border-gray-800 pt-4">
