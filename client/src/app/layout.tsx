@@ -6,6 +6,10 @@ import '../index.css';
 export const metadata: Metadata = {
   title: 'DCAlog | Invest consistently. Profit systematically.',
   description: 'Track your dollar-cost averaging strategy, monitor buying opportunities, and know when to take profit, all in one place.',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+  },
   openGraph: {
     type: 'website',
     url: 'https://dcalog.com/',
@@ -39,7 +43,7 @@ const themeScript = `
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>

@@ -26,7 +26,7 @@ async function postToTelegram(title: string, message: string): Promise<void> {
   }
 }
 
-// ─── dispatch helper — creates one notification per user ─────────────────────
+// ─── dispatch helper, creates one notification per user ─────────────────────
 export async function dispatchAnnouncement(announcementId: string): Promise<number> {
   const announcement = await prisma.announcement.findUnique({ where: { id: announcementId } });
   if (!announcement) return 0;
@@ -48,7 +48,7 @@ export async function dispatchAnnouncement(announcementId: string): Promise<numb
     data:  { sentAt: new Date(), sentCount: { increment: users.length } },
   });
 
-  // Post to Telegram channel (non-blocking — errors are logged but don't fail the dispatch)
+  // Post to Telegram channel (non-blocking, errors are logged but don't fail the dispatch)
   await postToTelegram(announcement.title, announcement.message);
 
   return users.length;

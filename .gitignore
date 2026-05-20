@@ -5,19 +5,19 @@ node_modules/
 dist/
 build/
 
-# Environment variables — never commit these
+# Environment variables, never commit these
 .env
 .env.local
 .env.*.local
 .env.production
 .env.staging
 .env.test
-# Keep .env.example if you create one — it documents required variables without secrets
+# Keep .env.example if you create one, it documents required variables without secrets
 
 # Prisma
 server/prisma/dev.db
 server/prisma/dev.db-journal
-# Note: server/prisma/migrations/ should be committed — it's migration history
+# Note: server/prisma/migrations/ should be committed, it's migration history
 
 # Uploaded files (avatars, attachments stored on disk)
 server/uploads/

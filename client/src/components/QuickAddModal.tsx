@@ -35,7 +35,7 @@ export function QuickAddModal({ plan, onClose }: QuickAddModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
-  // Init rows — use suggestedAllocations if rules fired, else base allocation
+  // Init rows, use suggestedAllocations if rules fired, else base allocation
   useEffect(() => {
     const hasSuggestion = plan.suggestedAllocations?.length > 0 &&
       plan.suggestedAmount !== plan.amountUsd;

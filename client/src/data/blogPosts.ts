@@ -168,6 +168,47 @@ export const BLOG_POSTS: BlogPost[] = [
       },
     ],
   },
+  {
+    slug: 'crypto-fear-and-greed-index-explained',
+    title: 'The Crypto Fear & Greed Index Explained',
+    excerpt: 'The Fear & Greed Index is one of the most watched sentiment indicators in crypto. Here is what it measures, how it is calculated, and how smart investors use it to make better decisions.',
+    date: '2026-05-20',
+    readTime: '6 min read',
+    category: 'Strategy',
+    sections: [
+      {
+        body: 'Markets are driven by two emotions above everything else: fear and greed. When investors are fearful, they sell, prices drop, and opportunities are created. When investors are greedy, they buy, prices rise, and risk builds up. The Crypto Fear & Greed Index tries to put a number on where the market sits on that spectrum at any given moment.',
+      },
+      {
+        heading: 'What is the Fear & Greed Index?',
+        body: 'The Crypto Fear & Greed Index is a daily sentiment indicator that scores market emotion on a scale from 0 to 100. A score of 0 means "Extreme Fear", the market is panicking and most participants are selling. A score of 100 means "Extreme Greed", the market is euphoric and everyone wants in. The index was originally popularised by CNN for stock markets and was later adapted for crypto by Alternative.me, where it became a daily reference point for Bitcoin and the broader market.',
+      },
+      {
+        heading: 'How is it calculated?',
+        body: 'The index combines several data sources into one weighted score. Volatility accounts for 25% of the score, high volatility relative to recent averages signals fear. Market momentum and volume account for another 25%, strong buying volume in a rising market signals greed. Social media sentiment makes up 15%, measuring the volume and positivity of crypto-related posts. Bitcoin dominance contributes 10%, when Bitcoin dominance rises, it often means investors are rotating out of altcoins into safety, which signals fear. Google Trends data for crypto-related searches makes up the final 10%, with rising searches for terms like "Bitcoin crash" indicating fear. The remaining 15% comes from surveys, which are currently paused. Each component is normalised and combined into the single 0-to-100 score.',
+      },
+      {
+        heading: 'How the index moves with the market',
+        body: 'The index tends to lead or coincide with major market moves. During the Bitcoin crash of May 2021, the index dropped to single digits, extreme fear, right as prices were bottoming. During the bull run of late 2021, it held above 70 for months before crashing with the market in November. In the 2022 bear market, it stayed in fear territory for almost the entire year, rarely climbing above 30. Each of these periods created the conditions that defined the next cycle: the extreme fear of 2022 was the accumulation opportunity of a generation for DCA investors.',
+      },
+      {
+        heading: 'Warren Buffett\'s rule and why it applies to crypto',
+        body: 'Warren Buffett famously said: "Be fearful when others are greedy, and greedy when others are fearful." The Fear & Greed Index is essentially a tool for measuring exactly that. When the index is in extreme fear, it does not guarantee prices will go up tomorrow, but it historically indicates that long-term investors are being offered assets at distressed prices. When the index is in extreme greed, it does not mean a crash is imminent, but it does suggest that a significant portion of upside may already be priced in and risk is elevated.',
+      },
+      {
+        heading: 'What the index does not tell you',
+        body: 'The Fear & Greed Index is a sentiment snapshot, not a prediction engine. It reflects what has already happened in the market over the past day or week. It does not account for macro events, regulatory developments, or on-chain fundamentals. A reading of 15 means the market is fearful right now, it does not mean prices cannot fall further. Experienced investors treat it as one signal among many, not as a buy or sell trigger on its own.',
+      },
+      {
+        heading: 'How DCA investors should use it',
+        body: 'For DCA investors, the Fear & Greed Index is most useful as a context layer on top of a disciplined strategy. If your plan is to invest $100 in Bitcoin every week, the index does not change that plan. But it can inform your buying rules. Many DCA investors set rules that increase their investment amount when the index is in extreme fear territory, for example buying 2x their normal amount when the index drops below 20. This is a systematic way to act on Buffett\'s principle without relying on gut feeling. DCAlog shows the current Fear & Greed score on your dashboard precisely for this reason, so you always have that context when reviewing your active plans.',
+      },
+      {
+        heading: 'The bottom line',
+        body: 'The Fear & Greed Index is not a crystal ball. But it is a reliable mirror of crowd sentiment, and crowd sentiment is one of the most powerful forces in crypto markets. When everyone is running for the exit, that is often when patient, systematic investors are building their best positions. When everyone is celebrating new highs, that is often when discipline matters most. Track the index, understand what it measures, and let it inform the rules around your DCA strategy rather than your emotional reaction to the market.',
+      },
+    ],
+  },
 ];
 
 export function getBlogPost(slug: string): BlogPost | undefined {

@@ -99,14 +99,14 @@ html.light .text-gray-400 { color: #64748b; }
 html.light .text-gray-500 { color: #64748b; }
 html.light .text-gray-600 { color: #94a3b8; }
 
-/* Brand — boost contrast on light bg */
+/* Brand, boost contrast on light bg */
 html.light .text-brand-400 { color: #2563eb; }
 
-/* Amber — boost contrast on light bg */
+/* Amber, boost contrast on light bg */
 html.light .text-amber-400     { color: #b45309; }
 html.light .text-amber-400\/80 { color: rgba(180,83,9,0.85) !important; }
 
-/* Green — boost contrast on light bg */
+/* Green, boost contrast on light bg */
 html.light .text-green-400  { color: #16a34a; }
 html.light .text-green-500  { color: #15803d; }
 
@@ -140,7 +140,7 @@ html.light ::-webkit-scrollbar-thumb       { background: #cbd5e1; }
 html.light ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
 /* =====================================================
-   Landing page browser frame — theme-aware screenshots
+   Landing page browser frame, theme-aware screenshots
    ===================================================== */
 
 /* Dark mode: show dark screenshot, hide light */

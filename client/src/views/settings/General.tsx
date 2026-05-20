@@ -105,7 +105,7 @@ function AssetModal({ mode, asset, onClose }: AssetModalProps) {
             </div>
             <div className="sm:col-span-2">
               <label className="block text-xs text-gray-400 mb-1.5">
-                ATH Override <span className="text-gray-600">(USD — optional)</span>
+                ATH Override <span className="text-gray-600">(USD - optional)</span>
               </label>
               <input
                 type="number" min="0" step="any"
@@ -415,7 +415,7 @@ export default function General() {
           >
             ⬇ Download sample data
           </a>
-          <p className="text-xs text-gray-600 mt-1.5">Includes 17 months of BTC, ETH & Gold DCA — restore it to explore the app.</p>
+          <p className="text-xs text-gray-600 mt-1.5">Includes 17 months of BTC, ETH & Gold DCA, restore it to explore the app.</p>
         </div>
 
         <div className="border-t border-gray-800 pt-4">

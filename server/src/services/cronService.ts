@@ -56,14 +56,14 @@ export function startCronJobs(): void {
     await fetchAndCachePrices();
   });
 
-  // DCA reminders — run every minute
+  // DCA reminders, run every minute
   cron.schedule('* * * * *', async () => {
     await checkDcaReminders().catch(err =>
       console.error('[Cron] DCA reminder error:', err)
     );
   });
 
-  // Scheduled announcements — run every minute
+  // Scheduled announcements, run every minute
   cron.schedule('* * * * *', async () => {
     try {
       const due = await prisma.announcement.findMany({

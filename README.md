@@ -1,6 +1,6 @@
 # DCAlog
 
-Track your dollar-cost averaging strategy, monitor buying opportunities, and know when to take profit — all in one place.
+Track your dollar-cost averaging strategy, monitor buying opportunities, and know when to take profit, all in one place.
 
 **Live:** [dcalog.com](https://dcalog.com)
 
@@ -133,11 +133,11 @@ npm run db:studio
 ## Deployment
 
 ### Frontend (Vercel)
-- Connected to GitHub `main` branch — auto-deploys on every push
+- Connected to GitHub `main` branch, auto-deploys on every push
 - Environment variable: `NEXT_PUBLIC_API_URL=https://dcalog-server.onrender.com`
 
 ### Backend (Render)
-- Connected to GitHub `main` branch — auto-deploys on every push
+- Connected to GitHub `main` branch, auto-deploys on every push
 - Root directory: `server`
 - Build command: `npm install --include=dev && npx prisma generate && npm run build`
 - Start command: `npm run start`

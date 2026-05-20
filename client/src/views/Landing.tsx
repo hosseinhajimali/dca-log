@@ -74,9 +74,9 @@ function BrowserFrame({ src, srcLight, alt }: { src: string; srcLight?: string; 
           <span className="text-[11px] text-gray-500">dcalog.com</span>
         </div>
       </div>
-      {/* dark screenshot — hidden in light mode */}
+      {/* dark screenshot, hidden in light mode */}
       <img src={src} alt={alt} className="w-full block screenshot-dark" />
-      {/* light screenshot — hidden in dark mode */}
+      {/* light screenshot, hidden in dark mode */}
       {srcLight && <img src={srcLight} alt={alt} className="w-full block screenshot-light" />}
     </div>
   );

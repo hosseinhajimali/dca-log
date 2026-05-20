@@ -254,7 +254,7 @@ async function fireRuleNotifications(
           if (drawdownPct >= rule.minDrawdown && drawdownPct <= rule.maxDrawdown) {
             const label = p.name ?? p.allocations.map(a => a.asset.symbol).join('/');
             await maybeNotify(userId, 'BUYING_RULE_MET', 'Buy rule triggered',
-              `Plan "${label}" is down ${drawdownPct.toFixed(1)}% from ATH — a buying rule is active for today's purchase.`,
+              `Plan "${label}" is down ${drawdownPct.toFixed(1)}% from ATH - a buying rule is active for today's purchase.`,
               { planId: p.id, ruleId: (rule as { id?: string }).id },
             );
           }
@@ -271,7 +271,7 @@ async function fireRuleNotifications(
           if (profitPct >= rule.minProfit && profitPct <= rule.maxProfit) {
             const label = p.name ?? p.allocations.map(a => a.asset.symbol).join('/');
             await maybeNotify(userId, 'SELL_RULE_MET', 'Take-profit rule triggered',
-              `${alloc.asset.symbol} in plan "${label}" is up ${profitPct.toFixed(1)}% — a sell rule is active for today's purchase.`,
+              `${alloc.asset.symbol} in plan "${label}" is up ${profitPct.toFixed(1)}% - a sell rule is active for today's purchase.`,
               { planId: p.id, ruleId: rule.id, assetId: alloc.assetId },
             );
           }

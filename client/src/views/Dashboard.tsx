@@ -173,7 +173,7 @@ export default function Dashboard() {
   const isProfitable = portfolio.totalPnl >= 0;
   const isEmpty = assetStats.length === 0 && activePlans === 0 && portfolio.totalInvested === 0;
 
-  // Pie chart data — use currentValue when price is known, fall back to totalInvested
+  // Pie chart data, use currentValue when price is known, fall back to totalInvested
   const rawPieData = assetStats.filter((a) => a.currentValue > 0 || a.totalInvested > 0);
   const pieDataValues = rawPieData.map((a) => a.currentValue > 0 ? a.currentValue : a.totalInvested);
   const totalPieValue = pieDataValues.reduce((s, v) => s + v, 0);
@@ -205,7 +205,7 @@ export default function Dashboard() {
           <p className="text-2xl mb-3">👋</p>
           <h2 className="text-lg font-semibold text-gray-100 mb-2">Welcome to DCAlog!</h2>
           <p className="text-sm text-gray-400 max-w-md mx-auto mb-6">
-            Your dashboard is empty. Add your first asset and plan to get started — or jump straight in with ready-made sample data covering 17 months of BTC, ETH & Gold DCA.
+            Your dashboard is empty. Add your first asset and plan to get started, or jump straight in with ready-made sample data covering 17 months of BTC, ETH & Gold DCA.
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <a

@@ -23,7 +23,7 @@ const COINGECKO_IDS: Record<string, string> = {
   AVAX:  'avalanche-2',
   DOGE:  'dogecoin',
   // Metals via tokenized equivalents on CoinGecko (track spot price 1:1)
-  XAU:   'pax-gold',   // PAX Gold — 1 token = 1 troy oz gold
+  XAU:   'pax-gold',   // PAX Gold, 1 token = 1 troy oz gold
   XAG:   'silver',     // Silver token on CoinGecko
 };
 
@@ -88,7 +88,7 @@ async function fetchCryptoMarkets(
   return result;
 }
 
-// ATH seeds for metals not on CoinGecko (XPT, XPD only — XAU/XAG now use CoinGecko)
+// ATH seeds for metals not on CoinGecko (XPT, XPD only, XAU/XAG now use CoinGecko)
 const METAL_ATH_SEEDS: Record<string, number> = {
   XPT: 2300,   // Platinum ATH ~$2,300/oz (2008)
   XPD: 3000,   // Palladium ATH ~$3,000/oz (2022)
@@ -160,7 +160,7 @@ export async function fetchAndCachePrices(symbols?: string[]): Promise<void> {
     });
   }
 
-  // Upsert metal entries — track ATH ourselves since the metals API doesn't provide it
+  // Upsert metal entries, track ATH ourselves since the metals API doesn't provide it
   for (const [symbol, priceUsd] of metalPrices) {
     const existing = await prisma.priceCache.findUnique({ where: { symbol } });
     const seedAth   = METAL_ATH_SEEDS[symbol] ?? null;

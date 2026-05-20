@@ -23,7 +23,7 @@ export async function getDashboardStats(req: AuthRequest, res: Response, next: N
     const cachedSymbols = new Set(prices.map((p) => p.symbol));
     const missingSymbols = symbols.filter((s) => !cachedSymbols.has(s));
 
-    // If any asset has no cached price, trigger a background refresh (don't await — respond fast)
+    // If any asset has no cached price, trigger a background refresh (don't await, respond fast)
     if (missingSymbols.length > 0) {
       fetchAndCachePrices(missingSymbols).catch(console.error);
     }

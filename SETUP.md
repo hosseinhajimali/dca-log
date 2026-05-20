@@ -1,4 +1,4 @@
-# myDCA — Setup Guide
+# myDCA, Setup Guide
 
 ## Prerequisites
 - Node.js 20+
