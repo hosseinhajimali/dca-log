@@ -40,7 +40,10 @@ export function useCreateDcaPlan() {
       const res = await api.post<ApiResponse<DcaPlan>>('/dca-plans', data);
       return res.data.data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['dca-plans'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['dca-plans'] });
+      qc.invalidateQueries({ queryKey: ['dashboard'] });
+    },
   });
 }
 
@@ -51,7 +54,10 @@ export function useUpdateDcaPlan() {
       const res = await api.patch<ApiResponse<DcaPlan>>(`/dca-plans/${id}`, data);
       return res.data.data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['dca-plans'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['dca-plans'] });
+      qc.invalidateQueries({ queryKey: ['dashboard'] });
+    },
   });
 }
 
@@ -61,7 +67,10 @@ export function useDeleteDcaPlan() {
     mutationFn: async (id: string) => {
       await api.delete(`/dca-plans/${id}`);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['dca-plans'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['dca-plans'] });
+      qc.invalidateQueries({ queryKey: ['dashboard'] });
+    },
   });
 }
 
@@ -73,7 +82,10 @@ export function useCreateBuyingRule(planId: string) {
       const res = await api.post<ApiResponse<BuyingRule>>(`/dca-plans/${planId}/rules`, data);
       return res.data.data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['dca-plans'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['dca-plans'] });
+      qc.invalidateQueries({ queryKey: ['dashboard'] });
+    },
   });
 }
 
@@ -83,6 +95,9 @@ export function useDeleteBuyingRule() {
     mutationFn: async (ruleId: string) => {
       await api.delete(`/buying-rules/${ruleId}`);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['dca-plans'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['dca-plans'] });
+      qc.invalidateQueries({ queryKey: ['dashboard'] });
+    },
   });
 }
