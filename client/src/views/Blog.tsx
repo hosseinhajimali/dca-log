@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowRight, Clock, Tag } from 'lucide-react';
 import { BLOG_POSTS } from '@/data/blogPosts';
 import { PublicNavbar } from '@/components/layout/PublicNavbar';
@@ -18,6 +19,7 @@ function formatDate(iso: string) {
 }
 
 export default function Blog() {
+  const router = useRouter();
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
 
@@ -39,14 +41,16 @@ export default function Blog() {
               className="group bg-gray-900 border border-gray-800 hover:border-gray-700 rounded-2xl p-6 flex flex-col gap-4 transition-colors"
             >
               <div className="flex items-center gap-2 flex-wrap">
-                <Link
-                  href={`/blog/category/${post.category.toLowerCase().replace(/\s+/g, '-')}`}
-                  onClick={e => e.stopPropagation()}
+                <button
+                  onClick={e => {
+                    e.preventDefault();
+                    router.push(`/blog/category/${post.category.toLowerCase().replace(/\s+/g, '-')}`);
+                  }}
                   className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border transition-opacity hover:opacity-70 ${CATEGORY_COLORS[post.category] ?? 'text-gray-400 bg-gray-800 border-gray-700'}`}
                 >
                   <Tag size={10} />
                   {post.category}
-                </Link>
+                </button>
                 <span className="text-xs text-gray-600 flex items-center gap-1">
                   <Clock size={11} />
                   {post.readTime}

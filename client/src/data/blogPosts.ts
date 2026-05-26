@@ -209,6 +209,59 @@ export const BLOG_POSTS: BlogPost[] = [
       },
     ],
   },
+  {
+    slug: 'ath-drawdown-dca-strategy',
+    title: 'What is ATH Drawdown and Why It Should Change How Much You Buy',
+    excerpt: 'All-time high drawdown is one of the most powerful signals in a DCA strategy. Understanding it can turn a basic recurring buy into a smart, market-aware investment system.',
+    date: '2026-05-26',
+    readTime: '7 min read',
+    category: 'Strategy',
+    sections: [
+      {
+        body: 'Most DCA investors invest the same fixed amount every week or month, no matter what the market is doing. That is a perfectly solid strategy. But there is a smarter variation that keeps the discipline of DCA while taking advantage of market conditions: adjusting how much you buy based on how far an asset is below its all-time high. This is where ATH drawdown comes in.',
+      },
+      {
+        heading: 'What is an all-time high?',
+        body: 'An all-time high (ATH) is the highest price an asset has ever reached. For Bitcoin, the ATH in late 2021 was around $69,000. By late 2022, the price had fallen to roughly $16,000. For Ethereum, gold, or any other asset, the same principle applies: there is a peak price in history, and the current price is either at that peak, near it, or somewhere below it.',
+      },
+      {
+        heading: 'What is ATH drawdown?',
+        body: 'ATH drawdown is simply how far the current price is below the all-time high, expressed as a percentage. If Bitcoin hit an ATH of $100,000 and is now trading at $70,000, the drawdown is 30%. If it falls to $50,000, the drawdown is 50%. A drawdown of 0% means the asset is at its all-time high right now. A drawdown of 80% means the price has fallen 80% from its peak, which has happened to Bitcoin multiple times in its history.',
+      },
+      {
+        heading: 'Why drawdown is a more useful signal than price',
+        body: 'Raw price tells you very little on its own. Knowing that Bitcoin is at $60,000 does not tell you if that is cheap or expensive. But knowing that Bitcoin is 40% below its all-time high tells you something meaningful: the market has already corrected significantly from its most euphoric point. Drawdown gives you context. It anchors the current price to a historical reference point and lets you assess where you are in the cycle in a way that a raw price number cannot.',
+      },
+      {
+        heading: 'How drawdown-based buying rules work',
+        body: 'The idea is straightforward. Instead of always investing the same amount, you invest more when the drawdown is large and stick to your base amount when the market is near its highs. You define tiers. For example: when drawdown is between 0% and 20%, invest your standard amount. When drawdown is between 20% and 40%, invest 1.5 times your standard amount. When drawdown is between 40% and 60%, invest 2 times your standard amount. When drawdown is above 60%, invest 3 times your standard amount. These rules run automatically alongside your regular DCA schedule. You do not have to check prices or make judgment calls. The system does it for you.',
+      },
+      {
+        heading: 'The math behind why this works',
+        body: 'DCA already lowers your average cost over time by buying at a mix of prices. Drawdown rules accelerate that effect by concentrating more of your buying power at the lowest prices. Consider two investors, both running a weekly Bitcoin DCA. Investor A always buys $100. Investor B buys $100 normally but doubles to $200 when Bitcoin is more than 40% below ATH. During a bear market where Bitcoin spends six months in that range, Investor B accumulates significantly more Bitcoin at the cheapest prices. When the market recovers, their average cost is lower and their total holdings are larger.',
+      },
+      {
+        heading: 'This is not market timing',
+        body: 'A common concern is that this sounds like trying to time the market. It is not. Market timing means making discretionary decisions about when to buy or sell based on predictions about future price movements. Drawdown-based rules are purely mechanical. You are not predicting anything. You are defining rules in advance and executing them automatically. The schedule still runs. The only thing that changes is the size of the purchase, based on an objective mathematical relationship between the current price and a historical reference point.',
+      },
+      {
+        heading: 'Works for any asset, not just Bitcoin',
+        body: 'ATH drawdown is a useful signal for any volatile asset with a clear price history. Gold has its own ATH and its own drawdown cycles. Ethereum, Solana, silver, and broad equity ETFs all move in cycles relative to their historical peaks. The same logic applies across all of them. If you are running a multi-asset DCA portfolio, you can set drawdown rules per asset, so each asset gets more buying power precisely when it is most discounted relative to its own history.',
+      },
+      {
+        heading: 'Setting realistic thresholds',
+        body: 'The right thresholds depend on the asset. Bitcoin has historically experienced drawdowns of 50% to 85% from ATH during major bear markets, so rules that trigger at 30%, 50%, and 70% make sense. Gold is far less volatile and rarely drops more than 30% from ATH, so tighter thresholds like 10% and 20% are more appropriate. The key is to look at the historical drawdown range for each asset and design your tiers to cover the realistic scenarios, not hypothetical extremes that will never trigger.',
+      },
+      {
+        heading: 'What about when the asset is near its ATH?',
+        body: 'When drawdown is low, between 0% and 15%, you are buying near the top of the cycle. This feels uncomfortable but it is still the right move. You continue your base DCA amount. The discipline of continuing to buy near ATH is what keeps your accumulation consistent across the whole cycle, not just during the cheap periods. Stopping your DCA when prices are high means you only accumulate during dips, which sounds smart but actually leaves you underexposed during the early stages of a new bull market.',
+      },
+      {
+        heading: 'How to track it automatically',
+        body: 'The practical challenge with drawdown-based rules is knowing the current drawdown for each asset at all times and remembering to adjust your purchase size accordingly. This is exactly the problem DCAlog solves. The app fetches ATH data for your assets, calculates the current drawdown in real time, and shows you which buying rules are active based on where each asset sits today. When you open your dashboard, you can see immediately whether your plan is in its base mode or whether a buying rule has been triggered, so you always know the right amount to invest on your next purchase date.',
+      },
+    ],
+  },
 ];
 
 export function getBlogPost(slug: string): BlogPost | undefined {
