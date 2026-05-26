@@ -94,7 +94,7 @@ export async function getDashboardStats(req: AuthRequest, res: Response, next: N
         buyingRules: true,
         sellRules: true,
       },
-      orderBy: { nextPurchaseDate: 'asc' as const },
+      orderBy: { name: 'asc' as const },
     });
 
     // Helper: find first matching rule (highest minDrawdown wins, same as plan enrichment)
