@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma';
 import { AuthRequest } from '../types';
 import { fetchAndCachePrices } from '../services/priceService';
 import { computeNextPurchaseDate } from '../services/dcaService';
+import { maybeNotify } from '../services/notificationService';
 
 export async function getDashboardStats(req: AuthRequest, res: Response, next: NextFunction) {
   try {
@@ -215,6 +216,40 @@ export async function getDashboardStats(req: AuthRequest, res: Response, next: N
     const monthlyData = Array.from(monthlyMap.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([month, invested]) => ({ month, invested }));
+
+    // Fire-and-forget: DCA reminder notifications from dashboard load
+    void (async () => {
+      const now = new Date();
+      const todayStr = now.toISOString().slice(0, 10);
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+
+      for (const plan of activePlanRows) {
+        const effectiveNext = plan.nextPurchaseDate
+          ? computeNextPurchaseDate(
+              plan.nextPurchaseDate,
+              plan.frequency,
+              plan.intervalDays,
+              plan.scheduledTime,
+            ).toISOString().slice(0, 10)
+          : null;
+
+        const label = plan.name ?? plan.allocations.map((a) => a.asset.symbol).join('/');
+
+        if (effectiveNext === todayStr) {
+          await maybeNotify(userId, 'DCA_REMINDER', 'DCA purchase today',
+            `Today is your scheduled purchase day for plan "${label}".`,
+            { planId: plan.id, day: 'today' },
+          );
+        } else if (effectiveNext === tomorrowStr) {
+          await maybeNotify(userId, 'DCA_REMINDER', 'DCA purchase tomorrow',
+            `Your plan "${label}" is scheduled for tomorrow.`,
+            { planId: plan.id },
+          );
+        }
+      }
+    })().catch(() => {});
 
     res.json({
       success: true,

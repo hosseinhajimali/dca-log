@@ -214,13 +214,14 @@ function enrichPlan(
 
 // ─── notification firing ──────────────────────────────────────────────────────
 
-async function fireRuleNotifications(
+export async function fireRuleNotifications(
   userId: string,
   enrichedPlans: ReturnType<typeof enrichPlan>[],
   priceMap: Map<string, PriceEntry>,
   avgCostMap: Map<string, number>,
 ) {
   const now = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
   const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = tomorrow.toISOString().slice(0, 10);
@@ -228,23 +229,40 @@ async function fireRuleNotifications(
   for (const plan of enrichedPlans) {
     const p = plan as unknown as RichPlan & {
       id: string; name?: string | null; drawdownFromAth: number | null;
+      frequency: import('@prisma/client').DcaFrequency;
+      intervalDays?: number | null; scheduledTime?: string | null;
       buyingRules: (BuyingRule & { id: string })[]; sellRules: (SellRule & { sellAmountType: string })[];
       nextPurchaseDate?: string | null; allocations: AllocWithAsset[];
     };
 
-    // DCA_REMINDER, next purchase is tomorrow
-    if (p.nextPurchaseDate && p.nextPurchaseDate.toString().slice(0, 10) === tomorrowStr) {
-      const label = p.name ?? p.allocations.map(a => a.asset.symbol).join('/');
+    // Compute the effective next purchase date dynamically so stale DB dates don't break checks
+    const effectiveNext = p.nextPurchaseDate
+      ? computeNextPurchaseDate(
+          new Date(p.nextPurchaseDate),
+          p.frequency,
+          p.intervalDays,
+          p.scheduledTime,
+        ).toISOString().slice(0, 10)
+      : null;
+
+    const label = p.name ?? p.allocations.map(a => a.asset.symbol).join('/');
+
+    // DCA_REMINDER: notify the day before AND on the day itself
+    if (effectiveNext === tomorrowStr) {
       await maybeNotify(userId, 'DCA_REMINDER', 'DCA purchase tomorrow',
         `Your plan "${label}" is scheduled for tomorrow.`,
         { planId: p.id },
       );
     }
+    if (effectiveNext === todayStr) {
+      await maybeNotify(userId, 'DCA_REMINDER', 'DCA purchase today',
+        `Today is your scheduled purchase day for plan "${label}".`,
+        { planId: p.id, day: 'today' },
+      );
+    }
 
     // Only fire rule notifications on the plan's scheduled purchase date
-    const todayStr = now.toISOString().slice(0, 10);
-    const isScheduledToday = p.nextPurchaseDate &&
-      p.nextPurchaseDate.toString().slice(0, 10) === todayStr;
+    const isScheduledToday = effectiveNext === todayStr;
 
     if (isScheduledToday) {
       // BUYING_RULE_MET — use matchRule so only one notification fires even if ranges overlap
@@ -252,7 +270,6 @@ async function fireRuleNotifications(
       if (drawdownPct !== null) {
         const activeRule = matchRule(drawdownPct, p.buyingRules);
         if (activeRule) {
-          const label = p.name ?? p.allocations.map(a => a.asset.symbol).join('/');
           await maybeNotify(userId, 'BUYING_RULE_MET', 'Buy rule triggered',
             `Plan "${label}" is down ${drawdownPct.toFixed(1)}% from ATH - a buying rule is active for today's purchase.`,
             { planId: p.id, ruleId: (activeRule as { id?: string }).id },
@@ -268,7 +285,6 @@ async function fireRuleNotifications(
         if (profitPct === null) continue;
         for (const rule of p.sellRules) {
           if (profitPct >= rule.minProfit && profitPct <= rule.maxProfit) {
-            const label = p.name ?? p.allocations.map(a => a.asset.symbol).join('/');
             await maybeNotify(userId, 'SELL_RULE_MET', 'Take-profit rule triggered',
               `${alloc.asset.symbol} in plan "${label}" is up ${profitPct.toFixed(1)}% - a sell rule is active for today's purchase.`,
               { planId: p.id, ruleId: rule.id, assetId: alloc.assetId },
