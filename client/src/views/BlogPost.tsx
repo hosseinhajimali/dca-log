@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Clock, Tag, ArrowRight, Link2, Check } from 'lucide-react';
 import { getBlogPost, BLOG_POSTS } from '@/data/blogPosts';
@@ -19,9 +19,9 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-function ShareButtons({ title, excerpt }: { title: string; excerpt: string }) {
+function ShareButtons({ title, excerpt, slug }: { title: string; excerpt: string; slug: string }) {
   const [copied, setCopied] = useState(false);
-  const url = typeof window !== 'undefined' ? window.location.href : '';
+  const url = `https://dcalog.com/blog/${slug}`;
   const text = encodeURIComponent(title);
   const encodedUrl = encodeURIComponent(url);
 
@@ -159,7 +159,7 @@ export default function BlogPost() {
           ))}
         </div>
 
-        <ShareButtons title={post.title} excerpt={post.excerpt} />
+        <ShareButtons title={post.title} excerpt={post.excerpt} slug={slug} />
 
         <div className="mt-14 bg-brand-500/10 border border-brand-500/20 rounded-2xl px-6 py-8 text-center">
           <h3 className="text-base font-semibold text-gray-100 mb-2">Track your DCA strategy with DCAlog</h3>
