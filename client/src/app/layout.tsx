@@ -6,9 +6,16 @@ import '../index.css';
 export const metadata: Metadata = {
   title: 'DCAlog | Invest consistently. Profit systematically.',
   description: 'Track your dollar-cost averaging strategy, monitor buying opportunities, and know when to take profit, all in one place.',
+  manifest: '/manifest.webmanifest',
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',
+    apple: '/apple-touch-icon.png',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'DCAlog',
   },
   openGraph: {
     type: 'website',
@@ -41,11 +48,22 @@ const themeScript = `
 })();
 `;
 
+const swScript = `
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js');
+  });
+}
+`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: swScript }} />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="theme-color" content="#0a0a0f" />
       </head>
       <body>
         <Providers>{children}</Providers>
