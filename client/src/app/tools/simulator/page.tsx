@@ -10,17 +10,15 @@ const FREQ_LABELS: Record<string, string> = {
   WEEKLY: 'weekly', BIWEEKLY: 'bi-weekly', MONTHLY: 'monthly', DAILY: 'daily',
 };
 
-type SearchParams = { symbol?: string; amount?: string; freq?: string; startDate?: string };
+type SearchParams = Promise<{ symbol?: string; amount?: string; freq?: string; startDate?: string }>;
 
 export async function generateMetadata({
   searchParams,
 }: {
   searchParams: SearchParams;
 }): Promise<Metadata> {
-  const symbol = searchParams.symbol?.toUpperCase();
-  const amount = searchParams.amount;
-  const freq   = searchParams.freq;
-  const start  = searchParams.startDate;
+  const { symbol: rawSymbol, amount, freq, startDate: start } = await searchParams;
+  const symbol = rawSymbol?.toUpperCase();
 
   if (symbol && amount && freq) {
     const freqLabel  = FREQ_LABELS[freq] ?? freq.toLowerCase();
