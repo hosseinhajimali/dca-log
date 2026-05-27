@@ -13,6 +13,7 @@ import sellRulesRoutes from './sellRules';
 import notificationsRoutes from './notifications';
 import feedbackRoutes from './feedback';
 import adminRoutes from './admin';
+import publicSimulatorRoutes from './publicSimulator';
 
 export const router = Router();
 
@@ -34,3 +35,4 @@ router.use('/sell-rules', sellRulesRoutes);
 router.use('/notifications', notificationsRoutes);
 router.use('/feedback', feedbackRoutes);
 router.use('/admin', adminRoutes);
+router.use('/public/simulator', publicSimulatorRoutes);

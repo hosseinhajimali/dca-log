@@ -78,8 +78,9 @@ export function PublicNavbar() {
     return () => document.removeEventListener('mousedown', handle);
   }, [menuOpen]);
 
-  const isBlogActive = pathname?.startsWith('/blog') ?? false;
-  const isContactActive = pathname === '/contact';
+  const isBlogActive      = pathname?.startsWith('/blog') ?? false;
+  const isContactActive   = pathname === '/contact';
+  const isSimulatorActive = pathname?.startsWith('/tools/simulator') ?? false;
 
   const navLinkCls = (active: boolean) =>
     `px-3 py-1.5 rounded-lg transition-colors text-sm ${
@@ -102,6 +103,7 @@ export function PublicNavbar() {
                 {label}
               </button>
             ))}
+            <Link href="/tools/simulator" className={navLinkCls(isSimulatorActive)}>Simulator</Link>
             <Link href="/blog" className={navLinkCls(isBlogActive)}>Blog</Link>
             <Link href="/contact" className={navLinkCls(isContactActive)}>Contact</Link>
           </nav>
@@ -180,6 +182,13 @@ export function PublicNavbar() {
               {label}
             </button>
           ))}
+          <Link
+            href="/tools/simulator"
+            onClick={() => setMobileOpen(false)}
+            className={`block ${navLinkCls(isSimulatorActive)}`}
+          >
+            Simulator
+          </Link>
           <Link
             href="/blog"
             onClick={() => setMobileOpen(false)}
