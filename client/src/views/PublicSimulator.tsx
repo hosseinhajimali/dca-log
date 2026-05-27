@@ -406,6 +406,14 @@ export default function PublicSimulator() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Clear result when navigating to the page without params (e.g. clicking the nav link)
+  useEffect(() => {
+    if (!searchParams.get('symbol')) {
+      setResult(null);
+      setError('');
+    }
+  }, [searchParams]);
+
   const runSimulationWith = useCallback(async (
     sym: string, start: string, amount: string, freq: string,
   ) => {
