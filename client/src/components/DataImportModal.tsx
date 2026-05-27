@@ -55,7 +55,7 @@ export function DataImportModal({ onClose }: DataImportModalProps) {
         const json = JSON.parse(e.target?.result as string) as ParsedExport;
         if (!json.version || !String(json.version).startsWith('2')) {
           setParseError(
-            'This file uses an older format or is a full backup — use "Restore from backup" for that. Only custom exports (v2) can be imported here.',
+            'This file uses an older format or is a full backup, use "Restore from backup" for that. Only custom exports (v2) can be imported here.',
           );
           return;
         }
@@ -158,7 +158,7 @@ export function DataImportModal({ onClose }: DataImportModalProps) {
               <div className="bg-gray-800/50 border border-gray-800 rounded-xl px-4 py-3 space-y-1">
                 <p className="text-xs font-medium text-gray-400">What gets imported</p>
                 <p className="text-xs text-gray-600">
-                  Transactions, plans, goals, and assets are <strong className="text-gray-400">added</strong> to your existing data — nothing is overwritten or deleted. Missing assets are created automatically.
+                  Transactions, plans, goals, and assets are <strong className="text-gray-400">added</strong> to your existing data, nothing is overwritten or deleted. Missing assets are created automatically.
                 </p>
               </div>
             </div>

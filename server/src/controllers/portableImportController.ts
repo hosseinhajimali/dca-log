@@ -26,7 +26,7 @@ function orUndef(v: unknown): string | undefined {
 
 // ─── Portable Import (v2 custom export format) ───────────────────────────────
 //
-// Adds/merges data — does NOT wipe existing records.
+// Adds/merges data - does NOT wipe existing records.
 // Assets are matched by symbol; missing assets are created.
 // Plans, transactions, and goals are always appended as new records.
 

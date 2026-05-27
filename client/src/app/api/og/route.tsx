@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server';
 
 export const runtime = 'edge';
 
-// Server-side API URL — set API_URL on Vercel (no NEXT_PUBLIC_ prefix needed here)
+// Server-side API URL - set API_URL on Vercel (no NEXT_PUBLIC_ prefix needed here)
 const API_BASE = process.env.API_URL
   ? `${process.env.API_URL}/api`
   : process.env.NEXT_PUBLIC_API_URL

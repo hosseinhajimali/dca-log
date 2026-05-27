@@ -452,7 +452,7 @@ export function DataExportModal({ onClose }: DataExportModalProps) {
         {/* footer */}
         <div className="px-6 py-4 border-t border-gray-800 shrink-0 space-y-3">
           <p className="text-xs text-amber-400/70">
-            This export is for analysis only — it cannot be used with Restore. Use "Download backup" for a restorable snapshot.
+            This export is for analysis only, it cannot be used with Restore. Use "Download backup" for a restorable snapshot.
           </p>
           {error && <p className="text-xs text-red-400">{error}</p>}
           <div className="flex gap-3 items-center">

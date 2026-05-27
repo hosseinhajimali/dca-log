@@ -3,7 +3,7 @@ import { runPublicSimulation, PUBLIC_ASSETS } from '../controllers/publicSimulat
 
 const router = Router();
 
-// No auth — fully public
+// No auth, fully public
 router.get('/', runPublicSimulation);
 
 // Return the list of supported assets so the frontend doesn't hardcode it

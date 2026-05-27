@@ -265,7 +265,7 @@ export async function fireRuleNotifications(
     const isScheduledToday = effectiveNext === todayStr;
 
     if (isScheduledToday) {
-      // BUYING_RULE_MET — use matchRule so only one notification fires even if ranges overlap
+      // BUYING_RULE_MET, use matchRule so only one notification fires even if ranges overlap
       const drawdownPct = p.drawdownFromAth !== null ? Math.abs(p.drawdownFromAth) : null;
       if (drawdownPct !== null) {
         const activeRule = matchRule(drawdownPct, p.buyingRules);

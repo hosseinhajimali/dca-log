@@ -120,7 +120,7 @@ function drawShareCard(
   // ── Stat block ───────────────────────────────────────────────────────────
   const statY = 175;
 
-  // Return % — big hero number
+  // Return %, big hero number
   ctx.fillStyle = returnColor;
   ctx.font = `bold 88px system-ui, -apple-system, sans-serif`;
   ctx.fillText(fmtPct(summary.totalReturnPct), 48, statY);
@@ -235,7 +235,7 @@ function ShareModal({
   const profitable = summary.totalReturn >= 0;
 
   const shareText = encodeURIComponent(
-    `I simulated $${params.amountUsd}/${FREQ_LABELS[params.frequency]?.toLowerCase()} into ${asset.symbol} since ${fmtDate(params.startDate)} — ${fmtPct(summary.totalReturnPct)} return. Backtest yours:`
+    `I simulated $${params.amountUsd}/${FREQ_LABELS[params.frequency]?.toLowerCase()} into ${asset.symbol} since ${fmtDate(params.startDate)} - ${fmtPct(summary.totalReturnPct)} return. Backtest yours:`
   );
   const encodedUrl = encodeURIComponent(shareUrl);
 
@@ -503,7 +503,7 @@ export default function PublicSimulator() {
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-brand-500"
               >
                 {assets.map(a => (
-                  <option key={a.symbol} value={a.symbol}>{a.symbol} — {a.name}</option>
+                  <option key={a.symbol} value={a.symbol}>{a.symbol} - {a.name}</option>
                 ))}
               </select>
             </div>
@@ -659,7 +659,7 @@ export default function PublicSimulator() {
           <div className="bg-brand-500/10 border border-brand-500/20 rounded-2xl px-6 py-8 text-center">
             <h3 className="text-base font-semibold text-gray-100 mb-2">Track your real DCA purchases</h3>
             <p className="text-sm text-gray-500 mb-5 max-w-sm mx-auto">
-              Log actual buys, track your cost basis, set drawdown rules, and see your real P&L — free to use.
+              Log actual buys, track your cost basis, set drawdown rules, and see your real P&L, free to use.
             </p>
             <Link
               href="/login"

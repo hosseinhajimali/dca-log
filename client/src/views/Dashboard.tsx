@@ -132,7 +132,7 @@ function ActivePlanCard({ plan, onClick }: { plan: ActivePlanSummary; onClick: (
             {isBoosted && (
               <p className="text-xs text-gray-500 line-through">{format(plan.amountUsd)}</p>
             )}
-            {/* Per-asset breakdown — only show when there are multiple assets */}
+            {/* Per-asset breakdown, only show when there are multiple assets */}
             {plan.suggestedAllocations?.length > 1 && (
               <div className="mt-1 space-y-0.5">
                 {plan.suggestedAllocations.map(a => (

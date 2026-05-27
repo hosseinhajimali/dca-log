@@ -351,7 +351,7 @@ function RuleEditForm({
     const amtV = base ? computedAmount! : parseFloat(rawAmount);
     if (isNaN(amtV) || amtV <= 0) return setErr('Buy amount must be positive.');
 
-    // Overlap check — ranges must not intersect with any other rule
+    // Overlap check, ranges must not intersect with any other rule
     const others = existingRules.filter(r => r.id !== editingRuleId);
     const overlapping = others.find(r => minV < r.maxDrawdown && maxV > r.minDrawdown);
     if (overlapping) {

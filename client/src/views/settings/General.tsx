@@ -383,7 +383,7 @@ export default function General() {
         <div>
           <h2 className="text-sm font-semibold text-gray-300">Export & Import</h2>
           <p className="text-xs text-gray-500 mt-1">
-            Export any part of your data and share it — or import a file someone sent you.
+            Export any part of your data and share it, or import a file someone sent you.
           </p>
         </div>
 
@@ -403,7 +403,7 @@ export default function General() {
           </button>
         </div>
         <p className="text-xs text-gray-600">
-          Export selects exactly what to include — transactions by asset, individual plans, goals, or settings. Import adds data without touching anything else. Great for sharing plans with friends.
+          Export selects exactly what to include, transactions by asset, individual plans, goals, or settings. Import adds data without touching anything else. Great for sharing plans with friends.
         </p>
 
         {/* Full backup (advanced) */}

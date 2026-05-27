@@ -13,7 +13,7 @@ interface AssetRow {
   color?: string | null;
   qty: string;       // editable
   price: string;     // editable
-  amountUsd: string; // editable — stays in sync with qty × price
+  amountUsd: string; // editable, stays in sync with qty × price
   checked: boolean;
 }
 
@@ -28,7 +28,7 @@ export function QuickAddModal({ plan, onClose }: QuickAddModalProps) {
   const nextDate = plan.nextPurchaseDate
     ? new Date(plan.nextPurchaseDate).toISOString().slice(0, 10)
     : new Date().toISOString().slice(0, 10);
-  // scheduledTime is stored as UTC on the server — convert to local for display
+  // scheduledTime is stored as UTC on the server, convert to local for display
   const scheduledTime = utcTimeToLocal(plan.scheduledTime ?? '08:00');
 
   const [date, setDate] = useState(nextDate);

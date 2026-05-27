@@ -23,7 +23,7 @@ export async function generateMetadata({
   if (symbol && amount && freq) {
     const freqLabel  = FREQ_LABELS[freq] ?? freq.toLowerCase();
     const startYear  = start ? start.slice(0, 4) : null;
-    const title       = `$${amount} ${freqLabel} into ${symbol} — DCA Simulator`;
+    const title       = `$${amount} ${freqLabel} into ${symbol} - DCA Simulator`;
     const description = `What if you DCA'd $${amount} ${freqLabel} into ${symbol}${startYear ? ` since ${startYear}` : ''}? See the real historical returns on DCAlog's free simulator. No account needed.`;
     const ogImageUrl  = `${OG_API_URL}?symbol=${symbol}&amount=${amount}&freq=${freq}${start ? `&startDate=${start}` : ''}`;
 
@@ -49,8 +49,8 @@ export async function generateMetadata({
   }
 
   // Default (no params)
-  const title       = 'DCA Simulator — DCAlog';
-  const description = 'See what would have happened if you invested a fixed amount regularly into Bitcoin, Ethereum, or any major crypto. Free DCA backtest tool — no account needed.';
+  const title       = 'DCA Simulator - DCAlog';
+  const description = 'See what would have happened if you invested a fixed amount regularly into Bitcoin, Ethereum, or any major crypto. Free DCA backtest tool - no account needed.';
   const ogImageUrl  = OG_API_URL;
 
   return {

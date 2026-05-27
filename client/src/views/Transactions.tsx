@@ -73,7 +73,7 @@ function DeleteConfirmModal({ tx, onConfirm, onCancel }: {
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 // Format a Date (or ISO string) as YYYY-MM-DDTHH:mm in the user's LOCAL timezone.
-// datetime-local inputs have no timezone — they always represent local time.
+// datetime-local inputs have no timezone, they always represent local time.
 function toLocalDatetimeString(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date;
   const pad = (n: number) => String(n).padStart(2, '0');
