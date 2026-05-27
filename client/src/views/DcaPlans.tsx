@@ -12,7 +12,7 @@ import { useAssets } from '@/hooks/useAssets';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/Badge';
-import { useCurrencyFormatter, formatDate } from '@/lib/format';
+import { useCurrencyFormatter, formatDate, utcTimeToLocal, localTimeToUtc } from '@/lib/format';
 import { api } from '@/lib/api';
 import { DcaFrequency, DcaPlan, SellRule } from '@/types';
 import { useCreateSellRule, useUpdateSellRule, useDeleteSellRule } from '@/hooks/useSellRules';
@@ -22,21 +22,6 @@ const FREQ_LABELS: Record<DcaFrequency, string> = {
   DAILY: 'Daily', WEEKLY: 'Weekly', BIWEEKLY: 'Bi-weekly', MONTHLY: 'Monthly', CUSTOM: 'Custom',
 };
 
-// ─── timezone helpers ─────────────────────────────────────────────────────────
-// The server stores scheduledTime as UTC (HH:MM). The UI shows/accepts local time.
-// These helpers convert so the user always sees their local time.
-function localTimeToUtc(localTime: string): string {
-  const [h, m] = localTime.split(':').map(Number);
-  const d = new Date();
-  d.setHours(h, m, 0, 0);
-  return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
-}
-function utcTimeToLocal(utcTime: string): string {
-  const [h, m] = utcTime.split(':').map(Number);
-  const d = new Date();
-  d.setUTCHours(h, m, 0, 0);
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-}
 
 const INPUT = 'w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-brand-500 disabled:opacity-50';
 const INPUT_SM = 'bg-gray-800 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-brand-500 w-full';
@@ -1449,7 +1434,7 @@ export default function DcaPlans() {
                       {plan.nextPurchaseDate && (
                         <span>
                           Next: <span className="text-gray-300">{formatDate(plan.nextPurchaseDate)}</span>
-                          <span className="text-gray-500 ml-1">@ {plan.scheduledTime ?? '08:00'}</span>
+                          <span className="text-gray-500 ml-1">@ {utcTimeToLocal(plan.scheduledTime ?? '08:00')}</span>
                         </span>
                       )}
                       {plan.notes && (

@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { DcaPlan } from '@/types';
 import { toast } from '@/lib/toast';
+import { utcTimeToLocal } from '@/lib/format';
 
 interface AssetRow {
   assetId: string;
@@ -27,7 +28,8 @@ export function QuickAddModal({ plan, onClose }: QuickAddModalProps) {
   const nextDate = plan.nextPurchaseDate
     ? new Date(plan.nextPurchaseDate).toISOString().slice(0, 10)
     : new Date().toISOString().slice(0, 10);
-  const scheduledTime = plan.scheduledTime ?? '08:00';
+  // scheduledTime is stored as UTC on the server — convert to local for display
+  const scheduledTime = utcTimeToLocal(plan.scheduledTime ?? '08:00');
 
   const [date, setDate] = useState(nextDate);
   const [time, setTime] = useState(scheduledTime);

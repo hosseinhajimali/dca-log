@@ -34,6 +34,21 @@ export function formatDate(dateStr: string): string {
   });
 }
 
+// scheduledTime is stored on the server as UTC "HH:MM".
+// These helpers convert so the UI always shows/accepts the user's local time.
+export function utcTimeToLocal(utcTime: string): string {
+  const [h, m] = utcTime.split(':').map(Number);
+  const d = new Date();
+  d.setUTCHours(h, m, 0, 0);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+export function localTimeToUtc(localTime: string): string {
+  const [h, m] = localTime.split(':').map(Number);
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
+}
+
 export function formatQuantity(qty: number): string {
   if (qty < 0.01) return qty.toFixed(8);
   if (qty < 1) return qty.toFixed(4);
