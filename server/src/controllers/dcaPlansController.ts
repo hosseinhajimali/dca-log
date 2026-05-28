@@ -540,24 +540,19 @@ export async function getPlanStats(req: AuthRequest, res: Response, next: NextFu
     // Recent transactions (newest first, capped at 50)
     const recentTransactions = [...transactions].reverse().slice(0, 50);
 
-    // Compute weighted drawdown from ATH for the plan (mirrors enrichGroupMethod)
-    let weightedDrawdown: number | null = null;
-    let totalWeight = 0;
-    for (const stat of assetStats) {
-      if (stat.ath && stat.ath > 0 && stat.currentPrice > 0) {
-        const dd = ((stat.currentPrice - stat.ath) / stat.ath) * 100;
-        weightedDrawdown = (weightedDrawdown ?? 0) + dd * (stat.allocationPct / 100);
-        totalWeight += stat.allocationPct;
-      }
-    }
-    if (weightedDrawdown !== null && totalWeight > 0 && totalWeight < 100) {
-      weightedDrawdown = (weightedDrawdown / totalWeight) * 100;
-    }
+    // Build maps needed by enrichPlan (same logic as getDcaPlans)
+    const enrichPriceMap = new Map(prices.map((p) => [p.symbol, { priceUsd: p.priceUsd, ath: p.ath ?? null }]));
+    const avgCostMap = new Map(assetStats.map((s) => [s.asset.id, s.avgCost]));
+    const holdingsValueMap = new Map(assetStats.map((s) => [s.asset.id, s.currentValue]));
+
+    // Enrich the plan to get suggestedAllocations, drawdownFromAth, suggestedAmount
+    // (same as getDcaPlans so the detail page has the same per-asset data as the list page)
+    const enrichedPlan = enrichPlan(plan as unknown as RichPlan, enrichPriceMap, avgCostMap, holdingsValueMap);
 
     res.json({
       success: true,
       data: {
-        plan: { ...plan, drawdownFromAth: weightedDrawdown },
+        plan: enrichedPlan,
         portfolio: { totalInvested, totalCurrentValue, totalPnl, totalPnlPercent },
         assetStats,
         monthlyData,

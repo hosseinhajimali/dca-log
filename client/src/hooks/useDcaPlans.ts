@@ -57,6 +57,7 @@ export function useUpdateDcaPlan() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['dca-plans'] });
       qc.invalidateQueries({ queryKey: ['dashboard'] });
+      qc.invalidateQueries({ queryKey: ['plan-stats'] });
     },
   });
 }

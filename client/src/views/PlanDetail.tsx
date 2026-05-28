@@ -17,6 +17,7 @@ import { StatCard } from '@/components/ui/StatCard';
 import { Badge } from '@/components/ui/Badge';
 import { useCurrencyFormatter, formatDate, formatQuantity } from '@/lib/format';
 import { SellRule, BuyingRule } from '@/types';
+import { PlanStats } from '@/hooks/useDcaPlans';
 import { api } from '@/lib/api';
 import { toast } from '@/lib/toast';
 
@@ -172,9 +173,13 @@ function SellRuleForm({
 
 // ─── Buying Rules Card ────────────────────────────────────────────────────────
 
-function BuyingRulesCard({ planId, baseAmount, rules, drawdownPct, anyActive }: {
+type AssetStatSlim = PlanStats['assetStats'][number];
+
+function BuyingRulesCard({ planId, baseAmount, rules, drawdownPct, anyActive, perAssetRules = false, assetStats = [] }: {
   planId: string; baseAmount: number; rules: BuyingRule[];
   drawdownPct: number | null; anyActive: boolean;
+  perAssetRules?: boolean;
+  assetStats?: AssetStatSlim[];
 }) {
   const qc = useQueryClient();
   const createRule = useCreateBuyingRule(planId);
@@ -182,6 +187,24 @@ function BuyingRulesCard({ planId, baseAmount, rules, drawdownPct, anyActive }: 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [addKey, setAddKey] = useState(0);
+
+  // Build per-asset active map: ruleId -> assets whose individual drawdown falls in that rule's range.
+  // Uses assetStats.drawdownFromAth which is always available on the detail page
+  // (negative value, e.g. -28.5 means 28.5% below ATH).
+  const perAssetActiveMap = new Map<string, { symbol: string; color?: string | null }[]>();
+  if (perAssetRules && assetStats.length > 0) {
+    const sortedDesc = [...rules].sort((a, b) => b.minDrawdown - a.minDrawdown);
+    for (const stat of assetStats) {
+      if (stat.drawdownFromAth == null) continue;
+      const drawdown = Math.abs(stat.drawdownFromAth); // drawdownFromAth is negative; abs makes it positive
+      const match = sortedDesc.find(r => drawdown >= r.minDrawdown && drawdown <= r.maxDrawdown);
+      if (match) {
+        const list = perAssetActiveMap.get(match.id) ?? [];
+        list.push({ symbol: stat.asset.symbol, color: stat.asset.color });
+        perAssetActiveMap.set(match.id, list);
+      }
+    }
+  }
 
   async function handleAdd(min: number, max: number, amount: number) {
     await createRule.mutateAsync({ minDrawdown: min, maxDrawdown: max, buyAmount: amount });
@@ -210,20 +233,31 @@ function BuyingRulesCard({ planId, baseAmount, rules, drawdownPct, anyActive }: 
     <div className={`bg-gray-900 border rounded-xl overflow-hidden ${anyActive ? 'border-brand-500/30' : 'border-gray-800'}`}>
       <div className="px-5 py-4 border-b border-gray-800">
         <h2 className="text-sm font-semibold text-gray-300">Buying Rules</h2>
-        <p className="text-xs text-gray-500 mt-0.5">
-          Current drawdown:{' '}
-          {drawdownPct !== null ? (
-            <span className={`font-mono font-medium ${drawdownPct > 5 ? 'text-red-400' : 'text-green-400'}`}>
-              −{drawdownPct.toFixed(1)}%
-            </span>
-          ) : <span className="text-gray-600">no ATH data</span>}
-          {anyActive && <span className="ml-2 text-brand-400 font-medium">· rule triggered</span>}
+        <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
+          <span>Current drawdown:</span>
+          {perAssetRules ? (
+            assetStats.some(s => s.drawdownFromAth != null)
+              ? assetStats.map(s => s.drawdownFromAth != null && (
+                  <span key={s.asset.symbol} className="font-mono font-medium" style={s.asset.color ? { color: s.asset.color + 'bb' } : undefined}>
+                    {s.asset.symbol} −{Math.abs(s.drawdownFromAth).toFixed(1)}%
+                  </span>
+                ))
+              : <span className="text-gray-600">no ATH data</span>
+          ) : (
+            drawdownPct !== null
+              ? <span className={`font-mono font-medium ${drawdownPct > 5 ? 'text-red-400' : 'text-green-400'}`}>−{drawdownPct.toFixed(1)}%</span>
+              : <span className="text-gray-600">no ATH data</span>
+          )}
+          {anyActive && <span className="text-brand-400 font-medium">· rule triggered</span>}
         </p>
       </div>
       <div className="px-5 py-4 space-y-2">
         {rules.map(rule => {
           const mult = baseAmount > 0 ? +(rule.buyAmount / baseAmount).toFixed(2) : null;
-          const isActive = drawdownPct !== null && drawdownPct >= rule.minDrawdown && drawdownPct <= rule.maxDrawdown;
+          const activeAssets = perAssetRules ? (perAssetActiveMap.get(rule.id) ?? []) : [];
+          const isActive = perAssetRules
+            ? activeAssets.length > 0
+            : drawdownPct !== null && drawdownPct >= rule.minDrawdown && drawdownPct <= rule.maxDrawdown;
           const isEditing = editingId === rule.id;
           return (
             <div key={rule.id} className={`rounded-lg border overflow-hidden transition-colors ${
@@ -233,12 +267,27 @@ function BuyingRulesCard({ planId, baseAmount, rules, drawdownPct, anyActive }: 
             }`}>
               <div className="flex items-center justify-between px-3 py-2 text-sm">
                 <div className="flex items-center gap-2 flex-wrap">
-                  {isActive && <span className="w-1.5 h-1.5 rounded-full bg-brand-400 shrink-0" />}
+                  {isActive && !perAssetRules && <span className="w-1.5 h-1.5 rounded-full bg-brand-400 shrink-0" />}
                   <span className="font-mono text-red-400/80">−{rule.minDrawdown}% – −{rule.maxDrawdown}%</span>
                   <span className="text-gray-600">→</span>
                   <span className={`font-semibold font-mono ${isActive ? 'text-brand-300' : 'text-gray-200'}`}>{mult}×</span>
                   <span className="text-gray-500 text-xs">(${rule.buyAmount})</span>
-                  {isActive && <Badge variant="green">active</Badge>}
+                  {/* Per-asset mode: show each active asset as a colored badge */}
+                  {perAssetRules && activeAssets.length > 0 && (
+                    <span className="flex items-center gap-1 flex-wrap">
+                      {activeAssets.map(a => (
+                        <span
+                          key={a.symbol}
+                          className="inline-flex items-center gap-1 text-xs font-mono font-bold px-1.5 py-0.5 rounded bg-brand-500/15 border border-brand-500/25"
+                          style={a.color ? { color: a.color } : { color: '#93c5fd' }}
+                        >
+                          {a.symbol}
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                  {/* Group mode: single active badge */}
+                  {!perAssetRules && isActive && <Badge variant="green">active</Badge>}
                 </div>
                 <div className="flex items-center gap-1.5 ml-3 shrink-0">
                   {confirmingId !== rule.id && !isEditing && (
@@ -392,6 +441,7 @@ function SellRulesCard({ planId, rules, profitPct, anyTriggered }: {
 export default function PlanDetail() {
   const { id } = useParams() as { id: string };
   const router = useRouter();
+  const qc = useQueryClient();
   const { data, isLoading, error } = usePlanStats(id!);
   const { format, formatPct } = useCurrencyFormatter();
   const [showQuickAdd, setShowQuickAdd] = useState(false);
@@ -430,7 +480,10 @@ export default function PlanDetail() {
         <QuickAddModal plan={plan} onClose={() => setShowQuickAdd(false)} />
       )}
       {showEdit && (
-        <EditModal plan={plan} assets={assets} onClose={() => setShowEdit(false)} />
+        <EditModal plan={plan} assets={assets} onClose={() => {
+          setShowEdit(false);
+          qc.invalidateQueries({ queryKey: ['plan-stats', plan.id] });
+        }} />
       )}
 
       {/* Back + header */}
@@ -597,9 +650,12 @@ export default function PlanDetail() {
       {(() => {
         const drawdownPct = plan.drawdownFromAth != null && !isNaN(plan.drawdownFromAth) ? Math.abs(plan.drawdownFromAth) : null;
         const sorted = [...plan.buyingRules].sort((a, b) => a.minDrawdown - b.minDrawdown);
-        const anyActive = sorted.some(
-          (r) => drawdownPct !== null && drawdownPct >= r.minDrawdown && drawdownPct <= r.maxDrawdown,
-        );
+        const anyActive = plan.perAssetRules
+          ? assetStats.some(s =>
+              s.drawdownFromAth != null &&
+              sorted.some(r => Math.abs(s.drawdownFromAth!) >= r.minDrawdown && Math.abs(s.drawdownFromAth!) <= r.maxDrawdown)
+            )
+          : sorted.some(r => drawdownPct !== null && drawdownPct >= r.minDrawdown && drawdownPct <= r.maxDrawdown);
         return (
           <BuyingRulesCard
             planId={plan.id}
@@ -607,6 +663,8 @@ export default function PlanDetail() {
             rules={sorted}
             drawdownPct={drawdownPct}
             anyActive={anyActive}
+            perAssetRules={plan.perAssetRules}
+            assetStats={assetStats}
           />
         );
       })()}
