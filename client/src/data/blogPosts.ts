@@ -262,6 +262,59 @@ export const BLOG_POSTS: BlogPost[] = [
       },
     ],
   },
+  {
+    slug: 'multi-asset-dca-bitcoin-ethereum-gold',
+    title: 'Multi-Asset DCA: Should You DCA Bitcoin, Ethereum, and Gold Together?',
+    excerpt: 'Running a single-asset DCA is a great start. But splitting your regular investment across Bitcoin, Ethereum, and gold can reduce risk and improve long-term outcomes. Here is how to think about it.',
+    date: '2026-06-01',
+    readTime: '7 min read',
+    category: 'Strategy',
+    sections: [
+      {
+        body: 'Most people start their DCA journey with a single asset, usually Bitcoin. That is a perfectly reasonable entry point. But as your strategy matures, a question naturally arises: should you spread your regular investment across multiple assets? The answer depends on your goals, but for most long-term investors, multi-asset DCA offers meaningful advantages over concentrating everything in one place.',
+      },
+      {
+        heading: 'Why single-asset DCA has a blind spot',
+        body: 'DCA is excellent at smoothing your entry price over time. What it cannot do is protect you if the asset you are buying permanently underperforms or, in the worst case, loses its relevance. Bitcoin has a strong track record, but crypto history is littered with assets that dominated for a cycle and then faded. Spreading your DCA across a small number of uncorrelated assets means that even if one disappoints, the others can carry the portfolio.',
+      },
+      {
+        heading: 'The case for Bitcoin as your anchor',
+        body: 'Bitcoin remains the most established, most liquid, and most widely held crypto asset. Its fixed supply of 21 million coins and its growing institutional adoption make it the closest thing to a reserve asset in the crypto world. For most investors, Bitcoin should form the largest share of a multi-asset DCA portfolio, typically 50% to 70% of the total recurring investment. It is the foundation everything else builds on.',
+      },
+      {
+        heading: 'Why Ethereum belongs in the mix',
+        body: 'Ethereum is not just a speculative asset like Bitcoin. It is the backbone of a large and growing ecosystem of applications, smart contracts, and financial infrastructure. Its value is tied to the usage of that network, fees paid, applications deployed, assets settled on-chain. This gives Ethereum a different return profile from Bitcoin. The two assets are correlated in broad market moves (both rise in bull markets and fall in bear markets) but diverge significantly in cycles. Ethereum has outperformed Bitcoin dramatically in some periods and underperformed badly in others. Running a DCA on both means you capture whichever leads in the next cycle without having to predict which one it will be.',
+      },
+      {
+        heading: 'Gold as a stabiliser',
+        body: 'Gold behaves very differently from crypto. It does not have the same upside, but it also does not have the same downside. In periods of macro stress, banking crises, currency devaluations, or geopolitical instability, gold tends to hold its value or rise while crypto often falls. Including gold in your DCA portfolio reduces overall volatility and provides a cushion during the worst crypto bear markets. For investors with a longer time horizon or a lower risk tolerance, even a 10% to 20% allocation to gold within a regular investment plan can meaningfully reduce drawdowns.',
+      },
+      {
+        heading: 'Correlation: when it matters and when it does not',
+        body: 'Bitcoin and Ethereum are highly correlated in the short term. When crypto markets sell off, both fall together. Over longer periods, however, their cycles diverge enough to create real diversification benefits. Gold is more structurally uncorrelated from crypto, driven by different macro factors: real interest rates, dollar strength, central bank demand. The key insight is that correlation is not constant. Assets that move together in a panic often diverge significantly over multi-year periods, which is exactly the time horizon DCA is designed for.',
+      },
+      {
+        heading: 'How to split your recurring investment',
+        body: 'There is no single right answer, but here are three common approaches. A conservative split might be 50% Bitcoin, 20% Ethereum, 30% gold, prioritising stability and the gold cushion. A balanced split might be 60% Bitcoin, 30% Ethereum, 10% gold, leaning into crypto with a small gold hedge. An aggressive split might be 50% Bitcoin, 50% Ethereum, no gold, for investors who want maximum crypto exposure and are comfortable with deeper drawdowns. The right choice depends on how much drawdown you can stomach without changing your plan, and how much you believe in Ethereum specifically.',
+      },
+      {
+        heading: 'Setting buying rules per asset',
+        body: 'One of the real advantages of multi-asset DCA is that each asset can have its own buying rules based on its own ATH drawdown. Bitcoin and Ethereum have very different historical drawdown profiles. Bitcoin has dropped 80% from ATH in past cycles; Ethereum has dropped even more. Gold rarely falls more than 30% from ATH. This means your drawdown tiers should be calibrated per asset. Your Bitcoin buying rule might trigger extra purchases at 40% below ATH, your Ethereum rule at 50% below ATH, and your gold rule at 15% below ATH. Each asset gets smarter accumulation rules tuned to its own volatility.',
+      },
+      {
+        heading: 'Rebalancing vs fixed splits',
+        body: 'Over time, a winning asset will grow to represent a larger share of your portfolio than you intended. Some investors rebalance periodically, selling some of the winner to buy more of the laggard, to maintain their target allocation. Others prefer to let winners run and simply adjust the split of new purchases rather than selling anything. For DCA investors, the simpler approach is usually to adjust your recurring purchase amounts rather than sell. If Bitcoin has grown to represent 80% of your portfolio and you wanted 60%, you reduce your Bitcoin DCA amount and increase Ethereum and gold for the next several months until the split is back where you want it.',
+      },
+      {
+        heading: 'Tracking a multi-asset portfolio',
+        body: 'The complexity of multi-asset DCA is mostly in the tracking. You need to know your average cost basis per asset, your total invested per asset, and your overall portfolio value and return, all at once. This is exactly what DCAlog is designed for. You can run separate plans for Bitcoin, Ethereum, and gold, each with its own schedule and buying rules, while the dashboard shows you your total portfolio picture in one place. The cost basis calculation runs per asset, so your Bitcoin average and your Ethereum average are tracked independently, which also makes tax reporting cleaner.',
+      },
+      {
+        heading: 'The bottom line',
+        body: 'Multi-asset DCA is not about chasing diversification for its own sake. It is about building a portfolio that can survive the inevitable periods when your primary asset is down 60% and you are still buying. Having Ethereum and gold in the mix means that at least some of your capital is likely performing better during those periods, which makes it psychologically easier to stick to the plan. And sticking to the plan, across multiple assets, through multiple cycles, is where the real returns are built.',
+      },
+    ],
+  },
 ];
 
 export function getBlogPost(slug: string): BlogPost | undefined {
