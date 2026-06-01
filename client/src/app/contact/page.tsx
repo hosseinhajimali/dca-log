@@ -6,6 +6,21 @@ import { PublicFooter } from '@/components/layout/PublicFooter';
 export const metadata: Metadata = {
   title: 'Contact | DCAlog',
   description: 'Get in touch with the DCAlog team.',
+  alternates: { canonical: 'https://dcalog.com/contact' },
+  openGraph: {
+    title: 'Contact | DCAlog',
+    description: 'Get in touch with the DCAlog team.',
+    url: 'https://dcalog.com/contact',
+    type: 'website',
+    siteName: 'DCAlog',
+    images: [{ url: 'https://dcalog.com/og-image.png', width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Contact | DCAlog',
+    description: 'Get in touch with the DCAlog team.',
+    images: ['https://dcalog.com/og-image.png'],
+  },
 };
 
 export default function ContactPage() {

@@ -12,6 +12,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${post.title} | DCAlog`,
     description: post.excerpt,
+    alternates: { canonical: url },
     openGraph: {
       title: post.title,
       description: post.excerpt,
@@ -19,11 +20,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       type: 'article',
       publishedTime: post.date,
       siteName: 'DCAlog',
+      images: [{ url: 'https://dcalog.com/og-image.png', width: 1200, height: 630 }],
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
       title: post.title,
       description: post.excerpt,
+      images: ['https://dcalog.com/og-image.png'],
     },
   };
 }

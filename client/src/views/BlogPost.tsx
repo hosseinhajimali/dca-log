@@ -119,8 +119,28 @@ export default function BlogPost() {
 
   const others = BLOG_POSTS.filter(p => p.slug !== slug).slice(0, 2);
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: post.title,
+    description: post.excerpt,
+    datePublished: post.date,
+    url: `https://dcalog.com/blog/${post.slug}`,
+    publisher: {
+      '@type': 'Organization',
+      name: 'DCAlog',
+      url: 'https://dcalog.com',
+      logo: { '@type': 'ImageObject', url: 'https://dcalog.com/logo.svg' },
+    },
+    image: 'https://dcalog.com/og-image.png',
+  };
+
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
 
       <PublicNavbar />
 
