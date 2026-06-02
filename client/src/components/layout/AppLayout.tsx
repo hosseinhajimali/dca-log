@@ -7,7 +7,6 @@ import { Sidebar } from './Sidebar';
 import { NotificationBell } from './NotificationBell';
 import { Toaster } from '@/components/ui/Toaster';
 import { Avatar } from '@/components/ui/Avatar';
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { api } from '@/lib/api';
 import { useStore } from '@/store/useStore';
 import { useTheme } from '@/hooks/useTheme';
@@ -67,7 +66,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex-1" />
 
           <div className="flex items-center gap-2">
-            <ThemeToggle />
             <NotificationBell />
             <div ref={menuRef} className="relative flex items-center ms-1">
               <button

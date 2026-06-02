@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useStore } from '@/store/useStore';
+import { useStore, type Theme } from '@/store/useStore';
+import { useTheme } from '@/hooks/useTheme';
 import { useAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '@/hooks/useAssets';
 import { Badge } from '@/components/ui/Badge';
 import { Asset, AssetType } from '@/types';
@@ -208,9 +209,13 @@ function AssetRow({ asset, onEdit, isConfirming, onRemoveRequest, onCancelRemove
 // ─── page ─────────────────────────────────────────────────────────────────────
 export default function General() {
   const { currency, setCurrency, user } = useStore();
+  const { theme, setTheme } = useTheme();
   const { data: assets = [] } = useAssets();
   const createAsset = useCreateAsset();
   const queryClient = useQueryClient();
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
@@ -305,6 +310,24 @@ export default function General() {
       {editingAsset && <AssetModal mode="edit" asset={editingAsset} onClose={() => setEditingAsset(null)} />}
       {showExport && <DataExportModal onClose={() => setShowExport(false)} />}
       {showImport && <DataImportModal onClose={() => setShowImport(false)} />}
+
+      {/* Appearance */}
+      <section className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
+        <h2 className="text-sm font-semibold text-gray-300">Appearance</h2>
+        <div className="flex gap-2">
+          {(['light', 'dark', 'system'] as Theme[]).map(t => (
+            <button key={t}
+              onClick={() => setTheme(t)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors capitalize ${
+                mounted && theme === t
+                  ? 'bg-brand-600 border-brand-500 text-white'
+                  : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-500'
+              }`}>
+              {t}
+            </button>
+          ))}
+        </div>
+      </section>
 
       {/* Currency */}
       <section className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">

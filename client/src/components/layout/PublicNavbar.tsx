@@ -6,7 +6,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, ArrowRight, UserCircle, LogOut } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { Avatar } from '@/components/ui/Avatar';
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { NotificationBell } from '@/components/layout/NotificationBell';
 import { useTheme } from '@/hooks/useTheme';
 import { api } from '@/lib/api';
@@ -29,9 +28,12 @@ export function PublicNavbar() {
   const isHome = pathname === null || pathname === '/';
   useTheme();
 
+  const [mounted, setMounted]             = useState(false);
   const [menuOpen, setMenuOpen]           = useState(false);
   const [mobileOpen, setMobileOpen]       = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
+
+  useEffect(() => { setMounted(true); }, []);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Keep user in sync with server
@@ -91,7 +93,7 @@ export function PublicNavbar() {
     <>
       <header className="sticky top-0 z-50 border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <a href="/"><img src={theme === 'light' ? '/logo-horizontal-light.svg' : '/logo-horizontal.svg'} alt="DCAlog" className="h-8 w-auto" /></a>
+          <a href="/"><img src={mounted && theme === 'light' ? '/logo-horizontal-light.svg' : '/logo-horizontal.svg'} alt="DCAlog" className="h-8 w-auto" /></a>
 
           <nav className="hidden md:flex items-center gap-1">
             {NAV_LINKS.map(({ label, section }) => (
@@ -109,8 +111,6 @@ export function PublicNavbar() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <ThemeToggle />
-
             <button
               onClick={() => setMobileOpen(o => !o)}
               className="md:hidden text-gray-400 hover:text-gray-100 transition-colors p-1.5 rounded-lg hover:bg-gray-800"
@@ -119,7 +119,7 @@ export function PublicNavbar() {
               {mobileOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
 
-            {token ? (
+            {mounted && token ? (
               <>
                 <NotificationBell />
                 <div ref={menuRef} className="relative">

@@ -31,7 +31,7 @@ export const useStore = create<AppState>()(
 
       setAuth: (user, token) => {
         localStorage.setItem('dcalog_token', token);
-        set({ user, token, currency: user.currency || 'USD' });
+        set({ user, token, currency: user.currency || 'USD', theme: (user.theme as Theme) || 'system' });
       },
 
       setUser: (user) => set({ user }),
@@ -39,8 +39,8 @@ export const useStore = create<AppState>()(
       logout: () => {
         localStorage.removeItem('dcalog_token');
         localStorage.removeItem('dcalog_user');
-        queryClient.clear(); // clear cached data so next user starts fresh
-        set({ user: null, token: null });
+        queryClient.clear();
+        set({ user: null, token: null, theme: 'system' });
       },
 
       setCurrency: (currency) => set({ currency }),

@@ -1,4 +1,4 @@
-const CACHE = 'dcalog-v1';
+const CACHE = 'dcalog-v2';
 
 // App shell files to pre-cache
 const PRECACHE = [
@@ -41,10 +41,24 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // For static assets: cache first
-  if (
-    url.pathname.match(/\.(png|svg|ico|webp|woff2?|css|js)$/)
-  ) {
+  // JS and CSS: network-first (Next.js uses hashed filenames, stale cache causes bugs)
+  if (url.pathname.match(/\.(js|css)$/)) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request).then((r) => r ?? Response.error()))
+    );
+    return;
+  }
+
+  // Images and fonts: cache-first (these never change)
+  if (url.pathname.match(/\.(png|svg|ico|webp|woff2?)$/)) {
     event.respondWith(
       caches.match(request).then((cached) => {
         if (cached) return cached;
