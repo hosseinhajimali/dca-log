@@ -40,7 +40,7 @@ export const useStore = create<AppState>()(
         localStorage.removeItem('dcalog_token');
         localStorage.removeItem('dcalog_user');
         queryClient.clear();
-        set({ user: null, token: null, theme: 'system' });
+        set({ user: null, token: null });
       },
 
       setCurrency: (currency) => set({ currency }),
