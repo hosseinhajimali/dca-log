@@ -9,6 +9,7 @@ import { Toaster } from '@/components/ui/Toaster';
 import { Avatar } from '@/components/ui/Avatar';
 import { api } from '@/lib/api';
 import { useStore } from '@/store/useStore';
+import { User } from '@/types';
 import { useTheme } from '@/hooks/useTheme';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
@@ -32,7 +33,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }, [menuOpen]);
 
   useEffect(() => {
-    api.get<{ data: { id: string; email: string; name?: string; currency: string; avatar?: string | null; isAdmin: boolean; createdAt: string } }>('/auth/me')
+    api.get<{ data: User }>('/auth/me')
       .then((res) => setUser(res.data.data))
       .catch(() => {});
   }, [setUser]);
