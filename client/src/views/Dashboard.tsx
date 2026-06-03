@@ -83,7 +83,7 @@ function ActivePlanCard({ plan, onClick }: { plan: ActivePlanSummary; onClick: (
       className={`w-full text-left p-4 rounded-xl border transition-all duration-150 hover:border-gray-600 hover:bg-gray-800/50 hover:shadow-sm hover:-translate-y-px cursor-pointer ${urgencyColors[urgency]}`}
     >
       {/* Asset symbols */}
-      <div className="flex items-center gap-1.5 flex-wrap mb-2">
+      <div className="flex items-center justify-between gap-1.5 flex-wrap mb-2">
         <span className="font-bold font-mono text-sm">
           {plan.allocations.map((a, i) => (
             <span key={a.asset.symbol}>
@@ -101,60 +101,58 @@ function ActivePlanCard({ plan, onClick }: { plan: ActivePlanSummary; onClick: (
         <Badge variant="blue">{FREQ_LABELS[plan.frequency] ?? plan.frequency}</Badge>
       </div>
 
-      {/* Next date + amount */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="space-y-1.5 mt-3">
         <div>
-          <p className="text-xs text-gray-500 mb-0.5">Next purchase</p>
-          {plan.nextPurchaseDate ? (
-            <p className={`text-sm font-medium ${days !== null && days <= 0 ? 'text-green-400' : days !== null && days <= 3 ? 'text-yellow-400' : 'text-gray-300'}`}>
-              {days !== null && days <= 0
-                ? 'Today'
-                : days === 1
-                ? 'Tomorrow'
-                : days !== null
-                ? `in ${days} days`
-                : '—'}
-              <span className="text-gray-600 font-normal text-xs ml-1.5">
-                {formatDate(plan.nextPurchaseDate)}
-              </span>
-            </p>
-          ) : (
-            <p className="text-sm text-gray-600">Not scheduled</p>
-          )}
-        </div>
-
-        <div className="text-right space-y-1.5">
-          <div>
-            <p className="text-xs text-gray-500 mb-0.5">Suggested buy</p>
-            <p className={`text-sm font-bold font-mono ${isBoosted ? 'text-brand-400' : 'text-gray-200'}`}>
-              {format(plan.suggestedAmount)}
-            </p>
+          <p className="text-xs text-gray-600 mb-0.5">Suggested buy</p>
+          <div className="flex gap-2 items-baseline">
             {isBoosted && (
-              <p className="text-xs text-gray-500 line-through">{format(plan.amountUsd)}</p>
+                <span className="text-xs text-gray-500 line-through">{format(plan.amountUsd)}</span>
             )}
-            {/* Per-asset breakdown, only show when there are multiple assets */}
-            {plan.suggestedAllocations?.length > 1 && (
-              <div className="mt-1 space-y-0.5">
+            <span className={`text-sm font-bold font-mono ${isBoosted ? 'text-brand-400' : 'text-gray-200'}`}>{format(plan.suggestedAmount)}</span>
+          </div>
+          {/* Per-asset breakdown, only show when there are multiple assets */}
+          {plan.suggestedAllocations?.length > 1 && (
+              <div className="mt-3 space-y-0.5">
                 {plan.suggestedAllocations.map(a => (
-                  <p key={a.symbol} className="text-xs font-mono flex items-center justify-end gap-1">
+                    <p key={a.symbol} className="text-xs font-mono flex items-center gap-1">
                     <span style={a.color ? { color: a.color } : { color: '#9ca3af' }}>
                       {a.symbol}
                     </span>
-                    <span className="text-gray-400">{format(a.amount)}</span>
-                  </p>
+                      <span className="text-gray-400">{format(a.amount)}</span>
+                    </p>
                 ))}
               </div>
-            )}
-          </div>
-          {plan.suggestedSellAmount != null && (
+          )}
+        </div>
+        {plan.suggestedSellAmount != null && (
             <div>
-              <p className="text-xs text-gray-500 mb-0.5">Suggested sell</p>
+              <p className="text-xs text-gray-600 mb-0.5">Suggested sell</p>
               <p className="text-sm font-bold font-mono text-amber-400">
                 {format(plan.suggestedSellAmount)}
               </p>
             </div>
-          )}
-        </div>
+        )}
+      </div>
+
+      {/* Next date + amount */}
+      <div className="mt-3">
+        <p className="text-xs text-gray-600 mb-0.5">Next purchase</p>
+        {plan.nextPurchaseDate ? (
+            <p className={`text-sm font-medium ${days !== null && days <= 0 ? 'text-green-400' : days !== null && days <= 3 ? 'text-yellow-400' : 'text-gray-300'}`}>
+              {days !== null && days <= 0
+                  ? 'Today'
+                  : days === 1
+                      ? 'Tomorrow'
+                      : days !== null
+                          ? `in ${days} days`
+                          : '—'}
+              <span className="text-gray-600 font-normal text-xs ml-1.5">
+                {formatDate(plan.nextPurchaseDate)}
+              </span>
+            </p>
+        ) : (
+            <p className="text-sm text-gray-600">Not scheduled</p>
+        )}
       </div>
     </button>
   );
@@ -254,7 +252,7 @@ export default function Dashboard() {
       {/* Active plans */}
       {activePlanList.length > 0 && (
         <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
+          <div className="px-5 py-3.5 border-b border-gray-800 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-gray-300">Active Plans</h2>
             <button
               onClick={() => router.push('/app/plans')}
@@ -351,7 +349,7 @@ export default function Dashboard() {
 
       {/* Asset breakdown table */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-800">
+        <div className="px-5 py-3.5 border-b border-gray-800">
           <h2 className="text-sm font-semibold text-gray-300">Asset Breakdown</h2>
         </div>
         {assetStats.length === 0 ? (
@@ -364,14 +362,14 @@ export default function Dashboard() {
               <thead>
                 <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-800">
                   {['Asset', 'Total Amount', 'Invested', 'Current Value', 'Avg Buy', 'Current Price', 'P&L', 'Drawdown vs ATH', 'Purchases'].map((h) => (
-                    <th key={h} className="px-5 py-3 text-left font-medium">{h}</th>
+                    <th key={h} className="px-5 py-3.5 text-left font-medium whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800">
+              <tbody>
                 {assetStats.map((stat) => (
-                  <tr key={stat.asset.id} className="hover:bg-gray-800/50 transition-colors">
-                    <td className="px-5 py-4">
+                  <tr key={stat.asset.id} className="hover:bg-gray-700/50 transition-colors border-b border-gray-800 last:border-0">
+                    <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2">
                         <span className="font-bold font-mono"
                         style={stat.asset.color ? { color: stat.asset.color } : undefined}
@@ -382,15 +380,15 @@ export default function Dashboard() {
                       </div>
                       <p className="text-xs text-gray-500 mt-0.5">{stat.asset.name}</p>
                     </td>
-                    <td className="px-5 py-4 font-mono text-gray-300">
+                    <td className="px-5 py-3.5 font-mono text-gray-300">
                       {formatQuantity(stat.totalQuantity)}
                       <span className="text-gray-600 text-xs ml-1">{stat.asset.symbol}</span>
                     </td>
-                    <td className="px-5 py-4 font-mono text-gray-300">{format(stat.totalInvested)}</td>
-                    <td className="px-5 py-4 font-mono text-gray-300">{format(stat.currentValue)}</td>
-                    <td className="px-5 py-4 font-mono text-gray-400">{format(stat.avgCost)}</td>
-                    <td className="px-5 py-4 font-mono text-gray-400">{format(stat.currentPrice)}</td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-3.5 font-mono text-gray-300">{format(stat.totalInvested)}</td>
+                    <td className="px-5 py-3.5 font-mono text-gray-300">{format(stat.currentValue)}</td>
+                    <td className="px-5 py-3.5 font-mono text-gray-400">{format(stat.avgCost)}</td>
+                    <td className="px-5 py-3.5 font-mono text-gray-400">{format(stat.currentPrice)}</td>
+                    <td className="px-5 py-3.5">
                       <span className={`font-mono font-medium ${stat.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                         {format(stat.pnl)}
                       </span>
@@ -398,7 +396,7 @@ export default function Dashboard() {
                         {stat.pnlPercent >= 0 ? '+' : ''}{stat.pnlPercent.toFixed(2)}%
                       </p>
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-3.5">
                       {stat.drawdownFromAth === null ? (
                         <HoverTooltip message="ATH not yet available. You can set it manually in Settings → Assets → Edit asset." />
                       ) : stat.drawdownFromAth >= -0.5 ? (
@@ -414,7 +412,7 @@ export default function Dashboard() {
                         </div>
                       )}
                     </td>
-                    <td className="px-5 py-4 text-gray-500">{stat.txCount}</td>
+                    <td className="px-5 py-3.5 text-gray-500">{stat.txCount}</td>
                   </tr>
                 ))}
               </tbody>

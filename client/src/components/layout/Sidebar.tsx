@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, RefreshCw, ArrowLeftRight, FlaskConical,
   TrendingUp, Target, FileText, Settings, HelpCircle,
-  ShieldCheck, X, type LucideIcon,
+  ShieldCheck, X, Sliders, type LucideIcon,
 } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { useTheme } from '@/hooks/useTheme';
@@ -14,6 +14,7 @@ import { useTheme } from '@/hooks/useTheme';
 const NAV: { to: string; label: string; Icon: LucideIcon; exact?: boolean }[] = [
   { to: '/app',              label: 'Dashboard',    Icon: LayoutDashboard, exact: true },
   { to: '/app/plans',        label: 'DCA Plans',    Icon: RefreshCw },
+  { to: '/app/rule-sets',    label: 'Rule Sets',    Icon: Sliders },
   { to: '/app/transactions', label: 'Transactions', Icon: ArrowLeftRight },
   { to: '/app/simulator',    label: 'Simulator',    Icon: FlaskConical },
   { to: '/app/projection',   label: 'Projection',   Icon: TrendingUp },

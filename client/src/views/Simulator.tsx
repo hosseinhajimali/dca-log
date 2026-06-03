@@ -163,7 +163,7 @@ function ResultsSection({ data }: { data: SimulationResult }) {
 
       {/* Recent buys table */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
+        <div className="px-5 py-3.5 border-b border-gray-800 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-gray-300">Recent Simulated Buys</h2>
           <span className="text-xs text-gray-600">showing last {recentBuys.length}</span>
         </div>
@@ -172,21 +172,21 @@ function ResultsSection({ data }: { data: SimulationResult }) {
             <thead>
               <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-800">
                 {['Date', 'Price', 'Qty bought', 'Amount', 'Portfolio value'].map(h => (
-                  <th key={h} className="px-5 py-3 text-left font-medium">{h}</th>
+                  <th key={h} className="px-5 py-3.5 text-left font-medium whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800">
+            <tbody>
               {recentBuys.map((buy, i) => (
-                <tr key={i} className="hover:bg-gray-800/50 transition-colors">
-                  <td className="px-5 py-3 text-gray-400">{buy.date}</td>
-                  <td className="px-5 py-3 font-mono text-gray-300">{format(buy.price)}</td>
-                  <td className="px-5 py-3 font-mono text-gray-400">
+                <tr key={i} className="hover:bg-gray-700/50 transition-colors border-b border-gray-800 last:border-0">
+                  <td className="px-5 py-3.5 text-gray-400">{buy.date}</td>
+                  <td className="px-5 py-3.5 font-mono text-gray-300">{format(buy.price)}</td>
+                  <td className="px-5 py-3.5 font-mono text-gray-400">
                     {formatQuantity(buy.quantity)}
                     <span className="text-gray-600 text-xs ml-1">{asset.symbol}</span>
                   </td>
-                  <td className="px-5 py-3 font-mono text-gray-300">{format(buy.amountUsd)}</td>
-                  <td className="px-5 py-3 font-mono text-gray-200">{format(buy.portfolioValue)}</td>
+                  <td className="px-5 py-3.5 font-mono text-gray-300">{format(buy.amountUsd)}</td>
+                  <td className="px-5 py-3.5 font-mono text-gray-200">{format(buy.portfolioValue)}</td>
                 </tr>
               ))}
             </tbody>

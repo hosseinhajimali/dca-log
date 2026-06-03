@@ -51,6 +51,10 @@ enum DcaFrequency {
   CUSTOM
 }
 
+enum RuleStrategyType {
+  DRAWDOWN_ATH
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -64,12 +68,14 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  assets        Asset[]
-  dcaPlans      DcaPlan[]
-  transactions  Transaction[]
-  goals         Goal[]
-  notifications Notification[]
-  feedbacks     Feedback[]
+  assets          Asset[]
+  dcaPlans        DcaPlan[]
+  transactions    Transaction[]
+  goals           Goal[]
+  notifications   Notification[]
+  feedbacks       Feedback[]
+  buyingRuleSets  BuyingRuleSet[]
+  sellRuleSets    SellRuleSet[]
 
   @@map("users")
 }
@@ -100,11 +106,12 @@ model DcaPlan {
   userId           String       @map("user_id")
   assetId          String?      @map("asset_id") // nullable, kept for legacy plans only
   name             String? // optional label, e.g. "Monthly BTC stack"
-  amountUsd        Float        @map("amount_usd") // total USD to buy each time
+  amountUsd        Float        @map("amount_usd") // base/fallback USD to buy each time
+  minBudgetUsd     Float?       @map("min_budget_usd") // minimum spend per cycle (bullish market)
+  maxBudgetUsd     Float?       @map("max_budget_usd") // maximum spend per cycle (bearish/aggressive)
   frequency        DcaFrequency
   intervalDays     Int?         @map("interval_days") // only for CUSTOM frequency
   isActive         Boolean      @default(true) @map("is_active")
-  perAssetRules    Boolean      @default(false) @map("per_asset_rules") // true = evaluate rules per-asset; false = weighted group average
   startDate        DateTime     @map("start_date")
   endDate          DateTime?    @map("end_date")
   nextPurchaseDate DateTime?    @map("next_purchase_date")
@@ -113,12 +120,12 @@ model DcaPlan {
   createdAt        DateTime     @default(now()) @map("created_at")
   updatedAt        DateTime     @updatedAt @map("updated_at")
 
-  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  asset        Asset?           @relation(fields: [assetId], references: [id], onDelete: SetNull)
-  allocations  PlanAllocation[]
-  transactions Transaction[]
-  buyingRules  BuyingRule[]
-  sellRules    SellRule[]
+  user              User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset             Asset?                @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  allocations       PlanAllocation[]
+  transactions      Transaction[]
+  planBuyingRuleSets PlanBuyingRuleSet[]
+  planSellRuleSets   PlanSellRuleSet[]
 
   @@map("dca_plans")
 }
@@ -138,31 +145,97 @@ model PlanAllocation {
   @@map("plan_allocations")
 }
 
-model BuyingRule {
-  id          String   @id @default(cuid())
-  dcaPlanId   String   @map("dca_plan_id")
-  minDrawdown Float    @map("min_drawdown") // e.g. 20  (positive %, price is this far below ATH)
-  maxDrawdown Float    @map("max_drawdown") // e.g. 40
-  buyAmount   Float    @map("buy_amount") // USD to buy when drawdown is in this range
-  createdAt   DateTime @default(now()) @map("created_at")
+// ─── Rule Sets ───────────────────────────────────────────────────────────────
 
-  dcaPlan DcaPlan @relation(fields: [dcaPlanId], references: [id], onDelete: Cascade)
+// A named, reusable buying strategy (e.g. "Aggressive dip buyer")
+model BuyingRuleSet {
+  id           String           @id @default(cuid())
+  userId       String           @map("user_id")
+  label        String           // e.g. "Conservative", "Aggressive"
+  strategyType RuleStrategyType @default(DRAWDOWN_ATH) @map("strategy_type")
+  notes        String?
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
 
-  @@map("buying_rules")
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rows               BuyingRuleSetRow[]
+  planBuyingRuleSets PlanBuyingRuleSet[]
+
+  @@map("buying_rule_sets")
 }
 
-model SellRule {
+// One row inside a BuyingRuleSet - params are strategy-specific JSON
+model BuyingRuleSetRow {
+  id           String   @id @default(cuid())
+  ruleSetId    String   @map("rule_set_id")
+  params       Json     // e.g. { "minDrawdown": 20, "maxDrawdown": 40 }
+  multiplier   Float    @default(1) // buy = multiplier × plan.amountUsd
+  sortOrder    Int      @default(0) @map("sort_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  ruleSet BuyingRuleSet @relation(fields: [ruleSetId], references: [id], onDelete: Cascade)
+
+  @@map("buying_rule_set_rows")
+}
+
+// Join: which rule sets are assigned to a plan (one marked active)
+model PlanBuyingRuleSet {
+  id          String   @id @default(cuid())
+  planId      String   @map("plan_id")
+  ruleSetId   String   @map("rule_set_id")
+  isActive    Boolean  @default(false) @map("is_active") // only one per plan should be true
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  plan    DcaPlan       @relation(fields: [planId], references: [id], onDelete: Cascade)
+  ruleSet BuyingRuleSet @relation(fields: [ruleSetId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, ruleSetId])
+  @@map("plan_buying_rule_sets")
+}
+
+// A named, reusable selling strategy
+model SellRuleSet {
+  id           String           @id @default(cuid())
+  userId       String           @map("user_id")
+  label        String
+  strategyType RuleStrategyType @default(DRAWDOWN_ATH) @map("strategy_type")
+  notes        String?
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rows             SellRuleSetRow[]
+  planSellRuleSets PlanSellRuleSet[]
+
+  @@map("sell_rule_sets")
+}
+
+model SellRuleSetRow {
   id             String   @id @default(cuid())
-  dcaPlanId      String   @map("dca_plan_id")
-  minProfit      Float    @map("min_profit") // e.g. 10  (positive %, price is this far above avg buy)
-  maxProfit      Float    @map("max_profit") // e.g. 25
-  sellAmount     Float    @map("sell_amount") // amount to sell, USD or % depending on sellAmountType
+  ruleSetId      String   @map("rule_set_id")
+  params         Json     // e.g. { "minProfit": 10, "maxProfit": 25 }
+  sellAmount     Float    @map("sell_amount")
   sellAmountType String   @default("USD") @map("sell_amount_type") // 'USD' | 'PCT'
+  sortOrder      Int      @default(0) @map("sort_order")
   createdAt      DateTime @default(now()) @map("created_at")
 
-  dcaPlan DcaPlan @relation(fields: [dcaPlanId], references: [id], onDelete: Cascade)
+  ruleSet SellRuleSet @relation(fields: [ruleSetId], references: [id], onDelete: Cascade)
 
-  @@map("sell_rules")
+  @@map("sell_rule_set_rows")
+}
+
+model PlanSellRuleSet {
+  id        String   @id @default(cuid())
+  planId    String   @map("plan_id")
+  ruleSetId String   @map("rule_set_id")
+  isActive  Boolean  @default(false) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  plan    DcaPlan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  ruleSet SellRuleSet @relation(fields: [ruleSetId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, ruleSetId])
+  @@map("plan_sell_rule_sets")
 }
 
 model Transaction {

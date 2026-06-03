@@ -7,6 +7,7 @@ import { useAssets, useCreateAsset, useUpdateAsset, useDeleteAsset } from '@/hoo
 import { Badge } from '@/components/ui/Badge';
 import { Asset, AssetType } from '@/types';
 import { toast } from '@/lib/toast';
+import { Pencil } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { DataExportModal } from '@/components/DataExportModal';
@@ -183,7 +184,7 @@ function AssetRow({ asset, onEdit, isConfirming, onRemoveRequest, onCancelRemove
       </div>
       <div className="flex items-center gap-3">
         {!isConfirming && (
-          <button onClick={onEdit} className="text-xs text-brand-400 hover:text-brand-300 transition-colors">Edit</button>
+          <button onClick={onEdit} title="Edit" className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-500 hover:text-brand-300 hover:bg-brand-500/10 transition-colors"><Pencil size={13} /></button>
         )}
         {isConfirming ? (
           <div className="flex items-center gap-2">
@@ -380,7 +381,7 @@ export default function General() {
         {assets.length === 0 ? (
           <div className="px-5 py-8 text-center text-gray-600 text-sm">No assets yet. Add one above.</div>
         ) : (
-          <div className="divide-y divide-gray-800">
+          <div className="divide-y divide-gray-200">
             {assets.map(asset => (
               <AssetRow key={asset.id} asset={asset}
                 onEdit={() => setEditingAsset(asset)}

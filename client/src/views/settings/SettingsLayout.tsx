@@ -22,7 +22,7 @@ function Tab({ to, label, exact }: { to: string; label: string; exact?: boolean 
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6">
       <div>
         <h1 className="text-xl md:text-2xl font-bold text-gray-100">Settings</h1>
         <p className="text-sm text-gray-500 mt-1">Manage your account and preferences</p>

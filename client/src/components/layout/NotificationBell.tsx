@@ -107,7 +107,7 @@ export function NotificationBell() {
             </div>
           </div>
 
-          <div className="max-h-96 overflow-y-auto divide-y divide-gray-800">
+          <div className="max-h-96 overflow-y-auto divide-y divide-gray-200">
             {items.length === 0 ? (
               <div className="px-4 py-8 text-center text-sm text-gray-600">No notifications yet</div>
             ) : (

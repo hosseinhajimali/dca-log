@@ -22,13 +22,14 @@ const allocationSchema = z.array(
 const planSchema = z.object({
   name: z.string().optional(),
   amountUsd: z.number().positive(),
+  minBudgetUsd: z.number().positive().optional().nullable(),
+  maxBudgetUsd: z.number().positive().optional().nullable(),
   frequency: z.enum(['DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'CUSTOM']),
   intervalDays: z.number().int().positive().optional(),
   startDate: z.string().datetime(),
   endDate: z.string().datetime().optional().nullable(),
   scheduledTime: z.string().regex(/^\d{2}:\d{2}$/).optional().default('08:00'),
   notes: z.string().optional(),
-  perAssetRules: z.boolean().optional(),
   allocations: allocationSchema,
 });
 
@@ -37,8 +38,12 @@ const planSchema = z.object({
 const PLAN_INCLUDE = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   allocations: { include: { asset: true }, orderBy: { allocationPct: 'desc' as any } },
-  buyingRules: { orderBy: { minDrawdown: 'asc' as const } },
-  sellRules:   { orderBy: { minProfit: 'asc' as const } },
+  planBuyingRuleSets: {
+    include: { ruleSet: { include: { rows: { orderBy: { sortOrder: 'asc' as const } } } } },
+  },
+  planSellRuleSets: {
+    include: { ruleSet: { include: { rows: { orderBy: { sortOrder: 'asc' as const } } } } },
+  },
 } as const;
 
 // ─── types ────────────────────────────────────────────────────────────────────
@@ -48,153 +53,36 @@ type AllocWithAsset = {
   allocationPct: number;
   asset: { symbol: string; color?: string | null };
 };
-type BuyingRule = { minDrawdown: number; maxDrawdown: number; buyAmount: number };
 type PriceEntry = { priceUsd: number; ath: number | null };
 
-type SellRule = { id: string; minProfit: number; maxProfit: number; sellAmount: number };
+type RuleSetRow = { params: Record<string, unknown>; multiplier: number; sortOrder: number };
+type AssignedBuyingRuleSet = { ruleSetId: string; isActive: boolean; ruleSet: { label: string; strategyType: string; rows: RuleSetRow[] } };
+type AssignedSellRuleSet  = { ruleSetId: string; isActive: boolean; ruleSet: { label: string; strategyType: string; rows: { params: Record<string, unknown>; sellAmount: number; sellAmountType: string; sortOrder: number }[] } };
 
 type RichPlan = {
   amountUsd: number;
-  perAssetRules: boolean;
   allocations: AllocWithAsset[];
-  buyingRules: BuyingRule[];
-  sellRules: SellRule[];
+  planBuyingRuleSets: AssignedBuyingRuleSet[];
+  planSellRuleSets: AssignedSellRuleSet[];
   [key: string]: unknown;
 };
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
-
-function matchRule(drawdownPct: number | null, rules: BuyingRule[]): BuyingRule | null {
-  if (drawdownPct === null || rules.length === 0) return null;
-  return [...rules]
-    .sort((a, b) => b.minDrawdown - a.minDrawdown)
-    .find((r) => drawdownPct >= r.minDrawdown && drawdownPct <= r.maxDrawdown) ?? null;
-}
 
 function assetDrawdown(price: PriceEntry | undefined): number | null {
   if (!price?.ath || price.ath <= 0 || price.priceUsd <= 0) return null;
   return Math.abs(((price.priceUsd - price.ath) / price.ath) * 100);
 }
 
-// ── Method A: weighted-average drawdown → one rule for the whole group ────────
-function enrichGroupMethod(plan: RichPlan, priceMap: Map<string, PriceEntry>) {
-  let weightedDrawdown: number | null = null;
-  let totalWeight = 0;
-
-  for (const alloc of plan.allocations) {
-    const price = priceMap.get(alloc.asset.symbol);
-    if (price?.ath && price.ath > 0 && price.priceUsd > 0) {
-      const dd = ((price.priceUsd - price.ath) / price.ath) * 100; // negative
-      weightedDrawdown = (weightedDrawdown ?? 0) + dd * (alloc.allocationPct / 100);
-      totalWeight += alloc.allocationPct;
-    }
-  }
-  if (weightedDrawdown !== null && totalWeight > 0 && totalWeight < 100) {
-    weightedDrawdown = (weightedDrawdown / totalWeight) * 100;
-  }
-
-  const drawdownPct = weightedDrawdown !== null ? Math.abs(weightedDrawdown) : null;
-  const activeRule = matchRule(drawdownPct, plan.buyingRules);
-  const suggestedAmount = activeRule ? activeRule.buyAmount : plan.amountUsd;
-
-  const suggestedAllocations = plan.allocations.map((alloc) => ({
-    assetId: alloc.assetId,
-    symbol: alloc.asset.symbol,
-    color: alloc.asset.color ?? null,
-    allocationPct: alloc.allocationPct,
-    amount: +(suggestedAmount * (alloc.allocationPct / 100)).toFixed(2),
-  }));
-
-  return { ...plan, drawdownFromAth: weightedDrawdown, suggestedAmount, suggestedAllocations };
-}
-
-// ── Method B: per-asset rule evaluation → each asset independently ────────────
-//
-// The rule's buyAmount encodes a multiplier relative to the plan's total base amount.
-// That multiplier is applied independently to each asset's share of the base amount.
-//
-// Example: plan $100 base, BTC 70% / ETH 30%. Rule: −20%→−40% buy $300 (3×).
-//   BTC at −30% → matches rule → multiplier 3 → BTC amount = $70 × 3 = $210
-//   ETH at  −5% → no rule     → multiplier 1 → ETH amount = $30 × 1 = $30
-//   Total suggested = $240  (vs $300 in group method)
-//
-function enrichPerAssetMethod(plan: RichPlan, priceMap: Map<string, PriceEntry>) {
-  // Still compute weighted drawdown for display (ATH badge etc.)
-  let weightedDrawdown: number | null = null;
-  let totalWeight = 0;
-
-  let totalSuggested = 0;
-
-  const suggestedAllocations = plan.allocations.map((alloc) => {
-    const price = priceMap.get(alloc.asset.symbol);
-    const dd = assetDrawdown(price);
-
-    // Accumulate weighted drawdown for display
-    if (price?.ath && price.ath > 0 && price.priceUsd > 0) {
-      const ddRaw = ((price.priceUsd - price.ath) / price.ath) * 100;
-      weightedDrawdown = (weightedDrawdown ?? 0) + ddRaw * (alloc.allocationPct / 100);
-      totalWeight += alloc.allocationPct;
-    }
-
-    // This asset's base share of the plan
-    const baseShare = plan.amountUsd * (alloc.allocationPct / 100);
-
-    // Find the matching rule for this asset's drawdown
-    const activeRule = matchRule(dd, plan.buyingRules);
-
-    // Rule's multiplier relative to the plan's total base amount
-    const multiplier = activeRule ? activeRule.buyAmount / plan.amountUsd : 1;
-
-    const amount = +(baseShare * multiplier).toFixed(2);
-    totalSuggested += amount;
-
-    return {
-      assetId: alloc.assetId,
-      symbol: alloc.asset.symbol,
-      color: alloc.asset.color ?? null,
-      allocationPct: alloc.allocationPct,
-      amount,
-      // expose per-asset detail
-      drawdownPct: dd,
-      activeRuleMultiplier: multiplier,
-    };
-  });
-
-  if (weightedDrawdown !== null && totalWeight > 0 && totalWeight < 100) {
-    weightedDrawdown = (weightedDrawdown / totalWeight) * 100;
-  }
-
-  return {
-    ...plan,
-    drawdownFromAth: weightedDrawdown,
-    suggestedAmount: +totalSuggested.toFixed(2),
-    suggestedAllocations,
-  };
-}
-
-function computeSellSuggestion(
-  plan: RichPlan,
-  priceMap: Map<string, PriceEntry>,
-  avgCostMap: Map<string, number>,
-  holdingsValueMap: Map<string, number>,
-): number | null {
-  const matched: number[] = [];
-  for (const alloc of plan.allocations) {
-    const price   = priceMap.get(alloc.asset.symbol)?.priceUsd ?? 0;
-    const avgCost = avgCostMap.get(alloc.assetId) ?? 0;
-    const profitPct = avgCost > 0 && price > 0 ? ((price - avgCost) / avgCost) * 100 : null;
-    for (const rule of (plan.sellRules as (typeof plan.sellRules[0] & { sellAmountType: string })[]) ) {
-      if (profitPct !== null && profitPct >= rule.minProfit && profitPct <= rule.maxProfit) {
-        let amount = rule.sellAmount;
-        if (rule.sellAmountType === 'PCT') {
-          const holdingsValue = holdingsValueMap.get(alloc.assetId) ?? 0;
-          amount = (rule.sellAmount / 100) * holdingsValue;
-        }
-        matched.push(amount);
-      }
-    }
-  }
-  return matched.length > 0 ? Math.max(...matched) : null;
+function matchBuyRow(drawdownPct: number | null, rows: RuleSetRow[]): RuleSetRow | null {
+  if (drawdownPct === null || rows.length === 0) return null;
+  return [...rows]
+    .sort((a, b) => b.sortOrder - a.sortOrder)
+    .find((r) => {
+      const p = r.params as { minDrawdown?: number; maxDrawdown?: number };
+      return p.minDrawdown != null && p.maxDrawdown != null
+        && drawdownPct >= p.minDrawdown && drawdownPct <= p.maxDrawdown;
+    }) ?? null;
 }
 
 function enrichPlan(
@@ -203,13 +91,69 @@ function enrichPlan(
   avgCostMap: Map<string, number>,
   holdingsValueMap: Map<string, number>,
 ) {
-  const base = plan.perAssetRules
-    ? enrichPerAssetMethod(plan, priceMap)
-    : enrichGroupMethod(plan, priceMap);
-  return {
-    ...base,
-    suggestedSellAmount: computeSellSuggestion(plan, priceMap, avgCostMap, holdingsValueMap),
-  };
+  // Per-asset drawdown - each asset evaluated independently
+  const assetDrawdowns = plan.allocations.map((alloc) => ({
+    assetId: alloc.assetId,
+    symbol: alloc.asset.symbol,
+    color: alloc.asset.color ?? null,
+    allocationPct: alloc.allocationPct,
+    drawdownPct: assetDrawdown(priceMap.get(alloc.asset.symbol)),
+  }));
+
+  // Weighted drawdown for display (still useful as a single summary number)
+  let weightedDrawdown: number | null = null;
+  let totalWeight = 0;
+  for (const a of assetDrawdowns) {
+    if (a.drawdownPct !== null) {
+      weightedDrawdown = (weightedDrawdown ?? 0) + (-a.drawdownPct) * (a.allocationPct / 100);
+      totalWeight += a.allocationPct;
+    }
+  }
+  if (weightedDrawdown !== null && totalWeight > 0 && totalWeight < 100) {
+    weightedDrawdown = (weightedDrawdown / totalWeight) * 100;
+  }
+
+  // Active buying rule set - evaluate each asset independently
+  const activeBuySet = plan.planBuyingRuleSets.find(p => p.isActive);
+  const suggestedAllocations = assetDrawdowns.map((a) => {
+    const baseAmount = plan.amountUsd * (a.allocationPct / 100);
+    const match = activeBuySet ? matchBuyRow(a.drawdownPct, activeBuySet.ruleSet.rows) : null;
+    const multiplier = match ? match.multiplier : 1;
+    return {
+      assetId: a.assetId,
+      symbol: a.symbol,
+      color: a.color,
+      allocationPct: a.allocationPct,
+      drawdownPct: a.drawdownPct,
+      multiplier,
+      amount: +(baseAmount * multiplier).toFixed(2),
+    };
+  });
+  const suggestedAmount = +suggestedAllocations.reduce((s, a) => s + a.amount, 0).toFixed(2);
+
+  // Active sell rule set suggestion
+  const activeSellSet = plan.planSellRuleSets.find(p => p.isActive);
+  let suggestedSellAmount: number | null = null;
+  if (activeSellSet) {
+    const matched: number[] = [];
+    for (const alloc of plan.allocations) {
+      const price   = priceMap.get(alloc.asset.symbol)?.priceUsd ?? 0;
+      const avgCost = avgCostMap.get(alloc.assetId) ?? 0;
+      const profitPct = avgCost > 0 && price > 0 ? ((price - avgCost) / avgCost) * 100 : null;
+      if (profitPct === null) continue;
+      for (const row of activeSellSet.ruleSet.rows) {
+        const p = row.params as { minProfit?: number; maxProfit?: number };
+        if (p.minProfit != null && p.maxProfit != null && profitPct >= p.minProfit && profitPct <= p.maxProfit) {
+          let amount = row.sellAmount;
+          if (row.sellAmountType === 'PCT') amount = (row.sellAmount / 100) * (holdingsValueMap.get(alloc.assetId) ?? 0);
+          matched.push(amount);
+        }
+      }
+    }
+    suggestedSellAmount = matched.length > 0 ? Math.max(...matched) : null;
+  }
+
+  return { ...plan, drawdownFromAth: weightedDrawdown, suggestedAmount, suggestedAllocations, assetDrawdowns, suggestedSellAmount };
 }
 
 // ─── notification firing ──────────────────────────────────────────────────────
@@ -231,8 +175,8 @@ export async function fireRuleNotifications(
       id: string; name?: string | null; drawdownFromAth: number | null;
       frequency: import('@prisma/client').DcaFrequency;
       intervalDays?: number | null; scheduledTime?: string | null;
-      buyingRules: (BuyingRule & { id: string })[]; sellRules: (SellRule & { sellAmountType: string })[];
       nextPurchaseDate?: string | null; allocations: AllocWithAsset[];
+      suggestedAmount: number; suggestedSellAmount: number | null;
     };
 
     // Compute the effective next purchase date dynamically so stale DB dates don't break checks
@@ -265,32 +209,18 @@ export async function fireRuleNotifications(
     const isScheduledToday = effectiveNext === todayStr;
 
     if (isScheduledToday) {
-      // BUYING_RULE_MET, use matchRule so only one notification fires even if ranges overlap
       const drawdownPct = p.drawdownFromAth !== null ? Math.abs(p.drawdownFromAth) : null;
-      if (drawdownPct !== null) {
-        const activeRule = matchRule(drawdownPct, p.buyingRules);
-        if (activeRule) {
-          await maybeNotify(userId, 'BUYING_RULE_MET', 'Buy rule triggered',
-            `Plan "${label}" is down ${drawdownPct.toFixed(1)}% from ATH - a buying rule is active for today's purchase.`,
-            { planId: p.id, ruleId: (activeRule as { id?: string }).id },
-          );
-        }
+      if (drawdownPct !== null && p.suggestedAmount > p.amountUsd) {
+        await maybeNotify(userId, 'BUYING_RULE_MET', 'Buy rule triggered',
+          `Plan "${label}" is down ${drawdownPct.toFixed(1)}% from ATH - a buying rule is active for today's purchase.`,
+          { planId: p.id },
+        );
       }
-
-      // SELL_RULE_MET, P&L is in a rule range
-      for (const alloc of p.allocations) {
-        const price   = priceMap.get(alloc.asset.symbol)?.priceUsd ?? 0;
-        const avgCost = avgCostMap.get(alloc.assetId) ?? 0;
-        const profitPct = avgCost > 0 && price > 0 ? ((price - avgCost) / avgCost) * 100 : null;
-        if (profitPct === null) continue;
-        for (const rule of p.sellRules) {
-          if (profitPct >= rule.minProfit && profitPct <= rule.maxProfit) {
-            await maybeNotify(userId, 'SELL_RULE_MET', 'Take-profit rule triggered',
-              `${alloc.asset.symbol} in plan "${label}" is up ${profitPct.toFixed(1)}% - a sell rule is active for today's purchase.`,
-              { planId: p.id, ruleId: rule.id, assetId: alloc.assetId },
-            );
-          }
-        }
+      if (p.suggestedSellAmount !== null) {
+        await maybeNotify(userId, 'SELL_RULE_MET', 'Take-profit rule triggered',
+          `A sell rule is active for plan "${label}" today.`,
+          { planId: p.id },
+        );
       }
     }
   }
@@ -406,7 +336,7 @@ export async function updateDcaPlan(req: AuthRequest, res: Response, next: NextF
     const plan = await prisma.dcaPlan.findFirst({ where: { id, userId: req.userId as string } });
     if (!plan) return next(new AppError(404, 'Plan not found'));
 
-    const updateSchema = planSchema.partial().extend({ isActive: z.boolean().optional() });
+    const updateSchema = planSchema.partial();
     const body = updateSchema.safeParse(req.body);
     if (!body.success) return next(new AppError(400, body.error.errors[0].message));
 
@@ -419,11 +349,11 @@ export async function updateDcaPlan(req: AuthRequest, res: Response, next: NextF
       const updateData: Record<string, any> = {};
       if (planData.name        !== undefined) updateData.name        = planData.name;
       if (planData.amountUsd   !== undefined) updateData.amountUsd   = planData.amountUsd;
+      if ('minBudgetUsd' in planData) updateData.minBudgetUsd = (planData as Record<string, unknown>).minBudgetUsd ?? null;
+      if ('maxBudgetUsd' in planData) updateData.maxBudgetUsd = (planData as Record<string, unknown>).maxBudgetUsd ?? null;
       if (planData.frequency   !== undefined) updateData.frequency   = planData.frequency;
       if (planData.intervalDays!== undefined) updateData.intervalDays= planData.intervalDays;
-      if (planData.isActive    !== undefined) updateData.isActive    = planData.isActive;
       if (planData.notes       !== undefined) updateData.notes       = planData.notes;
-      if (planData.perAssetRules !== undefined) updateData.perAssetRules = planData.perAssetRules;
       if (planData.startDate   !== undefined) updateData.startDate   = new Date(planData.startDate as string);
       if (planData.endDate     !== undefined) {
         updateData.endDate = planData.endDate ? new Date(planData.endDate as string) : null;
@@ -471,8 +401,8 @@ export async function getPlanStats(req: AuthRequest, res: Response, next: NextFu
       where: { id, userId },
       include: {
         allocations: { include: { asset: true }, orderBy: { allocationPct: 'desc' as const } },
-        buyingRules: true,
-        sellRules: true,
+        planBuyingRuleSets: { include: { ruleSet: { include: { rows: { orderBy: { sortOrder: 'asc' as const } } } } } },
+        planSellRuleSets:   { include: { ruleSet: { include: { rows: { orderBy: { sortOrder: 'asc' as const } } } } } },
       },
     });
     if (!plan) return next(new AppError(404, 'Plan not found'));

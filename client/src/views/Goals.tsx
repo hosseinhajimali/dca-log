@@ -12,25 +12,22 @@ import { useCurrencyFormatter, formatQuantity } from '@/lib/format';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const TABS: { key: GoalType; label: string; Icon: LucideIcon; description: string; detail: string }[] = [
+const TABS: { key: GoalType; label: string; description: string; detail: string }[] = [
   {
     key: 'ACCUMULATION',
     label: 'Accumulation',
-    Icon: Layers,
     description: 'Track how much of a specific asset you\'ve stacked.',
     detail: 'Set a quantity target (e.g. 1 BTC or 10 ETH) and every buy you log moves the progress bar forward. Great for long-term stacking goals where you care about how many coins you own, not just their current dollar value.',
   },
   {
     key: 'PORTFOLIO_VALUE',
     label: 'Portfolio Value',
-    Icon: DollarSign,
     description: 'Aim for a total portfolio value in USD.',
     detail: 'Set a dollar milestone (e.g. $50,000 or $1M) and watch your combined holdings grow toward it as prices rise and you keep buying. Useful for retirement targets, financial independence numbers, or any wealth milestone you\'re working toward.',
   },
   {
     key: 'INVESTMENT_COMMITMENT',
     label: 'Investment Commitment',
-    Icon: CalendarCheck,
     description: 'Measure whether you\'re sticking to your DCA discipline.',
     detail: 'Set a monthly investment amount and track how many months you actually hit it. The bar chart shows each month at a glance: green means you met the target, gray means you fell short. Ideal for building and maintaining consistent investing habits.',
   },
@@ -468,7 +465,6 @@ function EmptyState({ type, onAdd }: { type: GoalType; onAdd: () => void }) {
   const tab = TABS.find(t => t.key === type)!;
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center gap-2">
-      <tab.Icon size={36} strokeWidth={1.5} className="text-gray-700" />
       <p className="text-gray-500 text-sm">No {tab.label.toLowerCase()} goals yet.</p>
       <p className="text-gray-600 text-xs">Hit "Add goal" to set your first one.</p>
     </div>
@@ -518,21 +514,20 @@ export default function Goals() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-900 border border-gray-800 rounded-xl p-1">
+      <div className="flex border-b border-gray-800">
         {TABS.map(tab => {
           const count = goals.filter(g => g.type === tab.key && !g.isCompleted && (g.progressPct ?? 0) < 100).length;
           return (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === tab.key
-                  ? 'bg-gray-800 text-gray-100'
-                  : 'text-gray-500 hover:text-gray-300'
+                  ? 'border-brand-400 text-brand-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-600'
               }`}
             >
-              <tab.Icon size={15} strokeWidth={1.75} />
-              <span className="hidden sm:inline">{tab.label}</span>
+              <span>{tab.label}</span>
               {count > 0 && (
                 <span className={`text-xs px-1.5 py-0.5 rounded-full font-mono ${activeTab === tab.key ? 'bg-brand-500/20 text-brand-400' : 'bg-gray-800 text-gray-600'}`}>
                   {count}

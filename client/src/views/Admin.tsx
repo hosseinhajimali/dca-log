@@ -112,9 +112,10 @@ function UsersTab() {
             ) : (
               <button
                 onClick={() => setConfirmId(u.id)}
-                className="shrink-0 text-xs text-gray-600 hover:text-red-400 border border-gray-800 hover:border-red-500/30 px-2.5 py-1 rounded-lg transition-colors"
+                title="Delete user"
+                className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"
               >
-                Delete
+                <Trash2 size={13} />
               </button>
             )
           )}

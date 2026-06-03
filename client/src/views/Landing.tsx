@@ -157,7 +157,7 @@ export default function Landing() {
       </section>
 
       {/* ── Divider ── */}
-      <div className="border-t border-gray-800/60" />
+      <div className="border-t border-gray-800" />
 
       {/* ── Features ── */}
       <section id="features" className="max-w-6xl mx-auto px-6 py-20">
@@ -182,7 +182,7 @@ export default function Landing() {
       </section>
 
       {/* ── Divider ── */}
-      <div className="border-t border-gray-800/60" />
+      <div className="border-t border-gray-800" />
 
       {/* ── Feature showcase ── */}
       <section className="max-w-6xl mx-auto px-6 py-20 space-y-24">
@@ -244,7 +244,7 @@ export default function Landing() {
       </section>
 
       {/* ── Divider ── */}
-      <div className="border-t border-gray-800/60" />
+      <div className="border-t border-gray-800" />
 
       {/* ── How it works ── */}
       <section id="how-it-works" className="max-w-6xl mx-auto px-6 py-20">

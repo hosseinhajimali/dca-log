@@ -195,15 +195,15 @@ function HorizonRow({
 
   return (
     <tr className="border-b border-gray-800 last:border-0">
-      <td className="px-4 py-3">
+      <td className="px-5 py-3.5">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full" style={{ background: scenario.color }} />
           <span className="text-sm font-medium text-gray-300">{scenario.label}</span>
         </div>
       </td>
-      <td className="px-4 py-3 font-mono text-sm" style={{ color: scenario.color }}>{format(finalValue)}</td>
-      <td className="px-4 py-3 font-mono text-sm text-gray-400">{format(totalInvested)}</td>
-      <td className="px-4 py-3">
+      <td className="px-5 py-3.5 font-mono text-sm" style={{ color: scenario.color }}>{format(finalValue)}</td>
+      <td className="px-5 py-3.5 font-mono text-sm text-gray-400">{format(totalInvested)}</td>
+      <td className="px-5 py-3.5">
         <span className={`font-mono text-sm font-medium ${positive ? 'text-green-400' : 'text-red-400'}`}>
           {positive ? '+' : ''}{ret.toFixed(1)}%
         </span>
@@ -492,7 +492,7 @@ export default function ProjectionCalculator() {
           {/* Horizon mode: final value table */}
           {mode === 'horizon' && (
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-800">
+              <div className="px-5 py-3.5 border-b border-gray-800">
                 <h2 className="text-sm font-semibold text-gray-300">
                   Projected outcome after{' '}
                   <span className="text-gray-100">
@@ -509,11 +509,11 @@ export default function ProjectionCalculator() {
                 <thead>
                   <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-800">
                     {['Scenario', 'Portfolio value', 'Total invested', 'Return'].map(h => (
-                      <th key={h} className="px-4 py-3 text-left font-medium">{h}</th>
+                      <th key={h} className="px-5 py-3.5 text-left font-medium whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-gray-200">
                   {SCENARIOS.map(s => {
                     const last = chartData[chartData.length - 1];
                     return (

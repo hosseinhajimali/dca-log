@@ -1,6 +1,66 @@
 export type AssetType = 'CRYPTO' | 'METAL' | 'STOCK' | 'ETF' | 'OTHER';
 export type TransactionType = 'BUY' | 'SELL';
 export type DcaFrequency = 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'CUSTOM';
+export type RuleStrategyType = 'DRAWDOWN_ATH';
+
+// ─── Rule Sets ────────────────────────────────────────────────────────────────
+
+export interface BuyingRuleSetRow {
+  id: string;
+  ruleSetId: string;
+  params: Record<string, unknown>; // e.g. { minDrawdown: 20, maxDrawdown: 40 }
+  multiplier: number;              // buy = multiplier × plan.amountUsd
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface BuyingRuleSet {
+  id: string;
+  userId: string;
+  label: string;
+  strategyType: RuleStrategyType;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  rows: BuyingRuleSetRow[];
+}
+
+export interface SellRuleSetRow {
+  id: string;
+  ruleSetId: string;
+  params: Record<string, unknown>; // e.g. { minProfit: 10, maxProfit: 25 }
+  sellAmount: number;
+  sellAmountType: 'USD' | 'PCT';
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface SellRuleSet {
+  id: string;
+  userId: string;
+  label: string;
+  strategyType: RuleStrategyType;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  rows: SellRuleSetRow[];
+}
+
+export interface PlanBuyingRuleSet {
+  id: string;
+  planId: string;
+  ruleSetId: string;
+  isActive: boolean;
+  ruleSet: BuyingRuleSet;
+}
+
+export interface PlanSellRuleSet {
+  id: string;
+  planId: string;
+  ruleSetId: string;
+  isActive: boolean;
+  ruleSet: SellRuleSet;
+}
 
 export interface User {
   id: string;
@@ -25,24 +85,6 @@ export interface Asset {
   createdAt: string;
 }
 
-export interface SellRule {
-  id: string;
-  dcaPlanId: string;
-  minProfit: number;
-  maxProfit: number;
-  sellAmount: number;
-  sellAmountType: 'USD' | 'PCT';
-  createdAt: string;
-}
-
-export interface BuyingRule {
-  id: string;
-  dcaPlanId: string;
-  minDrawdown: number;  // e.g. 20  (positive %)
-  maxDrawdown: number;  // e.g. 40
-  buyAmount: number;    // USD
-  createdAt: string;
-}
 
 export interface PlanAllocation {
   id: string;
@@ -57,8 +99,17 @@ export interface SuggestedAllocation {
   symbol: string;
   color?: string | null;
   allocationPct: number;
-  amount: number; // USD portion for this asset
-  drawdownPct?: number | null; // only present when perAssetRules=true
+  drawdownPct?: number | null;
+  multiplier?: number;
+  amount: number;
+}
+
+export interface AssetDrawdown {
+  assetId: string;
+  symbol: string;
+  color?: string | null;
+  allocationPct: number;
+  drawdownPct: number | null;
 }
 
 export interface DcaPlan {
@@ -66,10 +117,11 @@ export interface DcaPlan {
   userId: string;
   name?: string;
   amountUsd: number;
+  minBudgetUsd?: number | null;
+  maxBudgetUsd?: number | null;
   frequency: DcaFrequency;
   intervalDays?: number;
   isActive: boolean;
-  perAssetRules: boolean;   // false = weighted-group method; true = per-asset method
   startDate: string;
   endDate?: string | null;
   nextPurchaseDate?: string;
@@ -77,12 +129,13 @@ export interface DcaPlan {
   notes?: string;
   createdAt: string;
   updatedAt: string;
-  allocations: PlanAllocation[];          // assets + their % shares
-  buyingRules: BuyingRule[];
-  sellRules: SellRule[];
-  drawdownFromAth: number | null;         // weighted average, negative = below ATH
-  suggestedAmount: number;               // total suggested buy
-  suggestedAllocations: SuggestedAllocation[]; // per-asset breakdown
+  allocations: PlanAllocation[];
+  planBuyingRuleSets: PlanBuyingRuleSet[];
+  planSellRuleSets: PlanSellRuleSet[];
+  drawdownFromAth: number | null;
+  suggestedAmount: number;
+  suggestedAllocations: SuggestedAllocation[];
+  assetDrawdowns: AssetDrawdown[];
 }
 
 export interface Transaction {

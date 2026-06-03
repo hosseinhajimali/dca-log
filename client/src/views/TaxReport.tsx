@@ -344,7 +344,7 @@ export default function TaxReport() {
           {/* Per-asset summary table */}
           {summaries.length > 0 && (
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-800">
+              <div className="px-5 py-3.5 border-b border-gray-800">
                 <h2 className="text-sm font-semibold text-gray-300">Cost Basis Summary {selectedYear}</h2>
                 <p className="text-xs text-gray-600 mt-0.5">Average cost method · totals are cumulative from all time up to Dec 31, {selectedYear}</p>
               </div>
@@ -361,14 +361,14 @@ export default function TaxReport() {
                         'Avg cost / unit',
                         `Txs in ${selectedYear}`,
                       ].map((h) => (
-                        <th key={h} className="px-5 py-3 text-left font-medium whitespace-nowrap">{h}</th>
+                        <th key={h} className="px-5 py-3.5 text-left font-medium whitespace-nowrap">{h}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-800">
+                  <tbody className="divide-y divide-gray-200">
                     {summaries.map((s) => (
-                      <tr key={s.symbol} className="hover:bg-gray-800/50 transition-colors">
-                        <td className="px-5 py-4">
+                      <tr key={s.symbol} className="hover:bg-gray-700/50 transition-colors">
+                        <td className="px-5 py-3.5">
                           <span
                             className="font-bold font-mono"
                             style={s.color ? { color: s.color } : { color: '#f3f4f6' }}
@@ -377,16 +377,16 @@ export default function TaxReport() {
                           </span>
                           <p className="text-xs text-gray-500 mt-0.5">{s.name}</p>
                         </td>
-                        <td className="px-5 py-4 font-mono text-gray-300">
+                        <td className="px-5 py-3.5 font-mono text-gray-300">
                           {s.qtyBought > 0 ? formatQuantity(s.qtyBought) : <span className="text-gray-600">—</span>}
                         </td>
-                        <td className="px-5 py-4 font-mono text-gray-300">
+                        <td className="px-5 py-3.5 font-mono text-gray-300">
                           {s.amountSpent > 0 ? format(s.amountSpent) : <span className="text-gray-600">—</span>}
                         </td>
-                        <td className="px-5 py-4 font-mono text-gray-400">{formatQuantity(s.totalQty)}</td>
-                        <td className="px-5 py-4 font-mono text-gray-400">{format(s.totalCost)}</td>
-                        <td className="px-5 py-4 font-mono text-gray-200 font-medium">{format(s.avgCost)}</td>
-                        <td className="px-5 py-4 text-gray-500">{s.txCount}</td>
+                        <td className="px-5 py-3.5 font-mono text-gray-400">{formatQuantity(s.totalQty)}</td>
+                        <td className="px-5 py-3.5 font-mono text-gray-400">{format(s.totalCost)}</td>
+                        <td className="px-5 py-3.5 font-mono text-gray-200 font-medium">{format(s.avgCost)}</td>
+                        <td className="px-5 py-3.5 text-gray-500">{s.txCount}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -394,17 +394,17 @@ export default function TaxReport() {
                   {summaries.length > 1 && (
                     <tfoot>
                       <tr className="border-t border-gray-700 bg-gray-800/30">
-                        <td className="px-5 py-3 text-xs text-gray-400 font-medium">Total</td>
-                        <td className="px-5 py-3" />
-                        <td className="px-5 py-3 font-mono text-sm font-semibold text-gray-200">
+                        <td className="px-5 py-3.5 text-xs text-gray-400 font-medium">Total</td>
+                        <td className="px-5 py-3.5" />
+                        <td className="px-5 py-3.5 font-mono text-sm font-semibold text-gray-200">
                           {format(totalSpentYear)}
                         </td>
-                        <td className="px-5 py-3" />
-                        <td className="px-5 py-3 font-mono text-sm font-semibold text-gray-200">
+                        <td className="px-5 py-3.5" />
+                        <td className="px-5 py-3.5 font-mono text-sm font-semibold text-gray-200">
                           {format(summaries.reduce((s, a) => s + a.totalCost, 0))}
                         </td>
-                        <td className="px-5 py-3" />
-                        <td className="px-5 py-3 text-sm font-semibold text-gray-300">{totalTxYear}</td>
+                        <td className="px-5 py-3.5" />
+                        <td className="px-5 py-3.5 text-sm font-semibold text-gray-300">{totalTxYear}</td>
                       </tr>
                     </tfoot>
                   )}
@@ -416,7 +416,7 @@ export default function TaxReport() {
           {/* Transaction detail preview */}
           {yearEntries.length > 0 && (
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
+              <div className="px-5 py-3.5 border-b border-gray-800 flex items-center justify-between">
                 <div>
                   <h2 className="text-sm font-semibold text-gray-300">Transaction Detail {selectedYear}</h2>
                   <p className="text-xs text-gray-600 mt-0.5">Running average cost computed from all-time purchases</p>
@@ -431,15 +431,15 @@ export default function TaxReport() {
                   <thead>
                     <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-800">
                       {['Date', 'Asset', 'Quantity', 'Price / unit', 'Amount', 'Running avg cost', 'Exchange'].map((h) => (
-                        <th key={h} className="px-5 py-3 text-left font-medium whitespace-nowrap">{h}</th>
+                        <th key={h} className="px-5 py-3.5 text-left font-medium whitespace-nowrap">{h}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-800">
+                  <tbody className="divide-y divide-gray-200">
                     {yearEntries.slice(0, 20).map((e, i) => (
-                      <tr key={i} className="hover:bg-gray-800/50 transition-colors">
-                        <td className="px-5 py-3 text-gray-400 whitespace-nowrap">{formatDate(e.tx.purchasedAt)}</td>
-                        <td className="px-5 py-3">
+                      <tr key={i} className="hover:bg-gray-700/50 transition-colors">
+                        <td className="px-5 py-3.5 text-gray-400 whitespace-nowrap">{formatDate(e.tx.purchasedAt)}</td>
+                        <td className="px-5 py-3.5">
                           <span
                             className="font-mono font-bold"
                             style={e.tx.asset.color ? { color: e.tx.asset.color } : { color: '#f3f4f6' }}
@@ -447,18 +447,18 @@ export default function TaxReport() {
                             {e.tx.asset.symbol}
                           </span>
                         </td>
-                        <td className="px-5 py-3 font-mono text-gray-300">{formatQuantity(e.tx.quantity)}</td>
-                        <td className="px-5 py-3 font-mono text-gray-400">{format(e.tx.pricePerUnit)}</td>
-                        <td className="px-5 py-3 font-mono text-gray-300">{format(e.tx.amountUsd)}</td>
-                        <td className="px-5 py-3 font-mono text-brand-400 font-medium">{format(e.avgCost)}</td>
-                        <td className="px-5 py-3 text-gray-500 text-xs">{e.tx.exchange ?? '—'}</td>
+                        <td className="px-5 py-3.5 font-mono text-gray-300">{formatQuantity(e.tx.quantity)}</td>
+                        <td className="px-5 py-3.5 font-mono text-gray-400">{format(e.tx.pricePerUnit)}</td>
+                        <td className="px-5 py-3.5 font-mono text-gray-300">{format(e.tx.amountUsd)}</td>
+                        <td className="px-5 py-3.5 font-mono text-brand-400 font-medium">{format(e.avgCost)}</td>
+                        <td className="px-5 py-3.5 text-gray-500 text-xs">{e.tx.exchange ?? '—'}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
               {yearEntries.length > 20 && (
-                <div className="px-5 py-3 border-t border-gray-800 text-xs text-gray-600 text-center">
+                <div className="px-5 py-3.5 border-t border-gray-800 text-xs text-gray-600 text-center">
                   {yearEntries.length - 20} more rows · export CSV to see all
                 </div>
               )}

@@ -118,7 +118,7 @@ export default function Help() {
   });
 
   return (
-    <div className="space-y-10 max-w-2xl">
+    <div className="space-y-6">
       <div>
         <h1 className="text-xl md:text-2xl font-bold text-gray-100">Help & Feedback</h1>
         <p className="text-sm text-gray-500 mt-1">Answers to common questions, and a way to reach us.</p>

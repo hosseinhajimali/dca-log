@@ -279,7 +279,7 @@ export function DataImportModal({ onClose }: DataImportModalProps) {
                 <p className="text-3xl mb-2">✅</p>
                 <p className="text-sm font-medium text-gray-200">Import complete</p>
               </div>
-              <div className="bg-gray-800/40 border border-gray-800 rounded-xl divide-y divide-gray-800 text-sm">
+              <div className="bg-gray-800/40 border border-gray-800 rounded-xl divide-y divide-gray-200 text-sm">
                 {result.assets > 0 && (
                   <div className="flex justify-between px-4 py-2.5">
                     <span className="text-gray-400">Assets created</span>

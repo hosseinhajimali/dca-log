@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Upload, Download } from 'lucide-react';
+import { Upload, Download, Pencil, Trash2 } from 'lucide-react';
 import { useTransactions, useCreateTransaction, useUpdateTransaction, useDeleteTransaction, TxSortBy, TxSortOrder } from '@/hooks/useTransactions';
 import { useAssets } from '@/hooks/useAssets';
 import { Badge } from '@/components/ui/Badge';
@@ -392,7 +392,7 @@ interface SortHeaderProps {
 function SortHeader({ label, field, current, order, onSort, className }: SortHeaderProps) {
   const active = field === current;
   return (
-    <th className={`px-5 py-3 text-left ${className ?? ''}`}>
+    <th className={`px-5 py-3.5 text-left ${className ?? ''}`}>
       <button
         onClick={() => onSort(field)}
         className={`flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider transition-colors ${
@@ -774,9 +774,9 @@ function ImportModal({ assets, onClose }: ImportModalProps) {
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-800">
+                  <tbody>
                     {rows.map((r, i) => (
-                      <tr key={i} className={r.matchError ? 'opacity-40' : ''}>
+                      <tr key={i} className={`${r.matchError ? 'opacity-40' : ''} `}>
                         <td className="px-3 py-2 text-gray-400 whitespace-nowrap">{r.date.slice(0, 10)}</td>
                         <td className="px-3 py-2 font-mono font-bold text-gray-200">{r.symbol}</td>
                         <td className="px-3 py-2 font-mono text-gray-300">{r.quantity}</td>
@@ -978,18 +978,18 @@ export default function Transactions() {
               <thead>
                 <tr className="border-b border-gray-800">
                   <SortHeader label="Date"     field="purchasedAt" current={sortBy} order={sortOrder} onSort={handleSort} />
-                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asset</th>
+                  <th className="px-5 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                  <th className="px-5 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asset</th>
                   <SortHeader label="Amount"   field="amountUsd"   current={sortBy} order={sortOrder} onSort={handleSort} />
                   <SortHeader label="Quantity" field="quantity"     current={sortBy} order={sortOrder} onSort={handleSort} className="hidden md:table-cell" />
                   <SortHeader label="Price"    field="pricePerUnit" current={sortBy} order={sortOrder} onSort={handleSort} className="hidden lg:table-cell" />
-                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Exchange</th>
-                  <th className="px-5 py-3" />
+                  <th className="px-5 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Exchange</th>
+                  <th className="px-5 py-3.5" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800">
+              <tbody className="divide-y divide-gray-200">
                 {transactions.map(tx => (
-                  <tr key={tx.id} className="hover:bg-gray-800/50 transition-colors group">
+                  <tr key={tx.id} className="hover:bg-gray-700/50 transition-colors group">
                     <td className="px-5 py-3.5 text-gray-400 whitespace-nowrap">{formatDate(tx.purchasedAt)}</td>
                     <td className="px-5 py-3.5">
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded font-mono ${tx.type === 'SELL' ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400'}`}>
@@ -1014,14 +1014,18 @@ export default function Transactions() {
                       <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => setEditingTx(tx)}
-                          className="text-xs text-brand-400 hover:text-brand-300 transition-colors"
+                          title="Edit"
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-500 hover:text-brand-300 hover:bg-brand-500/10 transition-colors"
                         >
-                          Edit
+                          <Pencil size={13} />
                         </button>
                         <button
                           onClick={() => setDeletingTx(tx)}
-                          className="text-xs text-red-400 hover:text-red-300 transition-colors"
-                        >Delete</button>
+                          title="Delete"
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                        >
+                          <Trash2 size={13} />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -1033,7 +1037,7 @@ export default function Transactions() {
 
         {/* pagination */}
         {meta && meta.total > meta.limit && (
-          <div className="px-5 py-4 border-t border-gray-800 flex items-center justify-between">
+          <div className="px-5 py-3.5 border-t border-gray-800 flex items-center justify-between">
             <span className="text-xs text-gray-500">
               Showing {(meta.page - 1) * meta.limit + 1}–{Math.min(meta.page * meta.limit, meta.total)} of {meta.total}
             </span>
