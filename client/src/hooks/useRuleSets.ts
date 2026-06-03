@@ -2,6 +2,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { BuyingRuleSet, SellRuleSet, ApiResponse } from '@/types';
 
+interface BuyingRowPayload { params: Record<string, unknown>; multiplier: number; sortOrder?: number; }
+interface SellRowPayload   { params: Record<string, unknown>; sellAmount: number; sellAmountType?: 'USD' | 'PCT'; sortOrder?: number; }
+
+interface BuyingRuleSetPayload { label: string; strategyType?: string; notes?: string; rows: BuyingRowPayload[]; }
+interface SellRuleSetPayload   { label: string; strategyType?: string; notes?: string; rows: SellRowPayload[]; }
+
 // ─── Buying Rule Sets ─────────────────────────────────────────────────────────
 
 export function useBuyingRuleSets() {
@@ -17,7 +23,7 @@ export function useBuyingRuleSets() {
 export function useCreateBuyingRuleSet() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: Omit<BuyingRuleSet, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
+    mutationFn: async (data: BuyingRuleSetPayload) => {
       const res = await api.post<ApiResponse<BuyingRuleSet>>('/rule-sets/buying', data);
       return res.data.data;
     },
@@ -28,7 +34,7 @@ export function useCreateBuyingRuleSet() {
 export function useUpdateBuyingRuleSet() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<Omit<BuyingRuleSet, 'id' | 'userId' | 'createdAt' | 'updatedAt'>> }) => {
+    mutationFn: async ({ id, data }: { id: string; data: Partial<BuyingRuleSetPayload> }) => {
       const res = await api.patch<ApiResponse<BuyingRuleSet>>(`/rule-sets/buying/${id}`, data);
       return res.data.data;
     },
@@ -67,7 +73,7 @@ export function useSellRuleSets() {
 export function useCreateSellRuleSet() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: Omit<SellRuleSet, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
+    mutationFn: async (data: SellRuleSetPayload) => {
       const res = await api.post<ApiResponse<SellRuleSet>>('/rule-sets/selling', data);
       return res.data.data;
     },
@@ -78,7 +84,7 @@ export function useCreateSellRuleSet() {
 export function useUpdateSellRuleSet() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<Omit<SellRuleSet, 'id' | 'userId' | 'createdAt' | 'updatedAt'>> }) => {
+    mutationFn: async ({ id, data }: { id: string; data: Partial<SellRuleSetPayload> }) => {
       const res = await api.patch<ApiResponse<SellRuleSet>>(`/rule-sets/selling/${id}`, data);
       return res.data.data;
     },

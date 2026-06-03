@@ -286,7 +286,6 @@ export function DataExportModal({ onClose }: DataExportModalProps) {
             intervalDays: p.intervalDays,
             amountUsd: p.amountUsd,
             isActive: p.isActive,
-            perAssetRules: p.perAssetRules,
             startDate: p.startDate,
             endDate: p.endDate,
             scheduledTime: p.scheduledTime,
@@ -294,17 +293,6 @@ export function DataExportModal({ onClose }: DataExportModalProps) {
             allocations: p.allocations.map(a => ({
               symbol: a.asset.symbol,
               allocationPct: a.allocationPct,
-            })),
-            buyingRules: p.buyingRules.map(r => ({
-              minDrawdown: r.minDrawdown,
-              maxDrawdown: r.maxDrawdown,
-              buyAmount: r.buyAmount,
-            })),
-            sellRules: p.sellRules.map(r => ({
-              minProfit: r.minProfit,
-              maxProfit: r.maxProfit,
-              sellAmount: r.sellAmount,
-              sellAmountType: r.sellAmountType,
             })),
           }));
       }

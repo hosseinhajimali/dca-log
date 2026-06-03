@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { DcaPlan, BuyingRule, ApiResponse, AssetStats } from '@/types';
+import { DcaPlan, BuyingRuleSet, ApiResponse, AssetStats } from '@/types';
 
 export interface PlanStats {
   plan: DcaPlan;
@@ -80,7 +80,7 @@ export function useCreateBuyingRule(planId: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (data: { minDrawdown: number; maxDrawdown: number; buyAmount: number }) => {
-      const res = await api.post<ApiResponse<BuyingRule>>(`/dca-plans/${planId}/rules`, data);
+      const res = await api.post<ApiResponse<BuyingRuleSet>>(`/dca-plans/${planId}/rules`, data);
       return res.data.data;
     },
     onSuccess: () => {
