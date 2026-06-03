@@ -1,6 +1,8 @@
 import { Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { prisma } from '../lib/prisma';
+import { prisma as _prisma } from '../lib/prisma';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const prisma = _prisma as any;
 import { AuthRequest } from '../types';
 import { AppError } from '../middleware/errorHandler';
 

@@ -111,7 +111,6 @@ export async function portableImport(req: AuthRequest, res: Response, next: Next
             intervalDays:  p.intervalDays != null ? Number(p.intervalDays) : null,
             amountUsd:     Number(p.amountUsd) || 0,
             isActive:      (p.isActive as boolean) ?? true,
-            perAssetRules: (p.perAssetRules as boolean) ?? false,
             startDate:     p.startDate ? new Date(p.startDate as string) : new Date(),
             endDate:       p.endDate   ? new Date(p.endDate as string)   : null,
             scheduledTime: orUndef(p.scheduledTime),
@@ -125,31 +124,6 @@ export async function portableImport(req: AuthRequest, res: Response, next: Next
           if (!assetId) continue;
           await tx.planAllocation.create({
             data: { planId: plan.id, assetId, allocationPct: Number(alloc.allocationPct) || 0 },
-          });
-        }
-
-        const buyingRules = (p.buyingRules as Record<string, unknown>[]) ?? [];
-        for (const r of buyingRules) {
-          await tx.buyingRule.create({
-            data: {
-              dcaPlanId:   plan.id,
-              minDrawdown: Number(r.minDrawdown) || 0,
-              maxDrawdown: Number(r.maxDrawdown) || 0,
-              buyAmount:   Number(r.buyAmount)   || 0,
-            },
-          });
-        }
-
-        const sellRules = (p.sellRules as Record<string, unknown>[]) ?? [];
-        for (const r of sellRules) {
-          await tx.sellRule.create({
-            data: {
-              dcaPlanId:      plan.id,
-              minProfit:      Number(r.minProfit)    || 0,
-              maxProfit:      Number(r.maxProfit)    || 0,
-              sellAmount:     Number(r.sellAmount)   || 0,
-              sellAmountType: (r.sellAmountType as string) === 'PCT' ? 'PCT' : 'USD',
-            },
           });
         }
 

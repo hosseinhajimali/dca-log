@@ -1,5 +1,6 @@
 import { Response, NextFunction } from 'express';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { AuthRequest } from '../types';
 import { AppError } from '../middleware/errorHandler';
@@ -88,7 +89,7 @@ export async function createBuyingRuleSet(req: AuthRequest, res: Response, next:
         notes:        body.data.notes,
         rows: {
           create: body.data.rows.map((r, i) => ({
-            params:    r.params,
+            params:    r.params as Prisma.InputJsonValue,
             multiplier: r.multiplier,
             sortOrder: r.sortOrder ?? i,
           })),
@@ -103,7 +104,7 @@ export async function createBuyingRuleSet(req: AuthRequest, res: Response, next:
 
 export async function updateBuyingRuleSet(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const existing = await prisma.buyingRuleSet.findFirst({ where: { id, userId: req.userId } });
     if (!existing) return next(new AppError(404, 'Rule set not found'));
 
@@ -121,7 +122,7 @@ export async function updateBuyingRuleSet(req: AuthRequest, res: Response, next:
         await tx.buyingRuleSetRow.createMany({
           data: body.data.rows.map((r, i) => ({
             ruleSetId: id,
-            params:    r.params,
+            params:    r.params as Prisma.InputJsonValue,
             multiplier: r.multiplier,
             sortOrder: r.sortOrder ?? i,
           })),
@@ -144,7 +145,7 @@ export async function updateBuyingRuleSet(req: AuthRequest, res: Response, next:
 
 export async function deleteBuyingRuleSet(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const existing = await prisma.buyingRuleSet.findFirst({ where: { id, userId: req.userId } });
     if (!existing) return next(new AppError(404, 'Rule set not found'));
 
@@ -181,7 +182,7 @@ export async function createSellRuleSet(req: AuthRequest, res: Response, next: N
         notes:        body.data.notes,
         rows: {
           create: body.data.rows.map((r, i) => ({
-            params:        r.params,
+            params:        r.params as Prisma.InputJsonValue,
             sellAmount:    r.sellAmount,
             sellAmountType: r.sellAmountType,
             sortOrder:     r.sortOrder ?? i,
@@ -197,7 +198,7 @@ export async function createSellRuleSet(req: AuthRequest, res: Response, next: N
 
 export async function updateSellRuleSet(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const existing = await prisma.sellRuleSet.findFirst({ where: { id, userId: req.userId } });
     if (!existing) return next(new AppError(404, 'Rule set not found'));
 
@@ -214,7 +215,7 @@ export async function updateSellRuleSet(req: AuthRequest, res: Response, next: N
         await tx.sellRuleSetRow.createMany({
           data: body.data.rows.map((r, i) => ({
             ruleSetId:     id,
-            params:        r.params,
+            params:        r.params as Prisma.InputJsonValue,
             sellAmount:    r.sellAmount,
             sellAmountType: r.sellAmountType,
             sortOrder:     r.sortOrder ?? i,
@@ -238,7 +239,7 @@ export async function updateSellRuleSet(req: AuthRequest, res: Response, next: N
 
 export async function deleteSellRuleSet(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const existing = await prisma.sellRuleSet.findFirst({ where: { id, userId: req.userId } });
     if (!existing) return next(new AppError(404, 'Rule set not found'));
 
@@ -251,7 +252,7 @@ export async function deleteSellRuleSet(req: AuthRequest, res: Response, next: N
 
 export async function assignBuyingRuleSet(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const { planId } = req.params;
+    const planId = req.params.planId as string;
     const { ruleSetId, isActive } = req.body as { ruleSetId: string; isActive?: boolean };
 
     const plan = await prisma.dcaPlan.findFirst({ where: { id: planId, userId: req.userId } });
@@ -278,7 +279,8 @@ export async function assignBuyingRuleSet(req: AuthRequest, res: Response, next:
 
 export async function unassignBuyingRuleSet(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const { planId, ruleSetId } = req.params;
+    const planId = req.params.planId as string;
+    const ruleSetId = req.params.ruleSetId as string;
     const plan = await prisma.dcaPlan.findFirst({ where: { id: planId, userId: req.userId } });
     if (!plan) return next(new AppError(404, 'Plan not found'));
 
@@ -289,7 +291,7 @@ export async function unassignBuyingRuleSet(req: AuthRequest, res: Response, nex
 
 export async function assignSellRuleSet(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const { planId } = req.params;
+    const planId = req.params.planId as string;
     const { ruleSetId, isActive } = req.body as { ruleSetId: string; isActive?: boolean };
 
     const plan = await prisma.dcaPlan.findFirst({ where: { id: planId, userId: req.userId } });
@@ -315,7 +317,8 @@ export async function assignSellRuleSet(req: AuthRequest, res: Response, next: N
 
 export async function unassignSellRuleSet(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const { planId, ruleSetId } = req.params;
+    const planId = req.params.planId as string;
+    const ruleSetId = req.params.ruleSetId as string;
     const plan = await prisma.dcaPlan.findFirst({ where: { id: planId, userId: req.userId } });
     if (!plan) return next(new AppError(404, 'Plan not found'));
 
