@@ -5,8 +5,8 @@ import { AuthRequest, TransactionQuery } from '../types';
 import { AppError } from '../middleware/errorHandler';
 
 const txSchema = z.object({
-  assetId: z.string().cuid(),
-  dcaPlanId: z.string().cuid().optional().nullable(),
+  assetId: z.string().min(1),
+  dcaPlanId: z.string().min(1).optional().nullable(),
   type: z.enum(['BUY', 'SELL']).optional(),
   amountUsd: z.number().positive(),
   quantity: z.number().positive(),
@@ -64,7 +64,10 @@ export async function getTransactions(req: AuthRequest & { query: TransactionQue
 export async function createTransaction(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const body = txSchema.safeParse(req.body);
-    if (!body.success) return next(new AppError(400, body.error.errors[0].message));
+    if (!body.success) {
+      const e = body.error.errors[0];
+      return next(new AppError(400, `${e.path.join('.')}: ${e.message}`));
+    }
 
     const asset = await prisma.asset.findFirst({
       where: { id: body.data.assetId, userId: req.userId },

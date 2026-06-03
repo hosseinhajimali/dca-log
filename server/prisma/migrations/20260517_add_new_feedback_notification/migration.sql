@@ -1,1 +1,4 @@
-ALTER TYPE "NotificationType" ADD VALUE 'NEW_FEEDBACK';
+DO $$ BEGIN
+  ALTER TYPE "NotificationType" ADD VALUE 'NEW_FEEDBACK';
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;

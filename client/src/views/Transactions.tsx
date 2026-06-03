@@ -225,7 +225,10 @@ function CreateModal({ assets, onClose }: {
   onClose: () => void;
 }) {
   const createTx = useCreateTransaction();
-  const [form, setForm] = useState<TxFormValues>(emptyForm());
+  const [form, setForm] = useState<TxFormValues>(() => ({
+    ...emptyForm(),
+    assetId: assets[0]?.id ?? '',
+  }));
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -235,6 +238,7 @@ function CreateModal({ assets, onClose }: {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.assetId) return;
     await createTx.mutateAsync({
       type: form.type,
       assetId: form.assetId,
