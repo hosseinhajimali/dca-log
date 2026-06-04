@@ -85,7 +85,7 @@ function BuyRowEditor({ rows, setRows }: { rows: DrawdownBuyRow[]; setRows: (r: 
             </div>
             <button type="button" onClick={() => remove(i)}
               className="text-gray-600 hover:text-red-400 transition-colors w-7 h-7 flex items-center justify-center rounded">
-              ×
+              <Trash2 size={13} />
             </button>
           </div>
           {/* preset chips */}
@@ -323,6 +323,31 @@ function SellRuleSetForm({ initial, onDone }: SellFormProps) {
   );
 }
 
+// ─── Form modal ───────────────────────────────────────────────────────────────
+
+function FormModal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="w-full max-w-2xl bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 shrink-0">
+          <h2 className="text-base font-semibold text-gray-100">{title}</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-200 text-xl leading-none transition-colors">×</button>
+        </div>
+        <div className="overflow-y-auto flex-1 px-6 py-5">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main view ────────────────────────────────────────────────────────────────
 
 type Tab = 'buying' | 'selling';
@@ -408,32 +433,24 @@ export default function RuleSets() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {buyingSets.map(set => (
-                    editingId === set.id ? (
-                      <tr key={set.id}>
-                        <td colSpan={5} className="px-5 py-5">
-                          <BuyingRuleSetForm initial={set} onDone={() => setEditingId(null)} />
-                        </td>
-                      </tr>
-                    ) : (
-                      <tr key={set.id} className="hover:bg-gray-700/50 transition-colors">
-                        <td className={`${TD} font-medium text-gray-100`}>{set.label}</td>
-                        <td className={`${TD} text-gray-500`}>Drawdown vs ATH</td>
-                        <td className={`${TD} text-gray-400`}>{set.rows.length}</td>
-                        <td className={`${TD} text-gray-500 max-w-xs truncate`}>{set.notes ?? '-'}</td>
-                        <td className={`${TD} text-right`}>
-                          <div className="flex items-center justify-end gap-1">
-                            <button onClick={() => setEditingId(set.id)}
-                              className="text-gray-500 hover:text-brand-400 transition-colors p-1.5 rounded hover:bg-gray-800">
-                              <Pencil size={13} />
-                            </button>
-                            <button onClick={() => setConfirmDelete({ id: set.id, label: set.label, kind: 'buying' })}
-                              className="text-gray-500 hover:text-red-400 transition-colors p-1.5 rounded hover:bg-gray-800">
-                              <Trash2 size={13} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
+                    <tr key={set.id} className="hover:bg-gray-700/50 transition-colors">
+                      <td className={`${TD} font-medium text-gray-100`}>{set.label}</td>
+                      <td className={`${TD} text-gray-500`}>Drawdown vs ATH</td>
+                      <td className={`${TD} text-gray-400`}>{set.rows.length}</td>
+                      <td className={`${TD} text-gray-500 max-w-xs truncate`}>{set.notes ?? '-'}</td>
+                      <td className={`${TD} text-right`}>
+                        <div className="flex items-center justify-end gap-1">
+                          <button onClick={() => setEditingId(set.id)}
+                            className="text-gray-500 hover:text-brand-400 transition-colors p-1.5 rounded hover:bg-gray-800">
+                            <Pencil size={13} />
+                          </button>
+                          <button onClick={() => setConfirmDelete({ id: set.id, label: set.label, kind: 'buying' })}
+                            className="text-gray-500 hover:text-red-400 transition-colors p-1.5 rounded hover:bg-gray-800">
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
                   ))}
                 </tbody>
               </table>
@@ -441,11 +458,16 @@ export default function RuleSets() {
           )}
 
           {addingBuy && (
-            <div className="bg-gray-900 border border-brand-500/30 rounded-xl p-5">
-              <p className="text-sm font-medium text-gray-200 mb-4">New buying rule set</p>
+            <FormModal title="New buying rule set" onClose={() => setAddingBuy(false)}>
               <BuyingRuleSetForm onDone={() => setAddingBuy(false)} />
-            </div>
+            </FormModal>
           )}
+
+          {editingId && tab === 'buying' && (() => { const set = buyingSets.find(s => s.id === editingId); return set ? (
+            <FormModal title="Edit buying rule set" onClose={() => setEditingId(null)}>
+              <BuyingRuleSetForm initial={set} onDone={() => setEditingId(null)} />
+            </FormModal>
+          ) : null; })()}
         </div>
       )}
 
@@ -473,32 +495,24 @@ export default function RuleSets() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {sellSets.map(set => (
-                    editingId === set.id ? (
-                      <tr key={set.id}>
-                        <td colSpan={5} className="px-5 py-5">
-                          <SellRuleSetForm initial={set} onDone={() => setEditingId(null)} />
-                        </td>
-                      </tr>
-                    ) : (
-                      <tr key={set.id} className="hover:bg-gray-700/50 transition-colors">
-                        <td className={`${TD} font-medium text-gray-100`}>{set.label}</td>
-                        <td className={`${TD} text-gray-500`}>Profit target</td>
-                        <td className={`${TD} text-gray-400`}>{set.rows.length}</td>
-                        <td className={`${TD} text-gray-500 max-w-xs truncate`}>{set.notes ?? '-'}</td>
-                        <td className={`${TD} text-right`}>
-                          <div className="flex items-center justify-end gap-1">
-                            <button onClick={() => setEditingId(set.id)}
-                              className="text-gray-500 hover:text-brand-400 transition-colors p-1.5 rounded hover:bg-gray-800">
-                              <Pencil size={13} />
-                            </button>
-                            <button onClick={() => setConfirmDelete({ id: set.id, label: set.label, kind: 'selling' })}
-                              className="text-gray-500 hover:text-red-400 transition-colors p-1.5 rounded hover:bg-gray-800">
-                              <Trash2 size={13} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
+                    <tr key={set.id} className="hover:bg-gray-700/50 transition-colors">
+                      <td className={`${TD} font-medium text-gray-100`}>{set.label}</td>
+                      <td className={`${TD} text-gray-500`}>Profit target</td>
+                      <td className={`${TD} text-gray-400`}>{set.rows.length}</td>
+                      <td className={`${TD} text-gray-500 max-w-xs truncate`}>{set.notes ?? '-'}</td>
+                      <td className={`${TD} text-right`}>
+                        <div className="flex items-center justify-end gap-1">
+                          <button onClick={() => setEditingId(set.id)}
+                            className="text-gray-500 hover:text-brand-400 transition-colors p-1.5 rounded hover:bg-gray-800">
+                            <Pencil size={13} />
+                          </button>
+                          <button onClick={() => setConfirmDelete({ id: set.id, label: set.label, kind: 'selling' })}
+                            className="text-gray-500 hover:text-red-400 transition-colors p-1.5 rounded hover:bg-gray-800">
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
                   ))}
                 </tbody>
               </table>
@@ -506,11 +520,16 @@ export default function RuleSets() {
           )}
 
           {addingSell && (
-            <div className="bg-gray-900 border border-brand-500/30 rounded-xl p-5">
-              <p className="text-sm font-medium text-gray-200 mb-4">New selling rule set</p>
+            <FormModal title="New selling rule set" onClose={() => setAddingSell(false)}>
               <SellRuleSetForm onDone={() => setAddingSell(false)} />
-            </div>
+            </FormModal>
           )}
+
+          {editingId && tab === 'selling' && (() => { const set = sellSets.find(s => s.id === editingId); return set ? (
+            <FormModal title="Edit selling rule set" onClose={() => setEditingId(null)}>
+              <SellRuleSetForm initial={set} onDone={() => setEditingId(null)} />
+            </FormModal>
+          ) : null; })()}
         </div>
       )}
     </div>
