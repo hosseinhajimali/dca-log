@@ -6,7 +6,8 @@ import { useAssets } from '@/hooks/useAssets';
 import { useDcaPlans } from '@/hooks/useDcaPlans';
 import { useGoals } from '@/hooks/useGoals';
 import { useStore } from '@/store/useStore';
-import { Asset, DcaPlan, Goal, Transaction } from '@/types';
+import { Asset, BuyingRuleSet, DcaPlan, Goal, SellRuleSet, Transaction } from '@/types';
+import { useBuyingRuleSets, useSellRuleSets } from '@/hooks/useRuleSets';
 import { ChevronRight } from 'lucide-react';
 
 interface DataExportModalProps {
@@ -145,11 +146,14 @@ export function DataExportModal({ onClose }: DataExportModalProps) {
   const { data: assets = [] } = useAssets();
   const { data: plans = [] } = useDcaPlans();
   const { data: goals = [] } = useGoals();
+  const { data: buyingRuleSets = [] } = useBuyingRuleSets();
+  const { data: sellRuleSets = [] } = useSellRuleSets();
 
   // selection state
   const [txAssets, setTxAssets]     = useState<Set<string>>(new Set());
   const [selectedPlans, setSelectedPlans] = useState<Set<string>>(new Set());
-  const [goalsSelected, setGoalsSelected]     = useState(true);
+  const [goalsSelected, setGoalsSelected]       = useState(true);
+  const [ruleSetsSelected, setRuleSetsSelected] = useState(true);
   const [settingsSelected, setSettingsSelected] = useState(true);
 
   // expand state
@@ -180,18 +184,21 @@ export function DataExportModal({ onClose }: DataExportModalProps) {
     txAssets.size === assets.length &&
     selectedPlans.size === plans.length &&
     goalsSelected &&
+    ruleSetsSelected &&
     settingsSelected;
 
   const noneSelected =
     txAssets.size === 0 &&
     selectedPlans.size === 0 &&
     !goalsSelected &&
+    !ruleSetsSelected &&
     !settingsSelected;
 
   const toggleAll = (on: boolean) => {
     setTxAssets(on ? new Set(assets.map(a => a.id)) : new Set());
     setSelectedPlans(on ? new Set(plans.map(p => p.id)) : new Set());
     setGoalsSelected(on);
+    setRuleSetsSelected(on);
     setSettingsSelected(on);
   };
 
@@ -297,6 +304,35 @@ export function DataExportModal({ onClose }: DataExportModalProps) {
           }));
       }
 
+      // rule sets
+      if (ruleSetsSelected) {
+        if (buyingRuleSets.length > 0) {
+          output.buyingRuleSets = buyingRuleSets.map((rs: BuyingRuleSet) => ({
+            label: rs.label,
+            strategyType: rs.strategyType,
+            notes: rs.notes ?? null,
+            rows: rs.rows.map(r => ({
+              params: r.params,
+              multiplier: r.multiplier,
+              sortOrder: r.sortOrder,
+            })),
+          }));
+        }
+        if (sellRuleSets.length > 0) {
+          output.sellRuleSets = sellRuleSets.map((rs: SellRuleSet) => ({
+            label: rs.label,
+            strategyType: rs.strategyType,
+            notes: rs.notes ?? null,
+            rows: rs.rows.map(r => ({
+              params: r.params,
+              sellAmount: r.sellAmount,
+              sellAmountType: r.sellAmountType,
+              sortOrder: r.sortOrder,
+            })),
+          }));
+        }
+      }
+
       // goals
       if (goalsSelected && goals.length > 0) {
         output.goals = (goals as Goal[]).map(g => ({
@@ -336,6 +372,7 @@ export function DataExportModal({ onClose }: DataExportModalProps) {
     txAssets.size +
     selectedPlans.size +
     (goalsSelected ? 1 : 0) +
+    (ruleSetsSelected ? 1 : 0) +
     (settingsSelected ? 1 : 0);
 
   return (
@@ -426,6 +463,14 @@ export function DataExportModal({ onClose }: DataExportModalProps) {
             sub={`${goals.length}`}
             checked={goalsSelected}
             onToggle={setGoalsSelected}
+          />
+
+          {/* rule sets */}
+          <SimpleRow
+            label="Rule Sets"
+            sub={`${buyingRuleSets.length} buying · ${sellRuleSets.length} selling`}
+            checked={ruleSetsSelected}
+            onToggle={setRuleSetsSelected}
           />
 
           {/* settings */}
