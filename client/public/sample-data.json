@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "exportedAt": "2026-05-18T00:00:00.000Z",
   "userId": "SAMPLE_USER",
   "data": {
@@ -45,7 +45,6 @@
         "frequency": "MONTHLY",
         "intervalDays": null,
         "isActive": true,
-        "perAssetRules": false,
         "startDate": "2024-06-01T00:00:00.000Z",
         "endDate": null,
         "nextPurchaseDate": "2026-06-01T08:00:00.000Z",
@@ -63,7 +62,6 @@
         "frequency": "MONTHLY",
         "intervalDays": null,
         "isActive": true,
-        "perAssetRules": false,
         "startDate": "2024-06-01T00:00:00.000Z",
         "endDate": null,
         "nextPurchaseDate": "2026-06-01T08:00:00.000Z",
@@ -81,7 +79,6 @@
         "frequency": "MONTHLY",
         "intervalDays": null,
         "isActive": true,
-        "perAssetRules": false,
         "startDate": "2024-06-01T00:00:00.000Z",
         "endDate": null,
         "nextPurchaseDate": "2026-06-01T08:00:00.000Z",
@@ -114,8 +111,6 @@
         "createdAt": "2024-06-01T00:00:00.000Z"
       }
     ],
-    "buyingRules": [],
-    "sellRules": [],
     "goals": [
       {
         "id": "goal-sample-btc",
@@ -1097,6 +1092,12 @@
         "createdAt": "2026-05-01T10:00:00.000Z",
         "updatedAt": "2026-05-01T10:00:00.000Z"
       }
-    ]
+    ],
+    "buyingRuleSets": [],
+    "sellRuleSets": [],
+    "buyingRuleSetRows": [],
+    "sellRuleSetRows": [],
+    "planBuyingRuleSets": [],
+    "planSellRuleSets": []
   }
 }
