@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge';
 import { useCurrencyFormatter, formatDate, formatQuantity } from '@/lib/format';
 import { Transaction, Asset } from '@/types';
 import { api } from '@/lib/api';
+import { useAssetPrice } from '@/hooks/usePrices';
 import { toCSVString, downloadFile, downloadXLSX, parseImportCSV, ParsedImportRow } from '@/lib/exportUtils';
 
 // ─── delete confirm modal ─────────────────────────────────────────────────────
@@ -123,6 +124,8 @@ interface TxFieldsProps {
 function TxFields({ form, setForm, assets, lockAsset }: TxFieldsProps) {
   const cls = 'w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-brand-500 disabled:opacity-50';
   const isSell = form.type === 'SELL';
+  const selectedSymbol = assets.find(a => a.id === form.assetId)?.symbol ?? null;
+  const { data: currentPrice } = useAssetPrice(selectedSymbol);
 
   const recalcAmount = (qty: string, price: string) => {
     const q = parseFloat(qty), p = parseFloat(price);
@@ -179,7 +182,7 @@ function TxFields({ form, setForm, assets, lockAsset }: TxFieldsProps) {
             const price = e.target.value;
             setForm(f => ({ ...f, pricePerUnit: price, amountUsd: recalcAmount(f.quantity, price) }));
           }}
-          placeholder="65000" className={cls} />
+          placeholder={currentPrice != null ? currentPrice.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '65000'} className={cls} />
       </div>
 
       <div>
