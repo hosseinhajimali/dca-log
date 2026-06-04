@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Menu, UserCircle, LogOut, TriangleAlert, X } from 'lucide-react';
+import { Menu, UserCircle, LogOut, TriangleAlert } from 'lucide-react';
 import { Sidebar } from './Sidebar';
 import { NotificationBell } from './NotificationBell';
 import { Toaster } from '@/components/ui/Toaster';
@@ -26,13 +26,13 @@ function BetaBanner() {
 
   if (dismissed) return null;
   return (
-    <div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-2.5 flex items-center gap-3">
+    <div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-2.5 flex items-start gap-3">
       <TriangleAlert size={15} className="text-amber-400 shrink-0" />
       <p className="text-xs text-amber-600 flex-1">
         <span className="font-semibold">Beta notice:</span> We are actively testing new features. Data may change unexpectedly. Please export a backup of your transactions regularly.
       </p>
-      <button onClick={dismiss} className="text-amber-500 hover:text-amber-300 transition-colors shrink-0" aria-label="Dismiss">
-        <X size={14} />
+      <button onClick={dismiss} className="text-xs text-amber-500 hover:text-amber-400 transition-colors shrink-0 underline underline-offset-2">
+        Don't show this again
       </button>
     </div>
   );
