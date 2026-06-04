@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Menu, UserCircle, LogOut } from 'lucide-react';
+import { Menu, UserCircle, LogOut, TriangleAlert, X } from 'lucide-react';
 import { Sidebar } from './Sidebar';
 import { NotificationBell } from './NotificationBell';
 import { Toaster } from '@/components/ui/Toaster';
@@ -11,6 +11,22 @@ import { api } from '@/lib/api';
 import { useStore } from '@/store/useStore';
 import { User } from '@/types';
 import { useTheme } from '@/hooks/useTheme';
+
+function BetaBanner() {
+  const [dismissed, setDismissed] = useState(false);
+  if (dismissed) return null;
+  return (
+    <div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-2.5 m-4 flex items-center gap-3">
+      <TriangleAlert size={15} className="text-amber-400 shrink-0" />
+      <p className="text-xs text-amber-600 flex-1">
+        <span className="font-semibold">Beta notice:</span> We are actively testing new features. Data may change unexpectedly. Please export a backup of your transactions regularly.
+      </p>
+      <button onClick={() => setDismissed(true)} className="text-amber-500 hover:text-amber-300 transition-colors shrink-0" aria-label="Dismiss">
+        <X size={14} />
+      </button>
+    </div>
+  );
+}
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const setExchangeRates = useStore((s) => s.setExchangeRates);
@@ -103,6 +119,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </header>
+
+        <BetaBanner />
 
         <main className="flex-1">
           <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
