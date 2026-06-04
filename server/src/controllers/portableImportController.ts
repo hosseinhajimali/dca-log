@@ -1,11 +1,17 @@
 import { Response, NextFunction } from 'express';
-import { AssetType, DcaFrequency, GoalType } from '@prisma/client';
+import { AssetType, DcaFrequency, GoalType, RuleStrategyType } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { AuthRequest } from '../types';
 
 const VALID_ASSET_TYPES  = new Set<string>(['CRYPTO','METAL','STOCK','ETF','OTHER']);
 const VALID_FREQUENCIES  = new Set<string>(['DAILY','WEEKLY','BIWEEKLY','MONTHLY','CUSTOM']);
-const VALID_GOAL_TYPES   = new Set<string>(['ACCUMULATION','PORTFOLIO_VALUE','INVESTMENT_COMMITMENT']);
+const VALID_GOAL_TYPES        = new Set<string>(['ACCUMULATION','PORTFOLIO_VALUE','INVESTMENT_COMMITMENT']);
+const VALID_STRATEGY_TYPES    = new Set<string>(['DRAWDOWN_ATH']);
+
+function toStrategyType(v: unknown): RuleStrategyType {
+  const s = String(v ?? '').toUpperCase();
+  return (VALID_STRATEGY_TYPES.has(s) ? s : 'DRAWDOWN_ATH') as RuleStrategyType;
+}
 
 function toAssetType(v: unknown): AssetType {
   const s = String(v ?? '').toUpperCase();
@@ -43,7 +49,7 @@ export async function portableImport(req: AuthRequest, res: Response, next: Next
       return;
     }
 
-    const counts = { assets: 0, transactions: 0, plans: 0, goals: 0 };
+    const counts = { assets: 0, transactions: 0, plans: 0, goals: 0, buyingRuleSets: 0, sellRuleSets: 0 };
 
     await prisma.$transaction(async (tx) => {
       // ── 1. Build symbol→id map from existing assets ──────────────────────
@@ -150,6 +156,57 @@ export async function portableImport(req: AuthRequest, res: Response, next: Next
           },
         });
         counts.goals++;
+      }
+
+      // ── 6. Import buying rule sets ────────────────────────────────────────
+      const exportedBuyingSets: Record<string, unknown>[] = data.buyingRuleSets ?? [];
+      for (const rs of exportedBuyingSets) {
+        const created = await tx.buyingRuleSet.create({
+          data: {
+            userId,
+            label:        String(rs.label || 'Imported rule set'),
+            strategyType: toStrategyType(rs.strategyType),
+            notes:        (rs.notes as string) || null,
+          },
+        });
+        const rows = (rs.rows as Record<string, unknown>[]) ?? [];
+        for (const row of rows) {
+          await tx.buyingRuleSetRow.create({
+            data: {
+              ruleSetId:  created.id,
+              params:     (row.params as object) ?? {},
+              multiplier: Number(row.multiplier) || 1,
+              sortOrder:  Number(row.sortOrder) || 0,
+            },
+          });
+        }
+        counts.buyingRuleSets++;
+      }
+
+      // ── 7. Import sell rule sets ──────────────────────────────────────────
+      const exportedSellSets: Record<string, unknown>[] = data.sellRuleSets ?? [];
+      for (const rs of exportedSellSets) {
+        const created = await tx.sellRuleSet.create({
+          data: {
+            userId,
+            label:        String(rs.label || 'Imported rule set'),
+            strategyType: toStrategyType(rs.strategyType),
+            notes:        (rs.notes as string) || null,
+          },
+        });
+        const rows = (rs.rows as Record<string, unknown>[]) ?? [];
+        for (const row of rows) {
+          await tx.sellRuleSetRow.create({
+            data: {
+              ruleSetId:      created.id,
+              params:         (row.params as object) ?? {},
+              sellAmount:     Number(row.sellAmount) || 0,
+              sellAmountType: (row.sellAmountType as 'USD' | 'PCT') === 'USD' ? 'USD' : 'PCT',
+              sortOrder:      Number(row.sortOrder) || 0,
+            },
+          });
+        }
+        counts.sellRuleSets++;
       }
     });
 

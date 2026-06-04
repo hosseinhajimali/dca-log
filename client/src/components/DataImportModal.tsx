@@ -16,6 +16,8 @@ interface ParsedExport {
   transactions?: Record<string, unknown[]>;
   plans?: unknown[];
   goals?: unknown[];
+  buyingRuleSets?: unknown[];
+  sellRuleSets?: unknown[];
   settings?: unknown;
 }
 
@@ -24,6 +26,8 @@ interface ImportCounts {
   transactions: number;
   plans: number;
   goals: number;
+  buyingRuleSets: number;
+  sellRuleSets: number;
 }
 
 type Step = 'pick' | 'preview' | 'importing' | 'done';
@@ -99,6 +103,8 @@ export function DataImportModal({ onClose }: DataImportModalProps) {
     : 0;
   const planCount = parsed?.plans?.length ?? 0;
   const goalCount = parsed?.goals?.length ?? 0;
+  const buyingRuleSetCount = parsed?.buyingRuleSets?.length ?? 0;
+  const sellRuleSetCount   = parsed?.sellRuleSets?.length ?? 0;
   const hasSettings = !!parsed?.settings;
   const assetCount = parsed?.assets?.length ?? 0;
 
@@ -106,7 +112,7 @@ export function DataImportModal({ onClose }: DataImportModalProps) {
     ? new Date(parsed.exportedAt).toLocaleString()
     : null;
 
-  const nothingToImport = txCount === 0 && planCount === 0 && goalCount === 0 && !hasSettings;
+  const nothingToImport = txCount === 0 && planCount === 0 && goalCount === 0 && buyingRuleSetCount === 0 && sellRuleSetCount === 0 && !hasSettings;
 
   // ── render ───────────────────────────────────────────────────────────────────
   return (
@@ -225,6 +231,14 @@ export function DataImportModal({ onClose }: DataImportModalProps) {
                   </div>
                 )}
 
+                {/* rule sets */}
+                {(buyingRuleSetCount > 0 || sellRuleSetCount > 0) && (
+                  <div className="flex items-center justify-between py-2.5 px-3 bg-gray-800/40 rounded-xl">
+                    <span className="text-sm text-gray-300">Rule Sets</span>
+                    <span className="text-xs text-gray-500">{buyingRuleSetCount} buying · {sellRuleSetCount} selling</span>
+                  </div>
+                )}
+
                 {/* settings */}
                 {hasSettings && (
                   <div className="flex items-center justify-between py-2.5 px-3 bg-gray-800/40 rounded-xl">
@@ -302,6 +316,18 @@ export function DataImportModal({ onClose }: DataImportModalProps) {
                   <div className="flex justify-between px-4 py-2.5">
                     <span className="text-gray-400">Goals added</span>
                     <span className="text-gray-200 font-medium">{result.goals}</span>
+                  </div>
+                )}
+                {result.buyingRuleSets > 0 && (
+                  <div className="flex justify-between px-4 py-2.5">
+                    <span className="text-gray-400">Buying rule sets added</span>
+                    <span className="text-gray-200 font-medium">{result.buyingRuleSets}</span>
+                  </div>
+                )}
+                {result.sellRuleSets > 0 && (
+                  <div className="flex justify-between px-4 py-2.5">
+                    <span className="text-gray-400">Selling rule sets added</span>
+                    <span className="text-gray-200 font-medium">{result.sellRuleSets}</span>
                   </div>
                 )}
               </div>
