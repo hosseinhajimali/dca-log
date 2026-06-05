@@ -397,7 +397,7 @@ export function EditModal({ plan, assets, onClose }: {
       await updatePlan.mutateAsync({
         id: plan.id,
         data: {
-          name: form.name || undefined,
+          name: form.name || null,
           amountUsd: parseFloat(form.amountUsd),
           maxBudgetUsd: form.maxBudgetUsd ? parseFloat(form.maxBudgetUsd) : null,
           frequency: form.frequency,

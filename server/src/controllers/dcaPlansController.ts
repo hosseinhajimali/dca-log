@@ -20,7 +20,7 @@ const allocationSchema = z.array(
  );
 
 const planSchema = z.object({
-  name: z.string().optional(),
+  name: z.string().nullable().optional(),
   amountUsd: z.number().positive(),
   maxBudgetUsd: z.number().positive().optional().nullable(),
   frequency: z.enum(['DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'CUSTOM']),
@@ -347,7 +347,7 @@ export async function updateDcaPlan(req: AuthRequest, res: Response, next: NextF
       // Build update payload explicitly, never spread unknown fields into Prisma
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const updateData: Record<string, any> = {};
-      if (planData.name        !== undefined) updateData.name        = planData.name;
+      if (planData.name        !== undefined) updateData.name        = planData.name ?? null;
       if (planData.amountUsd   !== undefined) updateData.amountUsd   = planData.amountUsd;
       if ('maxBudgetUsd' in planData) updateData.maxBudgetUsd = (planData as Record<string, unknown>).maxBudgetUsd ?? null;
       if (planData.frequency   !== undefined) updateData.frequency   = planData.frequency;
