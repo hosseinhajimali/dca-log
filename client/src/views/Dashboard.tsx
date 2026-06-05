@@ -473,7 +473,7 @@ export default function Dashboard() {
       <GoalsSummary goals={goals} />
 
       {/* Fear & Greed */}
-      <FearGreedWidget />
+      <FearGreedWidget hasCrypto={assetStats.some(a => a.asset.assetType === 'CRYPTO')} />
 
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

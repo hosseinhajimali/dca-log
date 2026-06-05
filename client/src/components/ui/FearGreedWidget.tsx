@@ -3,6 +3,7 @@ import {
   ResponsiveContainer, ReferenceLine,
 } from 'recharts';
 import { useFearGreed } from '@/hooks/useFearGreed';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 
 // ── Zone definitions ─────────────────────────────────────────────────────────
 const ZONES = [
@@ -49,9 +50,38 @@ function FngTooltip({ active, payload, label }: any) {
   );
 }
 
+// ── Sentiment alert ───────────────────────────────────────────────────────────
+function alertForValue(value: number): { msg: string; color: string } | null {
+  if (value <= 25) return {
+    msg: 'Crypto market sentiment is Extreme Fear. For DCA investors, this has historically been a strong time to stay consistent or consider increasing your position size.',
+    color: '#ef4444',
+  };
+  if (value <= 45) return {
+    msg: 'Crypto market sentiment is Fear. A good reminder to stick to your plan and not react to short-term volatility.',
+    color: '#f97316',
+  };
+  if (value <= 54) return null; // Neutral, no noise
+  if (value <= 75) return {
+    msg: 'Crypto market sentiment is Greed. Stay disciplined with your DCA schedule and avoid chasing momentum.',
+    color: '#84cc16',
+  };
+  return {
+    msg: 'Crypto market sentiment is Extreme Greed. This is typically not the best time to deviate from your plan or increase position sizes beyond what you set.',
+    color: '#22c55e',
+  };
+}
+
+const TOOLTIP_TEXT =
+  'The Fear & Greed Index measures crypto market sentiment on a scale from 0 (Extreme Fear) to 100 (Extreme Greed). ' +
+  'It is based on Bitcoin and crypto market data, including price volatility, trading volume, social media signals, and market dominance. ' +
+  'For DCA investors, extreme fear can signal strong buying opportunities, while extreme greed is a reminder to stay disciplined. ' +
+  'Note: this index is Bitcoin and crypto-specific. It does not reflect sentiment for gold, stocks, or other asset classes.';
+
 // ── Main widget ───────────────────────────────────────────────────────────────
-export default function FearGreedWidget() {
+export default function FearGreedWidget({ hasCrypto }: { hasCrypto?: boolean }) {
   const { data, isLoading } = useFearGreed();
+
+  if (!hasCrypto) return null;
 
   if (isLoading) {
     return (
@@ -83,9 +113,14 @@ export default function FearGreedWidget() {
     month: 'short', day: 'numeric', year: 'numeric',
   });
 
+  const alert = alertForValue(current);
+
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-      <h2 className="text-sm font-semibold text-gray-300 mb-4">Fear &amp; Greed Index</h2>
+      <div className="flex items-center gap-1.5 mb-4">
+        <h2 className="text-sm font-semibold text-gray-300">Fear &amp; Greed Index</h2>
+        <InfoTooltip content={TOOLTIP_TEXT} />
+      </div>
 
       <div className="flex flex-col lg:flex-row items-center gap-6">
 
@@ -184,6 +219,17 @@ export default function FearGreedWidget() {
           </div>
         </div>
       </div>
+
+      {/* Sentiment alert */}
+      {alert && (
+        <div
+          className="mt-5 -mx-5 -mb-5 px-5 py-3 rounded-b-xl border-t border-gray-800 flex items-start gap-2.5 text-xs"
+          style={{ background: `${alert.color}0d` }}
+        >
+          <span className="w-1.5 h-1.5 rounded-full shrink-0 mt-1.5" style={{ background: alert.color }} />
+          <p className="text-gray-400 leading-relaxed">{alert.msg}</p>
+        </div>
+      )}
     </div>
   );
 }
