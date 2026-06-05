@@ -568,7 +568,7 @@ export default function Dashboard() {
       </div>
 
       {/* Transaction activity heatmap */}
-      <TransactionHeatmap />
+      <TransactionHeatmap hideFilters />
 
       {/* Asset breakdown table */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">

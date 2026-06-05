@@ -135,7 +135,7 @@ function HeatmapTooltip({ data, formatAmount }: { data: TooltipData; formatAmoun
 }
 
 // ─── main component ───────────────────────────────────────────────────────────
-export default function TransactionHeatmap() {
+export default function TransactionHeatmap({ hideFilters = false }: { hideFilters?: boolean }) {
   const [year, setYear] = useState<number>(new Date().getFullYear());
   const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
@@ -190,65 +190,76 @@ export default function TransactionHeatmap() {
             <div className="flex items-center gap-1">
               <span className="text-[10px] text-gray-500">Low</span>
               {LEVEL_COLORS.slice(1).map((color, i) => (
-                  <span key={i} className="w-[11px] h-[11px] rounded-sm inline-block" style={{ backgroundColor: color }} />
+                <span key={i} className="w-[11px] h-[11px] rounded-sm inline-block" style={{ backgroundColor: color }} />
               ))}
               <span className="text-[10px] text-gray-500">High</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            {/* asset filter chips */}
-            {data.availableAssets.length > 0 && (
-                <div className="flex items-center gap-1">
+          {hideFilters ? (
+            <div className="flex justify-end">
+              <a
+                href="/app/transactions"
+                className="text-xs text-brand-400 hover:text-brand-300 transition-colors"
+              >
+                View transactions →
+              </a>
+            </div>
+          ) : (
+            <div className="flex items-center gap-4 flex-wrap">
+              {/* asset filter chips */}
+              {data.availableAssets.length > 0 && (
+                <div className="flex items-center gap-1 flex-wrap">
                   <button
-                      onClick={() => setSelectedAssets([])}
-                      className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${
-                          selectedAssets.length === 0
-                              ? 'border-brand-500 bg-brand-500/10 text-brand-300'
-                              : 'border-gray-700 text-gray-500 hover:text-gray-300 hover:border-gray-600'
-                      }`}
+                    onClick={() => setSelectedAssets([])}
+                    className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${
+                      selectedAssets.length === 0
+                        ? 'border-brand-500 bg-brand-500/10 text-brand-300'
+                        : 'border-gray-700 text-gray-500 hover:text-gray-300 hover:border-gray-600'
+                    }`}
                   >
                     All
                   </button>
                   {data.availableAssets.map(a => {
                     const active = selectedAssets.includes(a.id);
                     return (
-                        <button
-                            key={a.id}
-                            onClick={() => toggleAsset(a.id)}
-                            className={`text-xs px-2.5 py-1 rounded-lg border transition-colors font-mono font-semibold ${
-                                active
-                                    ? 'border-brand-500/50 bg-brand-500/10'
-                                    : 'border-gray-700 text-gray-500 hover:border-gray-600 hover:text-gray-300'
-                            }`}
-                            style={active && a.color ? { color: a.color } : undefined}
-                        >
-                          {a.symbol}
-                        </button>
+                      <button
+                        key={a.id}
+                        onClick={() => toggleAsset(a.id)}
+                        className={`text-xs px-2.5 py-1 rounded-lg border transition-colors font-mono font-semibold ${
+                          active
+                            ? 'border-brand-500/50 bg-brand-500/10'
+                            : 'border-gray-700 text-gray-500 hover:border-gray-600 hover:text-gray-300'
+                        }`}
+                        style={active && a.color ? { color: a.color } : undefined}
+                      >
+                        {a.symbol}
+                      </button>
                     );
                   })}
                 </div>
-            )}
+              )}
 
-            {/* year selector */}
-            {data.availableYears.length > 1 && (
+              {/* year selector */}
+              {data.availableYears.length > 1 && (
                 <div className="flex items-center gap-1">
                   {data.availableYears.map(y => (
-                      <button
-                          key={y}
-                          onClick={() => setYear(y)}
-                          className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${
-                              y === year
-                                  ? 'border-brand-500 bg-brand-500/10 text-brand-300'
-                                  : 'border-gray-700 text-gray-500 hover:text-gray-300 hover:border-gray-600'
-                          }`}
-                      >
-                        {y}
-                      </button>
+                    <button
+                      key={y}
+                      onClick={() => setYear(y)}
+                      className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${
+                        y === year
+                          ? 'border-brand-500 bg-brand-500/10 text-brand-300'
+                          : 'border-gray-700 text-gray-500 hover:text-gray-300 hover:border-gray-600'
+                      }`}
+                    >
+                      {y}
+                    </button>
                   ))}
                 </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
