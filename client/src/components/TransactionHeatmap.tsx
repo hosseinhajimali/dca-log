@@ -180,74 +180,76 @@ export default function TransactionHeatmap() {
           </p>
         </div>
 
-        {/* legend */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1">
-            <span className="w-[11px] h-[11px] rounded-sm inline-block" style={{ backgroundColor: LEVEL_COLORS[0] }} />
-            <span className="text-[10px] text-gray-500">No purchase</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="text-[10px] text-gray-500">Low</span>
-            {LEVEL_COLORS.slice(1).map((color, i) => (
-                <span key={i} className="w-[11px] h-[11px] rounded-sm inline-block" style={{ backgroundColor: color }} />
-            ))}
-            <span className="text-[10px] text-gray-500">High</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-4 mb-4">
-        {/* asset filter chips */}
-        {data.availableAssets.length > 0 && (
+        <div>
+          {/* legend */}
+          <div className="flex items-center justify-end gap-2 mb-2">
             <div className="flex items-center gap-1">
-              <button
-                  onClick={() => setSelectedAssets([])}
-                  className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${
-                      selectedAssets.length === 0
-                          ? 'border-brand-500 bg-brand-500/10 text-brand-300'
-                          : 'border-gray-700 text-gray-500 hover:text-gray-300 hover:border-gray-600'
-                  }`}
-              >
-                All
-              </button>
-              {data.availableAssets.map(a => {
-                const active = selectedAssets.includes(a.id);
-                return (
-                    <button
-                        key={a.id}
-                        onClick={() => toggleAsset(a.id)}
-                        className={`text-xs px-2.5 py-1 rounded-lg border transition-colors font-mono font-semibold ${
-                            active
-                                ? 'border-brand-500/50 bg-brand-500/10'
-                                : 'border-gray-700 text-gray-500 hover:border-gray-600 hover:text-gray-300'
-                        }`}
-                        style={active && a.color ? { color: a.color } : undefined}
-                    >
-                      {a.symbol}
-                    </button>
-                );
-              })}
+              <span className="w-[11px] h-[11px] rounded-sm inline-block" style={{ backgroundColor: LEVEL_COLORS[0] }} />
+              <span className="text-[10px] text-gray-500">No purchase</span>
             </div>
-        )}
-
-        {/* year selector */}
-        {data.availableYears.length > 1 && (
             <div className="flex items-center gap-1">
-              {data.availableYears.map(y => (
+              <span className="text-[10px] text-gray-500">Low</span>
+              {LEVEL_COLORS.slice(1).map((color, i) => (
+                  <span key={i} className="w-[11px] h-[11px] rounded-sm inline-block" style={{ backgroundColor: color }} />
+              ))}
+              <span className="text-[10px] text-gray-500">High</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            {/* asset filter chips */}
+            {data.availableAssets.length > 0 && (
+                <div className="flex items-center gap-1">
                   <button
-                      key={y}
-                      onClick={() => setYear(y)}
+                      onClick={() => setSelectedAssets([])}
                       className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${
-                          y === year
+                          selectedAssets.length === 0
                               ? 'border-brand-500 bg-brand-500/10 text-brand-300'
                               : 'border-gray-700 text-gray-500 hover:text-gray-300 hover:border-gray-600'
                       }`}
                   >
-                    {y}
+                    All
                   </button>
-              ))}
-            </div>
-        )}
+                  {data.availableAssets.map(a => {
+                    const active = selectedAssets.includes(a.id);
+                    return (
+                        <button
+                            key={a.id}
+                            onClick={() => toggleAsset(a.id)}
+                            className={`text-xs px-2.5 py-1 rounded-lg border transition-colors font-mono font-semibold ${
+                                active
+                                    ? 'border-brand-500/50 bg-brand-500/10'
+                                    : 'border-gray-700 text-gray-500 hover:border-gray-600 hover:text-gray-300'
+                            }`}
+                            style={active && a.color ? { color: a.color } : undefined}
+                        >
+                          {a.symbol}
+                        </button>
+                    );
+                  })}
+                </div>
+            )}
+
+            {/* year selector */}
+            {data.availableYears.length > 1 && (
+                <div className="flex items-center gap-1">
+                  {data.availableYears.map(y => (
+                      <button
+                          key={y}
+                          onClick={() => setYear(y)}
+                          className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${
+                              y === year
+                                  ? 'border-brand-500 bg-brand-500/10 text-brand-300'
+                                  : 'border-gray-700 text-gray-500 hover:text-gray-300 hover:border-gray-600'
+                          }`}
+                      >
+                        {y}
+                      </button>
+                  ))}
+                </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* grid */}
