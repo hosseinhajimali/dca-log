@@ -126,6 +126,7 @@ function enrichPlan(
       drawdownPct: a.drawdownPct,
       multiplier,
       amount: +(baseAmount * multiplier).toFixed(2),
+      holdingsValue: holdingsValueMap.get(a.assetId) ?? 0,
     };
   });
   const suggestedAmount = +suggestedAllocations.reduce((s, a) => s + a.amount, 0).toFixed(2);

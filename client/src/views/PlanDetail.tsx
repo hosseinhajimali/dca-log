@@ -191,7 +191,26 @@ export default function PlanDetail() {
                     </span>
                     <p className="text-xs text-gray-500 mt-0.5">{stat.asset.name}</p>
                   </td>
-                  <td className="px-5 py-3.5 text-gray-400">{stat.allocationPct}%</td>
+                  <td className="px-5 py-3.5">
+                    {(() => {
+                      const target = stat.allocationPct;
+                      const actual = portfolio.totalCurrentValue > 0
+                        ? (stat.currentValue / portfolio.totalCurrentValue) * 100
+                        : 0;
+                      const diff = actual - target;
+                      const isOver  = diff >  1;
+                      const isUnder = diff < -1;
+                      return (
+                        <>
+                          <span className="text-xs text-gray-500">{target}%</span>
+                          <p className={`text-xs font-medium mt-0.5 flex items-center gap-0.5 ${isOver ? 'text-green-400' : isUnder ? 'text-red-400' : 'text-gray-400'}`}>
+                            {isOver ? '↑' : isUnder ? '↓' : '≈'}
+                            {actual.toFixed(1)}%
+                          </p>
+                        </>
+                      );
+                    })()}
+                  </td>
                   <td className="px-5 py-3.5 font-mono text-gray-300">
                     {formatQuantity(stat.totalQuantity)}
                     <span className="text-gray-600 text-xs ml-1">{stat.asset.symbol}</span>

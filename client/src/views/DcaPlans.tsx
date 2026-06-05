@@ -927,17 +927,37 @@ export default function DcaPlans() {
                     {/* title */}
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="flex items-center gap-1.5 font-bold font-mono">
-                        {plan.allocations.map((alloc, i) => (
-                          <span key={alloc.assetId} className="flex items-center gap-1">
-                            {i > 0 && <span className="text-gray-600 font-normal text-xs">·</span>}
-                            <span style={alloc.asset.color ? { color: alloc.asset.color } : { color: '#f3f4f6' }}>
-                              {alloc.asset.symbol}
-                            </span>
-                            {plan.allocations.length > 1 && (
-                              <span className="text-gray-500 text-xs font-normal">{alloc.allocationPct}%</span>
-                            )}
-                          </span>
-                        ))}
+                        {(() => {
+                          const totalHoldings = plan.suggestedAllocations.reduce((s, a) => s + (a.holdingsValue ?? 0), 0);
+                          return plan.allocations.map((alloc, i) => {
+                            const sa = plan.suggestedAllocations.find(a => a.assetId === alloc.assetId);
+                            const target = alloc.allocationPct;
+                            const actual = totalHoldings > 0 && sa?.holdingsValue != null
+                              ? (sa.holdingsValue / totalHoldings) * 100
+                              : null;
+                            const diff = actual != null ? actual - target : null;
+                            const isOver  = diff != null && diff >  1;
+                            const isUnder = diff != null && diff < -1;
+                            return (
+                              <span key={alloc.assetId} className="flex items-center gap-1">
+                                {i > 0 && <span className="text-gray-600 font-normal text-xs">·</span>}
+                                <span style={alloc.asset.color ? { color: alloc.asset.color } : { color: '#f3f4f6' }}>
+                                  {alloc.asset.symbol}
+                                </span>
+                                {plan.allocations.length > 1 && (
+                                  <span className="flex flex-col leading-none gap-px">
+                                    <span className="text-gray-600 text-[10px] font-normal">{target}%</span>
+                                    {actual != null && (
+                                      <span className={`text-[10px] font-normal ${isOver ? 'text-green-400' : isUnder ? 'text-red-400' : 'text-gray-500'}`}>
+                                        {isOver ? '↑' : isUnder ? '↓' : '≈'}{actual.toFixed(0)}%
+                                      </span>
+                                    )}
+                                  </span>
+                                )}
+                              </span>
+                            );
+                          });
+                        })()}
                       </span>
                       {plan.name && <span className="text-gray-400 text-sm">({plan.name})</span>}
                       <Badge variant="blue">{FREQ_LABELS[plan.frequency]}</Badge>

@@ -103,6 +103,7 @@ export interface SuggestedAllocation {
   drawdownPct?: number | null;
   multiplier?: number;
   amount: number;
+  holdingsValue?: number;
 }
 
 export interface AssetDrawdown {
