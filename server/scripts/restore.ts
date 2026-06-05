@@ -15,7 +15,12 @@ function load(dir: string, name: string): Record<string, unknown>[] {
 
 // Convert ISO date strings back to Date objects, strip relation objects and auto-managed fields
 const DATE_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
-const RELATION_KEYS = new Set(['user', 'asset', 'plan', 'dcaPlan', 'allocations', 'transactions', 'buyingRules', 'goals', 'dcaPlans', 'planAllocations']);
+const RELATION_KEYS = new Set([
+  'user', 'asset', 'plan', 'dcaPlan', 'ruleSet',
+  'allocations', 'transactions', 'buyingRules', 'goals',
+  'dcaPlans', 'planAllocations', 'rows',
+  'planBuyingRuleSets', 'planSellRuleSets',
+]);
 
 function clean(row: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
@@ -53,23 +58,36 @@ async function restore() {
 
   console.log(`Restoring from: ${targetDir}\n`);
 
-  const users         = load(targetDir, 'users');
-  const assets        = load(targetDir, 'assets');
-  const dcaPlans      = load(targetDir, 'dcaPlans');
-  const allocations   = load(targetDir, 'allocations');
-  const buyingRules   = load(targetDir, 'buyingRules');
-  const transactions  = load(targetDir, 'transactions');
-  const priceCache    = load(targetDir, 'priceCache');
-  const exchangeRates = load(targetDir, 'exchangeRates');
+  const users              = load(targetDir, 'users');
+  const assets             = load(targetDir, 'assets');
+  const dcaPlans           = load(targetDir, 'dcaPlans');
+  const allocations        = load(targetDir, 'allocations');
+  const buyingRuleSets     = load(targetDir, 'buyingRuleSets');
+  const buyingRuleSetRows  = load(targetDir, 'buyingRuleSetRows');
+  const sellRuleSets       = load(targetDir, 'sellRuleSets');
+  const sellRuleSetRows    = load(targetDir, 'sellRuleSetRows');
+  const planBuyingRuleSets = load(targetDir, 'planBuyingRuleSets');
+  const planSellRuleSets   = load(targetDir, 'planSellRuleSets');
+  const goals              = load(targetDir, 'goals');
+  const transactions       = load(targetDir, 'transactions');
+  const priceCache         = load(targetDir, 'priceCache');
+  const exchangeRates      = load(targetDir, 'exchangeRates');
 
-  await insertMany('users',        users,        (d) => prisma.user.create({ data: d as never }));
-  await insertMany('assets',       assets,       (d) => prisma.asset.create({ data: d as never }));
-  await insertMany('dcaPlans',     dcaPlans,     (d) => prisma.dcaPlan.create({ data: d as never }));
-  await insertMany('allocations',  allocations,  (d) => prisma.planAllocation.create({ data: d as never }));
-  await insertMany('buyingRules',  buyingRules,  (d) => prisma.buyingRule.create({ data: d as never }));
-  await insertMany('transactions', transactions, (d) => prisma.transaction.create({ data: d as never }));
-  await insertMany('priceCache',   priceCache,   (d) => prisma.priceCache.create({ data: d as never }));
-  await insertMany('exchangeRates',exchangeRates,(d) => prisma.exchangeRate.create({ data: d as never }));
+  // Insert in FK order: users -> assets -> plans -> allocations -> rule sets -> join tables -> goals -> transactions
+  await insertMany('users',              users,              (d) => prisma.user.create({ data: d as never }));
+  await insertMany('assets',            assets,             (d) => prisma.asset.create({ data: d as never }));
+  await insertMany('dcaPlans',          dcaPlans,           (d) => prisma.dcaPlan.create({ data: d as never }));
+  await insertMany('allocations',       allocations,        (d) => prisma.planAllocation.create({ data: d as never }));
+  await insertMany('buyingRuleSets',    buyingRuleSets,     (d) => prisma.buyingRuleSet.create({ data: d as never }));
+  await insertMany('buyingRuleSetRows', buyingRuleSetRows,  (d) => prisma.buyingRuleSetRow.create({ data: d as never }));
+  await insertMany('sellRuleSets',      sellRuleSets,       (d) => prisma.sellRuleSet.create({ data: d as never }));
+  await insertMany('sellRuleSetRows',   sellRuleSetRows,    (d) => prisma.sellRuleSetRow.create({ data: d as never }));
+  await insertMany('planBuyingRuleSets',planBuyingRuleSets, (d) => prisma.planBuyingRuleSet.create({ data: d as never }));
+  await insertMany('planSellRuleSets',  planSellRuleSets,   (d) => prisma.planSellRuleSet.create({ data: d as never }));
+  await insertMany('goals',             goals,              (d) => prisma.goal.create({ data: d as never }));
+  await insertMany('transactions',      transactions,       (d) => prisma.transaction.create({ data: d as never }));
+  await insertMany('priceCache',        priceCache,         (d) => prisma.priceCache.create({ data: d as never }));
+  await insertMany('exchangeRates',     exchangeRates,      (d) => prisma.exchangeRate.create({ data: d as never }));
 
   console.log('\n✅ Restore complete.');
   await prisma.$disconnect();

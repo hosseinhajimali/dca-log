@@ -9,17 +9,28 @@ async function backup() {
   const dir = join(__dirname, `../../backups/backup_${timestamp}`);
   mkdirSync(dir, { recursive: true });
 
-  const users        = await prisma.user.findMany();
-  const assets       = await prisma.asset.findMany();
-  const dcaPlans     = await prisma.dcaPlan.findMany();
-  const allocations  = await prisma.planAllocation.findMany();
-  const buyingRules  = await prisma.buyingRule.findMany();
-  const sellRules    = await prisma.sellRule.findMany();
-  const transactions = await prisma.transaction.findMany();
-  const priceCache   = await prisma.priceCache.findMany();
-  const exchangeRates = await prisma.exchangeRate.findMany();
+  const users               = await prisma.user.findMany();
+  const assets              = await prisma.asset.findMany();
+  const dcaPlans            = await prisma.dcaPlan.findMany();
+  const allocations         = await prisma.planAllocation.findMany();
+  const buyingRuleSets      = await prisma.buyingRuleSet.findMany();
+  const buyingRuleSetRows   = await prisma.buyingRuleSetRow.findMany();
+  const sellRuleSets        = await prisma.sellRuleSet.findMany();
+  const sellRuleSetRows     = await prisma.sellRuleSetRow.findMany();
+  const planBuyingRuleSets  = await prisma.planBuyingRuleSet.findMany();
+  const planSellRuleSets    = await prisma.planSellRuleSet.findMany();
+  const goals               = await prisma.goal.findMany();
+  const transactions        = await prisma.transaction.findMany();
+  const priceCache          = await prisma.priceCache.findMany();
+  const exchangeRates       = await prisma.exchangeRate.findMany();
 
-  const tables = { users, assets, dcaPlans, allocations, buyingRules, sellRules, transactions, priceCache, exchangeRates };
+  const tables = {
+    users, assets, dcaPlans, allocations,
+    buyingRuleSets, buyingRuleSetRows,
+    sellRuleSets, sellRuleSetRows,
+    planBuyingRuleSets, planSellRuleSets,
+    goals, transactions, priceCache, exchangeRates,
+  };
 
   for (const [name, rows] of Object.entries(tables)) {
     writeFileSync(join(dir, `${name}.json`), JSON.stringify(rows, null, 2));
