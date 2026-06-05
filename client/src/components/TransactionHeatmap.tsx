@@ -88,7 +88,7 @@ function HeatmapTooltip({ data, formatAmount }: { data: TooltipData; formatAmoun
         )}
       </div>
 
-      <div className="divide-y divide-gray-800">
+      <div className="divide-y divide-gray-200">
         {day.assets.map((a) => {
           const currentPrice = currentPrices[a.symbol] ?? null;
           const priceDiff = currentPrice && a.avgPrice > 0
@@ -116,7 +116,7 @@ function HeatmapTooltip({ data, formatAmount }: { data: TooltipData; formatAmoun
                 <span className="text-gray-200 font-medium">{formatAmount(a.amountUsd)}</span>
               </div>
               {priceDiff !== null && (
-                <div className="flex items-center justify-between pt-0.5 border-t border-gray-800/60">
+                <div className="flex items-center justify-between pt-0.5">
                   <span className="text-gray-500">Now {formatAmount(currentPrice!)}</span>
                   <span className={`font-semibold ${isUp ? 'text-green-400' : 'text-red-400'}`}>
                     {isUp ? '+' : ''}{priceDiff.toFixed(1)}%
