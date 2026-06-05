@@ -86,17 +86,37 @@ function ActivePlanCard({ plan, onClick }: { plan: ActivePlanSummary; onClick: (
       {/* Asset symbols */}
       <div className="flex items-center justify-between gap-1.5 flex-wrap mb-2">
         <span className="font-bold font-mono text-sm">
-          {plan.allocations.map((a, i) => (
-            <span key={a.asset.symbol}>
-              {i > 0 && <span className="text-gray-600 mx-1">·</span>}
-              <span style={a.asset.color ? { color: a.asset.color } : { color: '#f3f4f6' }}>
-                {a.asset.symbol}
-              </span>
-              {plan.allocations.length > 1 && (
-                <span className="text-gray-500 text-xs font-normal ml-0.5">{a.allocationPct}%</span>
-              )}
-            </span>
-          ))}
+          {(() => {
+            const totalHoldings = plan.suggestedAllocations?.reduce((s, a) => s + (a.holdingsValue ?? 0), 0) ?? 0;
+            return plan.allocations.map((a, i) => {
+              const sa = plan.suggestedAllocations?.find(x => x.assetId === a.assetId);
+              const target = a.allocationPct;
+              const actual = totalHoldings > 0 && sa?.holdingsValue != null
+                ? (sa.holdingsValue / totalHoldings) * 100
+                : null;
+              const diff = actual != null ? actual - target : null;
+              const isOver  = diff != null && diff >  1;
+              const isUnder = diff != null && diff < -1;
+              return (
+                <span key={a.asset.symbol}>
+                  {i > 0 && <span className="text-gray-600 mx-1">·</span>}
+                  <span style={a.asset.color ? { color: a.asset.color } : { color: '#f3f4f6' }}>
+                    {a.asset.symbol}
+                  </span>
+                  {plan.allocations.length > 1 && (
+                    <span className="inline-flex flex-col leading-none gap-px ml-0.5 align-middle">
+                      <span className="text-gray-600 text-[10px] font-normal">{target}%</span>
+                      {actual != null && (
+                        <span className={`text-[10px] font-normal ${isOver ? 'text-green-400' : isUnder ? 'text-red-400' : 'text-gray-500'}`}>
+                          {isOver ? '↑' : isUnder ? '↓' : '≈'}{actual.toFixed(0)}%
+                        </span>
+                      )}
+                    </span>
+                  )}
+                </span>
+              );
+            });
+          })()}
         </span>
         {plan.name && <span className="text-xs text-gray-500">({plan.name})</span>}
         <Badge variant="blue">{FREQ_LABELS[plan.frequency] ?? plan.frequency}</Badge>

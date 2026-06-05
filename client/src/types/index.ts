@@ -182,11 +182,12 @@ export interface ActivePlanSummary {
   name:                 string | null;
   amountUsd:            number;
   suggestedAmount:      number;
-  suggestedAllocations: { symbol: string; color: string | null; allocationPct: number; amount: number }[];
+  suggestedAllocations: { assetId: string; symbol: string; color: string | null; allocationPct: number; amount: number; holdingsValue?: number }[];
   suggestedSellAmount:  number | null;
   frequency:            string;
   nextPurchaseDate:     string | null;
   allocations: {
+    assetId: string;
     allocationPct: number;
     asset: { symbol: string; color: string | null };
   }[];

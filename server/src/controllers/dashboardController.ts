@@ -83,8 +83,10 @@ export async function getDashboardStats(req: AuthRequest, res: Response, next: N
 
     // Build avg cost map per asset from all transactions
     const avgCostMap = new Map<string, number>();
+    const holdingsValueMap = new Map<string, number>();
     for (const stat of assetStats) {
       avgCostMap.set(stat.asset.id, stat.avgCost);
+      holdingsValueMap.set(stat.asset.id, stat.currentValue);
     }
 
     // Active plans, with next purchase date, suggested buy amount, and sell suggestions
@@ -121,7 +123,8 @@ export async function getDashboardStats(req: AuthRequest, res: Response, next: N
         const match = activeBuySet ? matchBuyRow(dd, activeBuySet.ruleSet.rows) : null;
         const amount = +(baseShare * (match ? match.multiplier : 1)).toFixed(2);
         total += amount;
-        return { symbol: alloc.asset.symbol, color: alloc.asset.color, allocationPct: alloc.allocationPct, amount };
+        const holdingsValue = holdingsValueMap.get(alloc.asset.id) ?? 0;
+        return { assetId: alloc.asset.id, symbol: alloc.asset.symbol, color: alloc.asset.color, allocationPct: alloc.allocationPct, amount, holdingsValue };
       });
       const suggestedAmount = +total.toFixed(2);
 
@@ -165,6 +168,7 @@ export async function getDashboardStats(req: AuthRequest, res: Response, next: N
         frequency:            plan.frequency,
         nextPurchaseDate:     effectiveNext?.toISOString() ?? null,
         allocations:          plan.allocations.map((a) => ({
+          assetId: a.asset.id,
           allocationPct: a.allocationPct,
           asset: { symbol: a.asset.symbol, color: a.asset.color },
         })),
