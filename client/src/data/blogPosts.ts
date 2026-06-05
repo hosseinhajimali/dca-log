@@ -315,6 +315,55 @@ export const BLOG_POSTS: BlogPost[] = [
       },
     ],
   },
+  {
+    slug: 'dca-take-profit-strategy',
+    title: 'DCA Take-Profit Strategy: When and How to Sell',
+    excerpt: 'Most DCA investors have a clear plan for buying, but no plan for selling. Here is how to build a systematic take-profit strategy that lets you realise gains without trying to call the top.',
+    date: '2026-06-05',
+    readTime: '7 min read',
+    category: 'Strategy',
+    sections: [
+      {
+        body: 'Dollar cost averaging gives you a disciplined framework for buying. But the question most DCA investors never answer is: when do I sell? Without a plan, the answer tends to be "never" during bear markets when prices are falling, and "not yet" during bull markets when prices keep rising. Both of those answers leave returns on the table. A systematic take-profit strategy solves this.',
+      },
+      {
+        heading: 'Why most DCA investors never sell',
+        body: 'The same discipline that makes DCA investors good buyers makes them bad sellers. They are conditioned to hold through volatility, to not react to price movements, to think long-term. That mindset is an asset during downturns. But without sell rules, it becomes a liability at the top of a cycle. Investors watch their portfolio peak at 200% gains, tell themselves it will go higher, and end up holding through the next 70% crash back down. A take-profit strategy does not require you to call the top. It just requires you to decide in advance what gains are worth realising.',
+      },
+      {
+        heading: 'The core principle: sell in stages, not all at once',
+        body: 'The biggest mistake in take-profit planning is treating it as a single event. "I will sell when Bitcoin hits $150,000" is not a strategy. It is a bet on a specific price target. Markets rarely cooperate with single price targets, and if they do, it is usually only briefly before reversing. A better approach is staged selling: take out a portion of your position at each target level, locking in gains progressively rather than gambling on one exit point. This way you always sell some on the way up, you never sell everything at the wrong time, and you keep skin in the game if the asset continues higher.',
+      },
+      {
+        heading: 'Profit-based tiers: the simplest approach',
+        body: 'The cleanest way to define take-profit rules is as a percentage of your unrealised gain above your average cost basis. You are not predicting a price, you are reacting to your own performance. A typical structure might look like this: when your position is up 50% from your average cost, sell 10% of your holdings. When it is up 100%, sell another 15%. When it is up 200%, sell another 20%. When it is up 300%, sell another 25%. Each sale reduces your position slightly while leaving most of your holdings to benefit from further upside. The percentages you sell at each tier are yours to decide based on your goals, but the structure should be defined before you need it, not in the heat of a bull market.',
+      },
+      {
+        heading: 'Price-based tiers: anchoring to the market cycle',
+        body: 'An alternative to profit-based tiers is price-based tiers, where you define specific price levels for each asset that trigger a partial sale. This approach works well for assets like Bitcoin where cycle peaks have historically followed recognisable patterns. You might define tiers at $100,000, $150,000, and $200,000, selling 10% to 15% of your holdings at each level. The advantage is simplicity. The risk is that your target prices may never be reached in a given cycle, leaving your rules untriggered. Combining price targets with profit percentages gives you the best of both: price targets anchor your plan to the market, and profit tiers ensure you still realise gains even if the market does not reach your targets.',
+      },
+      {
+        heading: 'Time-based selling: the underrated option',
+        body: 'A third approach, less discussed but highly practical, is time-based selling. Instead of waiting for a price or profit level, you sell a fixed percentage of your holdings on a regular schedule, for example 5% per quarter once your position is in profit. This turns your DCA buy discipline into an equally disciplined sell discipline. The advantage is that it forces regular profit-taking regardless of market conditions, removes emotion from the timing decision, and naturally accelerates selling as your position grows. The downside is that you may sell during a period when the asset is underperforming, though over time the regularity tends to produce better outcomes than waiting for the "right" moment.',
+      },
+      {
+        heading: 'What to do with the proceeds',
+        body: 'Selling is only half of the decision. The other half is what you do with the capital. Three common approaches: move to stablecoins to preserve gains in crypto-native form while staying on-chain; convert to fiat and hold in a high-yield savings account while you wait for the next cycle; or redeploy into a safer asset like gold or a broad market ETF. The right choice depends on your overall financial situation and time horizon. For investors who expect another crypto cycle within a few years, stablecoins or gold are popular holding positions that keep you ready to redeploy when the next bear market creates buying opportunities.',
+      },
+      {
+        heading: 'Tax implications of selling',
+        body: 'Every sale is a taxable event in most jurisdictions. When you trigger a take-profit rule and sell 10% of your Bitcoin, you are realising a capital gain equal to the difference between your average cost basis and the sale price, multiplied by the amount sold. The tax rate depends on your country and how long you have held the asset. In many jurisdictions, assets held for more than one year qualify for a lower long-term capital gains rate. This is worth factoring into your tier structure: if you are close to the one-year mark on a large portion of your holdings, it may be worth waiting a few weeks before triggering a sale to qualify for better tax treatment. Always consult a qualified accountant for advice specific to your situation.',
+      },
+      {
+        heading: 'The biggest mistake: no plan at all',
+        body: 'Investors who have no take-profit plan tend to follow one of two paths. Either they never sell and ride their gains all the way through the next bear market, turning a 200% gain into a 30% gain. Or they panic-sell everything at once when they see the market start to turn, crystallising a fraction of the gains they would have taken with a staged approach. Both outcomes are avoidable with even a simple, pre-defined sell structure. The plan does not need to be sophisticated. It just needs to exist before you need it.',
+      },
+      {
+        heading: 'How to set sell rules in DCAlog',
+        body: 'DCAlog lets you define take-profit rules alongside your buying plan so that your full strategy lives in one place. You set your sell tiers based on profit percentage or price targets, and the app shows you in real time which rules are currently active based on your average cost and the current market price. When a rule triggers, you see it on your dashboard immediately. You always know what your plan says to do, without having to do the mental arithmetic yourself in the middle of a bull run when clarity is hardest to maintain.',
+      },
+    ],
+  },
 ];
 
 export function getBlogPost(slug: string): BlogPost | undefined {
