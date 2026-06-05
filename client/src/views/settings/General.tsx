@@ -383,12 +383,12 @@ export default function General() {
         </div>
       </section>
 
-      {/* Monthly Disposable Income */}
+      {/* Monthly Budget */}
       <section className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-4">
         <div>
-          <h2 className="text-sm font-semibold text-gray-300">Monthly Disposable Income</h2>
+          <h2 className="text-sm font-semibold text-gray-300">Monthly Budget</h2>
           <p className="text-xs text-gray-500 mt-0.5">
-            Money left after all fixed expenses. Used to show how much of your income goes to DCA.
+            Money available each month after fixed expenses. Used to show what percentage of your budget goes to DCA.
           </p>
         </div>
         <div className="flex gap-2">

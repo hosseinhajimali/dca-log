@@ -11,6 +11,7 @@ import { useDashboard } from '@/hooks/useDashboard';
 import { useGoals } from '@/hooks/useGoals';
 import { useStore } from '@/store/useStore';
 import { StatCard } from '@/components/ui/StatCard';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { Badge } from '@/components/ui/Badge';
 import { useCurrencyFormatter, formatDate, formatQuantity } from '@/lib/format';
 import FearGreedWidget from '@/components/ui/FearGreedWidget';
@@ -428,21 +429,27 @@ export default function Dashboard() {
             ? 'bg-yellow-500/5 border-yellow-500/25'
             : 'bg-gray-900 border-gray-800'
         }`}>
+          {/* Header */}
+          <div className="px-5 pt-3 pb-1 flex items-center gap-1.5">
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Monthly DCA Usage</span>
+            <InfoTooltip content="Shows how much of your monthly budget goes toward DCA. 'Scheduled' is your base plan with no rules applied. 'With buying rules' reflects the actual amount after any active buying rules (e.g. drawdown boosters) adjust it. If this reaches 30% or more, a high utilization warning appears as a reminder to review your budget." />
+          </div>
+
           {/* Base row */}
-          <div className="flex items-center justify-between gap-4 px-5 py-3">
+          <div className="flex items-center justify-between gap-4 px-5 py-2.5">
             <div className="flex items-center gap-2.5 min-w-0">
-              <span className="text-xs text-gray-500 w-16 shrink-0">Base plan</span>
+              <span className="text-xs text-gray-500 w-28 shrink-0">Scheduled</span>
               <span className="font-semibold font-mono text-brand-400">{basePct.toFixed(1)}%</span>
-              <span className="text-gray-500 text-xs">of disposable income</span>
+              <span className="text-gray-500 text-xs">of monthly budget</span>
             </div>
             <span className="text-xs text-gray-600 whitespace-nowrap shrink-0">{format(monthlyBaseUsd)} / mo</span>
           </div>
 
           {/* Rules row — only shown when rules are actually doing something */}
           {rulesActive && rulesPct !== null && (
-            <div className="flex items-center justify-between gap-4 px-5 py-3 border-t border-gray-800">
+            <div className="flex items-center justify-between gap-4 px-5 py-2.5 pb-3 border-t border-gray-800">
               <div className="flex items-center gap-2.5 min-w-0">
-                <span className="text-xs text-gray-500 w-16 shrink-0">Rules now</span>
+                <span className="text-xs text-gray-500 w-28 shrink-0">With buying rules</span>
                 <span className={`font-semibold font-mono ${rulesPct > 30 ? 'text-yellow-400' : monthlyRulesUsd > monthlyBaseUsd ? 'text-orange-400' : 'text-green-400'}`}>
                   {rulesPct.toFixed(1)}%
                 </span>
@@ -450,7 +457,7 @@ export default function Dashboard() {
                   {monthlyRulesUsd > monthlyBaseUsd ? '↑ boosted by drawdown rules' : '↓ reduced by rules'}
                 </span>
                 {rulesPct > 30 && (
-                  <span className="text-yellow-500 text-xs">High.</span>
+                  <span className="text-xs font-medium text-yellow-500 bg-yellow-500/10 px-1.5 py-0.5 rounded">High utilization</span>
                 )}
               </div>
               <span className="text-xs text-gray-600 whitespace-nowrap shrink-0">{format(monthlyRulesUsd)} / mo</span>
@@ -460,7 +467,7 @@ export default function Dashboard() {
       )}
       {basePct === null && !isEmpty && activePlanList.length > 0 && (
         <div className="px-5 py-3 rounded-xl border border-dashed border-gray-800 text-xs text-gray-600 text-center">
-          Set your monthly disposable income in{' '}
+          Set your monthly budget in{' '}
           <a href="/app/settings" className="text-brand-400 hover:text-brand-300 transition-colors">Settings</a>
           {' '}to see how much of your income goes to DCA.
         </div>
