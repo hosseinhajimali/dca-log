@@ -64,9 +64,10 @@ model User {
   currency     String   @default("USD")
   avatar       String?  @map("avatar")
   theme        String   @default("system")
-  isAdmin      Boolean  @default(false) @map("is_admin")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  isAdmin                  Boolean  @default(false) @map("is_admin")
+  monthlyDisposableIncome  Float?   @map("monthly_disposable_income")
+  createdAt                DateTime @default(now()) @map("created_at")
+  updatedAt                DateTime @updatedAt @map("updated_at")
 
   assets          Asset[]
   dcaPlans        DcaPlan[]

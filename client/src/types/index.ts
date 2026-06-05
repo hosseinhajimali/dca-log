@@ -70,6 +70,7 @@ export interface User {
   avatar?: string | null;
   theme: string;
   isAdmin: boolean;
+  monthlyDisposableIncome?: number | null;
   createdAt: string;
 }
 

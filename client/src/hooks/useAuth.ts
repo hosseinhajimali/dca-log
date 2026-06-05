@@ -42,7 +42,7 @@ export function useRegister() {
 export function useUpdateProfile() {
   const { setUser } = useStore();
   return useMutation({
-    mutationFn: async (data: { name?: string; avatar?: string | null }) => {
+    mutationFn: async (data: { name?: string; avatar?: string | null; monthlyDisposableIncome?: number | null }) => {
       const res = await api.patch<ApiResponse<User>>('/auth/me', data);
       return res.data.data;
     },

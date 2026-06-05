@@ -284,12 +284,28 @@ function deadlineLabel(daysUntil: number | null, deadline: string | null): strin
   return `~${months}mo left`;
 }
 
+const FREQ_TO_MONTHLY: Record<string, number> = {
+  DAILY: 30,
+  WEEKLY: 4.33,
+  BIWEEKLY: 2.17,
+  MONTHLY: 1,
+  CUSTOM: 1,
+};
+
+function calcMonthlyUsd(plans: ActivePlanSummary[], field: 'amountUsd' | 'suggestedAmount'): number {
+  return plans.reduce((sum, p) => {
+    const multiplier = FREQ_TO_MONTHLY[p.frequency] ?? 1;
+    return sum + p[field] * multiplier;
+  }, 0);
+}
+
 export default function Dashboard() {
   const { data, isLoading, error } = useDashboard();
   const { data: goals = [] } = useGoals();
   const { format, formatPct } = useCurrencyFormatter();
   const router = useRouter();
   const theme = useStore((s) => s.theme);
+  const user = useStore((s) => s.user);
   const isLight = theme === 'light' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
 
   if (isLoading) {
@@ -327,6 +343,14 @@ export default function Dashboard() {
     month: d.month,
     invested: Math.round(d.invested * 100) / 100,
   }));
+
+  // DCA utilization vs monthly disposable income
+  const monthlyBaseUsd      = calcMonthlyUsd(activePlanList, 'amountUsd');
+  const monthlyRulesUsd     = calcMonthlyUsd(activePlanList, 'suggestedAmount');
+  const rulesActive         = Math.abs(monthlyRulesUsd - monthlyBaseUsd) > 0.01;
+  const incomeUsd           = user?.monthlyDisposableIncome ?? null;
+  const basePct             = incomeUsd && incomeUsd > 0 ? (monthlyBaseUsd  / incomeUsd) * 100 : null;
+  const rulesPct            = incomeUsd && incomeUsd > 0 ? (monthlyRulesUsd / incomeUsd) * 100 : null;
 
   return (
     <div className="space-y-6">
@@ -375,6 +399,51 @@ export default function Dashboard() {
           negative={!isProfitable}
         />
       </div>
+
+      {/* DCA utilization banner */}
+      {basePct !== null && !isEmpty && (
+        <div className={`rounded-xl border overflow-hidden text-sm ${
+          (rulesPct ?? basePct) > 30
+            ? 'bg-yellow-500/5 border-yellow-500/25'
+            : 'bg-gray-900 border-gray-800'
+        }`}>
+          {/* Base row */}
+          <div className="flex items-center justify-between gap-4 px-5 py-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="text-xs text-gray-500 w-16 shrink-0">Base plan</span>
+              <span className="font-semibold font-mono text-brand-400">{basePct.toFixed(1)}%</span>
+              <span className="text-gray-500 text-xs">of disposable income</span>
+            </div>
+            <span className="text-xs text-gray-600 whitespace-nowrap shrink-0">{format(monthlyBaseUsd)} / mo</span>
+          </div>
+
+          {/* Rules row — only shown when rules are actually doing something */}
+          {rulesActive && rulesPct !== null && (
+            <div className="flex items-center justify-between gap-4 px-5 py-3 border-t border-gray-800">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="text-xs text-gray-500 w-16 shrink-0">Rules now</span>
+                <span className={`font-semibold font-mono ${rulesPct > 30 ? 'text-yellow-400' : monthlyRulesUsd > monthlyBaseUsd ? 'text-orange-400' : 'text-green-400'}`}>
+                  {rulesPct.toFixed(1)}%
+                </span>
+                <span className="text-gray-500 text-xs">
+                  {monthlyRulesUsd > monthlyBaseUsd ? '↑ boosted by drawdown rules' : '↓ reduced by rules'}
+                </span>
+                {rulesPct > 30 && (
+                  <span className="text-yellow-500 text-xs">High.</span>
+                )}
+              </div>
+              <span className="text-xs text-gray-600 whitespace-nowrap shrink-0">{format(monthlyRulesUsd)} / mo</span>
+            </div>
+          )}
+        </div>
+      )}
+      {basePct === null && !isEmpty && activePlanList.length > 0 && (
+        <div className="px-5 py-3 rounded-xl border border-dashed border-gray-800 text-xs text-gray-600 text-center">
+          Set your monthly disposable income in{' '}
+          <a href="/app/settings" className="text-brand-400 hover:text-brand-300 transition-colors">Settings</a>
+          {' '}to see how much of your income goes to DCA.
+        </div>
+      )}
 
       {/* Active plans */}
       {activePlanList.length > 0 && (

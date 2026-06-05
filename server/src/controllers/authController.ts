@@ -31,7 +31,7 @@ export async function register(req: Request, res: Response, next: NextFunction) 
     const passwordHash = await bcrypt.hash(password, 12);
     const user = await prisma.user.create({
       data: { email, passwordHash, name },
-      select: { id: true, email: true, name: true, currency: true, avatar: true, theme: true, isAdmin: true, createdAt: true },
+      select: { id: true, email: true, name: true, currency: true, avatar: true, theme: true, isAdmin: true, monthlyDisposableIncome: true, createdAt: true },
     });
 
     const token = signToken(user.id);
@@ -72,7 +72,7 @@ export async function getMe(req: Request & { userId?: string }, res: Response, n
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.userId },
-      select: { id: true, email: true, name: true, currency: true, avatar: true, theme: true, isAdmin: true, createdAt: true },
+      select: { id: true, email: true, name: true, currency: true, avatar: true, theme: true, isAdmin: true, monthlyDisposableIncome: true, createdAt: true },
     });
     if (!user) return next(new AppError(404, 'User not found'));
     res.json({ success: true, data: user });
@@ -88,6 +88,7 @@ export async function updateMe(req: Request & { userId?: string }, res: Response
       currency: z.string().length(3).optional(),
       avatar: z.string().optional().nullable(),
       theme: z.enum(['light', 'dark', 'system']).optional(),
+      monthlyDisposableIncome: z.number().positive().optional().nullable(),
     });
 
     const body = schema.safeParse(req.body);
@@ -96,7 +97,7 @@ export async function updateMe(req: Request & { userId?: string }, res: Response
     const user = await prisma.user.update({
       where: { id: req.userId },
       data: body.data,
-      select: { id: true, email: true, name: true, currency: true, avatar: true, theme: true, isAdmin: true, updatedAt: true },
+      select: { id: true, email: true, name: true, currency: true, avatar: true, theme: true, isAdmin: true, monthlyDisposableIncome: true, updatedAt: true },
     });
     res.json({ success: true, data: user });
   } catch (err) {
