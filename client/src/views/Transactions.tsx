@@ -11,6 +11,7 @@ import { Transaction, Asset, DcaPlan } from '@/types';
 import { api } from '@/lib/api';
 import { useAssetPrice } from '@/hooks/usePrices';
 import { toCSVString, downloadFile, downloadXLSX, parseImportCSV, ParsedImportRow } from '@/lib/exportUtils';
+import TransactionHeatmap from '@/components/TransactionHeatmap';
 
 // ─── delete confirm modal ─────────────────────────────────────────────────────
 function DeleteConfirmModal({ tx, onConfirm, onCancel }: {
@@ -989,6 +990,9 @@ export default function Transactions() {
           </button>
         </div>
       </div>
+
+      {/* activity heatmap */}
+      <TransactionHeatmap />
 
       {/* filter bar */}
       <div className="flex items-center gap-3 flex-wrap">

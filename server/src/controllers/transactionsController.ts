@@ -123,3 +123,104 @@ export async function deleteTransaction(req: AuthRequest, res: Response, next: N
     next(err);
   }
 }
+
+export async function getTransactionHeatmap(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const userId = req.userId!;
+    const { year, assetIds } = req.query as { year?: string; assetIds?: string };
+
+    const targetYear = year ? parseInt(year) : new Date().getFullYear();
+    const startDate = new Date(`${targetYear}-01-01T00:00:00.000Z`);
+    const endDate = new Date(`${targetYear + 1}-01-01T00:00:00.000Z`);
+
+    const where: Record<string, unknown> = {
+      userId,
+      type: 'BUY',
+      purchasedAt: { gte: startDate, lt: endDate },
+    };
+
+    if (assetIds) {
+      const ids = assetIds.split(',').filter(Boolean);
+      if (ids.length > 0) where.assetId = { in: ids };
+    }
+
+    const transactions = await prisma.transaction.findMany({
+      where,
+      include: { asset: true, dcaPlan: { select: { id: true } } },
+      orderBy: { purchasedAt: 'asc' },
+    });
+
+    // Group by UTC date
+    type AssetEntry = {
+      assetId: string; symbol: string; name: string; color: string | null;
+      totalQuantity: number; totalAmount: number; totalPriceWeighted: number;
+      txCount: number; hasPlanned: boolean; hasManual: boolean;
+    };
+    type DayEntry = { date: string; totalAmount: number; assetMap: Map<string, AssetEntry> };
+    const dayMap = new Map<string, DayEntry>();
+
+    for (const tx of transactions) {
+      const dateKey = tx.purchasedAt.toISOString().slice(0, 10);
+      if (!dayMap.has(dateKey)) {
+        dayMap.set(dateKey, { date: dateKey, totalAmount: 0, assetMap: new Map() });
+      }
+      const day = dayMap.get(dateKey)!;
+      day.totalAmount += tx.amountUsd;
+
+      if (!day.assetMap.has(tx.assetId)) {
+        day.assetMap.set(tx.assetId, {
+          assetId: tx.assetId, symbol: tx.asset.symbol, name: tx.asset.name,
+          color: tx.asset.color, totalQuantity: 0, totalAmount: 0,
+          totalPriceWeighted: 0, txCount: 0, hasPlanned: false, hasManual: false,
+        });
+      }
+      const a = day.assetMap.get(tx.assetId)!;
+      a.totalQuantity += tx.quantity;
+      a.totalAmount += tx.amountUsd;
+      a.totalPriceWeighted += tx.pricePerUnit * tx.quantity;
+      a.txCount += 1;
+      if (tx.dcaPlanId) a.hasPlanned = true; else a.hasManual = true;
+    }
+
+    const days = Array.from(dayMap.values()).map((day) => ({
+      date: day.date,
+      totalAmount: day.totalAmount,
+      assets: Array.from(day.assetMap.values()).map((a) => ({
+        assetId: a.assetId, symbol: a.symbol, name: a.name, color: a.color,
+        quantity: a.totalQuantity, amountUsd: a.totalAmount,
+        avgPrice: a.totalQuantity > 0 ? a.totalPriceWeighted / a.totalQuantity : 0,
+        txCount: a.txCount, hasPlanned: a.hasPlanned, hasManual: a.hasManual,
+      })),
+    }));
+
+    // Current prices for tooltip "vs now"
+    const symbols = [...new Set(transactions.map((t) => t.asset.symbol))];
+    const prices = await prisma.priceCache.findMany({ where: { symbol: { in: symbols } } });
+    const currentPrices = Object.fromEntries(prices.map((p) => [p.symbol, p.priceUsd]));
+
+    // All user assets for filter chips
+    const availableAssets = await prisma.asset.findMany({
+      where: { userId },
+      select: { id: true, symbol: true, name: true, color: true },
+      orderBy: { symbol: 'asc' },
+    });
+
+    // Years range for year selector
+    const firstTx = await prisma.transaction.findFirst({
+      where: { userId, type: 'BUY' },
+      orderBy: { purchasedAt: 'asc' },
+      select: { purchasedAt: true },
+    });
+    const firstYear = firstTx ? firstTx.purchasedAt.getFullYear() : targetYear;
+    const currentYear = new Date().getFullYear();
+    const availableYears: number[] = [];
+    for (let y = firstYear; y <= currentYear; y++) availableYears.push(y);
+
+    res.json({
+      success: true,
+      data: { days, currentPrices, availableAssets, availableYears, year: targetYear },
+    });
+  } catch (err) {
+    next(err);
+  }
+}

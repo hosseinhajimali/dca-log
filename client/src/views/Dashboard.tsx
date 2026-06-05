@@ -14,6 +14,7 @@ import { StatCard } from '@/components/ui/StatCard';
 import { Badge } from '@/components/ui/Badge';
 import { useCurrencyFormatter, formatDate, formatQuantity } from '@/lib/format';
 import FearGreedWidget from '@/components/ui/FearGreedWidget';
+import TransactionHeatmap from '@/components/TransactionHeatmap';
 import { ActivePlanSummary, Goal } from '@/types';
 
 function HoverTooltip({ message }: { message: string }) {
@@ -565,6 +566,9 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      {/* Transaction activity heatmap */}
+      <TransactionHeatmap />
 
       {/* Asset breakdown table */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">

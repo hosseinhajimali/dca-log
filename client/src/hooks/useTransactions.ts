@@ -64,3 +64,44 @@ export function useDeleteTransaction() {
     },
   });
 }
+
+export interface HeatmapAsset {
+  assetId: string;
+  symbol: string;
+  name: string;
+  color: string | null;
+  quantity: number;
+  amountUsd: number;
+  avgPrice: number;
+  txCount: number;
+  hasPlanned: boolean;
+  hasManual: boolean;
+}
+
+export interface HeatmapDay {
+  date: string; // "YYYY-MM-DD"
+  totalAmount: number;
+  assets: HeatmapAsset[];
+}
+
+export interface HeatmapData {
+  days: HeatmapDay[];
+  currentPrices: Record<string, number>;
+  availableAssets: { id: string; symbol: string; name: string; color: string | null }[];
+  availableYears: number[];
+  year: number;
+}
+
+export function useTransactionHeatmap(year?: number, assetIds?: string[]) {
+  return useQuery<HeatmapData>({
+    queryKey: ['transactions', 'heatmap', year, assetIds],
+    queryFn: async () => {
+      const params: Record<string, string> = {};
+      if (year) params.year = String(year);
+      if (assetIds && assetIds.length > 0) params.assetIds = assetIds.join(',');
+      const res = await api.get<{ data: HeatmapData }>('/transactions/heatmap', { params });
+      return res.data.data;
+    },
+    staleTime: 2 * 60_000,
+  });
+}
