@@ -8,12 +8,13 @@ import {
 } from 'recharts';
 import { useRouter } from 'next/navigation';
 import { useDashboard } from '@/hooks/useDashboard';
+import { useGoals } from '@/hooks/useGoals';
 import { useStore } from '@/store/useStore';
 import { StatCard } from '@/components/ui/StatCard';
 import { Badge } from '@/components/ui/Badge';
 import { useCurrencyFormatter, formatDate, formatQuantity } from '@/lib/format';
 import FearGreedWidget from '@/components/ui/FearGreedWidget';
-import { ActivePlanSummary } from '@/types';
+import { ActivePlanSummary, Goal } from '@/types';
 
 function HoverTooltip({ message }: { message: string }) {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
@@ -158,8 +159,134 @@ function ActivePlanCard({ plan, onClick }: { plan: ActivePlanSummary; onClick: (
   );
 }
 
+const GOAL_TYPE_LABEL: Record<string, string> = {
+  ACCUMULATION: 'Accumulation',
+  PORTFOLIO_VALUE: 'Portfolio Value',
+  INVESTMENT_COMMITMENT: 'Commitment',
+};
+
+function GoalsSummary({ goals }: { goals: Goal[] }) {
+  const { format } = useCurrencyFormatter();
+  const router = useRouter();
+  const active = goals.filter(g => !g.isCompleted && (g.progressPct ?? 0) < 100);
+
+  return (
+    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+      <div className="px-5 py-3.5 border-b border-gray-800 flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-gray-300">Goals</h2>
+        <button
+          onClick={() => router.push('/app/goals')}
+          className="text-xs text-gray-500 hover:text-brand-400 transition-all duration-150 hover:gap-1 group flex items-center gap-0.5"
+        >
+          View all <span className="inline-block transition-transform duration-150 group-hover:translate-x-0.5">→</span>
+        </button>
+      </div>
+
+      {active.length === 0 ? (
+        <div className="px-5 py-8 text-center">
+          <p className="text-sm text-gray-600">No active goals.</p>
+          <button
+            onClick={() => router.push('/app/goals')}
+            className="mt-2 text-xs text-brand-400 hover:text-brand-300 transition-colors"
+          >
+            Set a goal →
+          </button>
+        </div>
+      ) : (
+        <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {active.map(goal => {
+            const pct = goal.progressPct ?? 0;
+            const clampedPct = Math.min(pct, 100);
+            return (
+              <button
+                key={goal.id}
+                onClick={() => router.push('/app/goals')}
+                className="text-left p-4 rounded-xl border border-gray-800 hover:border-gray-600 hover:bg-gray-800/50 transition-all duration-150 hover:-translate-y-px space-y-3"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-200 truncate">{goal.name}</p>
+                    {goal.asset && (
+                      <p className="text-xs mt-0.5" style={goal.asset.color ? { color: goal.asset.color } : { color: '#6b7280' }}>
+                        {goal.asset.symbol}
+                      </p>
+                    )}
+                  </div>
+                  <span className="text-xs px-1.5 py-0.5 rounded bg-gray-800 text-gray-500 shrink-0 whitespace-nowrap">
+                    {GOAL_TYPE_LABEL[goal.type] ?? goal.type}
+                  </span>
+                </div>
+
+                {goal.type === 'ACCUMULATION' && goal.targetQty != null && (
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>{formatQuantity(goal.currentValue ?? 0)} / {formatQuantity(goal.targetQty)} {goal.asset?.symbol}</span>
+                      <span className="font-mono text-brand-400 font-semibold">{pct.toFixed(1)}%</span>
+                    </div>
+                    <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                      <div className="h-full bg-brand-500 rounded-full transition-all duration-500" style={{ width: `${clampedPct}%` }} />
+                    </div>
+                  </div>
+                )}
+
+                {goal.type === 'PORTFOLIO_VALUE' && goal.targetValue != null && (
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>{format(goal.currentValue ?? 0)} / {format(goal.targetValue)}</span>
+                      <span className="font-mono text-brand-400 font-semibold">{pct.toFixed(1)}%</span>
+                    </div>
+                    <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                      <div className="h-full bg-brand-500 rounded-full transition-all duration-500" style={{ width: `${clampedPct}%` }} />
+                    </div>
+                  </div>
+                )}
+
+                {goal.type === 'INVESTMENT_COMMITMENT' && goal.targetMonthlyAmount != null && (
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>This month: {format(goal.currentValue ?? 0)} / {format(goal.targetMonthlyAmount)}</span>
+                      <span className="font-mono text-brand-400 font-semibold">{pct}% months hit</span>
+                    </div>
+                    <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${Math.min((goal.currentValue ?? 0) / goal.targetMonthlyAmount * 100, 100)}%`,
+                          background: (goal.currentValue ?? 0) >= goal.targetMonthlyAmount ? '#22c55e' : '#6366f1',
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {goal.deadline && (
+                  <p className={`text-xs ${(goal.daysUntil ?? Infinity) < 0 ? 'text-red-400' : (goal.daysUntil ?? Infinity) <= 7 ? 'text-yellow-400' : 'text-gray-600'}`}>
+                    {deadlineLabel(goal.daysUntil ?? null, goal.deadline)}
+                  </p>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function deadlineLabel(daysUntil: number | null, deadline: string | null): string {
+  if (!deadline) return '';
+  if (daysUntil === null) return '';
+  if (daysUntil < 0) return `${Math.abs(daysUntil)}d overdue`;
+  if (daysUntil === 0) return 'Due today';
+  if (daysUntil === 1) return 'Due tomorrow';
+  if (daysUntil <= 30) return `${daysUntil}d left`;
+  const months = Math.round(daysUntil / 30);
+  return `~${months}mo left`;
+}
+
 export default function Dashboard() {
   const { data, isLoading, error } = useDashboard();
+  const { data: goals = [] } = useGoals();
   const { format, formatPct } = useCurrencyFormatter();
   const router = useRouter();
   const theme = useStore((s) => s.theme);
@@ -272,6 +399,9 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* Goals overview */}
+      <GoalsSummary goals={goals} />
 
       {/* Fear & Greed */}
       <FearGreedWidget />
