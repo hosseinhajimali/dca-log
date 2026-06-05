@@ -4,9 +4,10 @@ import { useState, useEffect, useRef } from 'react';
 import { Upload, Download, Pencil, Trash2 } from 'lucide-react';
 import { useTransactions, useCreateTransaction, useUpdateTransaction, useDeleteTransaction, TxSortBy, TxSortOrder } from '@/hooks/useTransactions';
 import { useAssets } from '@/hooks/useAssets';
+import { useDcaPlans } from '@/hooks/useDcaPlans';
 import { Badge } from '@/components/ui/Badge';
 import { useCurrencyFormatter, formatDate, formatQuantity } from '@/lib/format';
-import { Transaction, Asset } from '@/types';
+import { Transaction, Asset, DcaPlan } from '@/types';
 import { api } from '@/lib/api';
 import { useAssetPrice } from '@/hooks/usePrices';
 import { toCSVString, downloadFile, downloadXLSX, parseImportCSV, ParsedImportRow } from '@/lib/exportUtils';
@@ -85,6 +86,7 @@ function toLocalDatetimeString(date: Date | string): string {
 interface TxFormValues {
   type: 'BUY' | 'SELL';
   assetId: string;
+  dcaPlanId: string;
   amountUsd: string;
   quantity: string;
   pricePerUnit: string;
@@ -95,7 +97,7 @@ interface TxFormValues {
 
 const emptyForm = (): TxFormValues => ({
   type: 'BUY',
-  assetId: '', amountUsd: '', quantity: '', pricePerUnit: '',
+  assetId: '', dcaPlanId: '', amountUsd: '', quantity: '', pricePerUnit: '',
   purchasedAt: toLocalDatetimeString(new Date()),
   exchange: '', notes: '',
 });
@@ -104,6 +106,7 @@ function txToForm(tx: Transaction): TxFormValues {
   return {
     type: tx.type ?? 'BUY',
     assetId: tx.assetId,
+    dcaPlanId: tx.dcaPlanId ?? '',
     amountUsd: tx.amountUsd.toFixed(2),
     quantity: parseFloat(tx.quantity.toFixed(8)).toString(),
     pricePerUnit: tx.pricePerUnit.toFixed(2),
@@ -118,14 +121,26 @@ interface TxFieldsProps {
   form: TxFormValues;
   setForm: React.Dispatch<React.SetStateAction<TxFormValues>>;
   assets: { id: string; symbol: string; name: string }[];
+  plans: DcaPlan[];
   lockAsset?: boolean; // editing: don't allow changing the asset
 }
 
-function TxFields({ form, setForm, assets, lockAsset }: TxFieldsProps) {
+function TxFields({ form, setForm, assets, plans, lockAsset }: TxFieldsProps) {
   const cls = 'w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-100 placeholder-gray-600 focus:outline-none focus:border-brand-500 disabled:opacity-50';
   const isSell = form.type === 'SELL';
   const selectedSymbol = assets.find(a => a.id === form.assetId)?.symbol ?? null;
   const { data: currentPrice } = useAssetPrice(selectedSymbol);
+
+  const selectedPlan = plans.find(p => p.id === form.dcaPlanId) ?? null;
+  const amountUsd = parseFloat(form.amountUsd) || 0;
+  const amountWarning = (() => {
+    if (!selectedPlan || amountUsd <= 0) return null;
+    if (selectedPlan.maxBudgetUsd && amountUsd > selectedPlan.maxBudgetUsd)
+      return `Exceeds plan max of $${selectedPlan.maxBudgetUsd.toLocaleString()}.`;
+    if (amountUsd < selectedPlan.amountUsd)
+      return `Below committed amount of $${selectedPlan.amountUsd.toLocaleString()}.`;
+    return null;
+  })();
 
   const recalcAmount = (qty: string, price: string) => {
     const q = parseFloat(qty), p = parseFloat(price);
@@ -165,6 +180,22 @@ function TxFields({ form, setForm, assets, lockAsset }: TxFieldsProps) {
         </select>
       </div>
 
+      {plans.length > 0 && (
+        <div>
+          <label className="block text-xs text-gray-400 mb-1.5">Plan (optional)</label>
+          <select value={form.dcaPlanId}
+            onChange={e => setForm(f => ({ ...f, dcaPlanId: e.target.value }))}
+            className={cls}>
+            <option value="">No plan</option>
+            {plans.map(p => (
+              <option key={p.id} value={p.id}>
+                {p.name || p.allocations.map(a => a.asset.symbol).join(' · ')}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <div>
         <label className="block text-xs text-gray-400 mb-1.5">{isSell ? 'Quantity sold *' : 'Quantity received *'}</label>
         <input type="number" required min="0" step="any" value={form.quantity}
@@ -190,6 +221,9 @@ function TxFields({ form, setForm, assets, lockAsset }: TxFieldsProps) {
         <input type="number" min="0" step="0.01" value={form.amountUsd}
           onChange={e => setForm(f => ({ ...f, amountUsd: e.target.value }))}
           placeholder="100" className={cls} />
+        {amountWarning && (
+          <p className="text-xs text-yellow-500 mt-1">{amountWarning}</p>
+        )}
       </div>
 
       <div>
@@ -228,6 +262,7 @@ function CreateModal({ assets, onClose }: {
   onClose: () => void;
 }) {
   const createTx = useCreateTransaction();
+  const { data: plans = [] } = useDcaPlans();
   const [form, setForm] = useState<TxFormValues>(() => ({
     ...emptyForm(),
     assetId: assets[0]?.id ?? '',
@@ -245,6 +280,7 @@ function CreateModal({ assets, onClose }: {
     await createTx.mutateAsync({
       type: form.type,
       assetId: form.assetId,
+      dcaPlanId: form.dcaPlanId || undefined,
       amountUsd: parseFloat(form.amountUsd),
       quantity: parseFloat(form.quantity),
       pricePerUnit: parseFloat(form.pricePerUnit),
@@ -271,7 +307,7 @@ function CreateModal({ assets, onClose }: {
 
         {/* body */}
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5 overflow-y-auto">
-          <TxFields form={form} setForm={setForm} assets={assets} />
+          <TxFields form={form} setForm={setForm} assets={assets} plans={plans} />
 
           {createTx.isError && (
             <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
@@ -304,6 +340,7 @@ interface EditModalProps {
 
 function EditModal({ tx, assets, onClose }: EditModalProps) {
   const updateTx = useUpdateTransaction();
+  const { data: plans = [] } = useDcaPlans();
   const [form, setForm] = useState<TxFormValues>(txToForm(tx));
 
   // close on Escape
@@ -356,7 +393,7 @@ function EditModal({ tx, assets, onClose }: EditModalProps) {
 
         {/* body */}
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5 overflow-y-auto">
-          <TxFields form={form} setForm={setForm} assets={assets} lockAsset />
+          <TxFields form={form} setForm={setForm} assets={assets} plans={plans} lockAsset />
 
           {updateTx.isError && (
             <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">

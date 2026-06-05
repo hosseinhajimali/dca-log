@@ -22,7 +22,6 @@ const allocationSchema = z.array(
 const planSchema = z.object({
   name: z.string().optional(),
   amountUsd: z.number().positive(),
-  minBudgetUsd: z.number().positive().optional().nullable(),
   maxBudgetUsd: z.number().positive().optional().nullable(),
   frequency: z.enum(['DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'CUSTOM']),
   intervalDays: z.number().int().positive().optional(),
@@ -349,7 +348,6 @@ export async function updateDcaPlan(req: AuthRequest, res: Response, next: NextF
       const updateData: Record<string, any> = {};
       if (planData.name        !== undefined) updateData.name        = planData.name;
       if (planData.amountUsd   !== undefined) updateData.amountUsd   = planData.amountUsd;
-      if ('minBudgetUsd' in planData) updateData.minBudgetUsd = (planData as Record<string, unknown>).minBudgetUsd ?? null;
       if ('maxBudgetUsd' in planData) updateData.maxBudgetUsd = (planData as Record<string, unknown>).maxBudgetUsd ?? null;
       if (planData.frequency   !== undefined) updateData.frequency   = planData.frequency;
       if (planData.intervalDays!== undefined) updateData.intervalDays= planData.intervalDays;

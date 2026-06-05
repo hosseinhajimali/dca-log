@@ -31,7 +31,7 @@ const INPUT_SM = 'bg-gray-800 border border-gray-700 rounded-lg px-2.5 py-1.5 te
 // ─── types ────────────────────────────────────────────────────────────────────
 interface PlanFormValues {
   name: string; amountUsd: string;
-  minBudgetUsd: string; maxBudgetUsd: string;
+  maxBudgetUsd: string;
   frequency: DcaFrequency; intervalDays: string; startDate: string; endDate: string;
   scheduledTime: string; notes: string;
 }
@@ -44,7 +44,7 @@ interface AllocDraft {
 
 
 const emptyForm = (): PlanFormValues => ({
-  name: '', amountUsd: '', minBudgetUsd: '', maxBudgetUsd: '',
+  name: '', amountUsd: '', maxBudgetUsd: '',
   frequency: 'MONTHLY',
   intervalDays: '', startDate: new Date().toISOString().slice(0, 10), endDate: '',
   scheduledTime: '08:00', notes: '',
@@ -54,7 +54,6 @@ function planToForm(plan: DcaPlan): PlanFormValues {
   return {
     name: plan.name ?? '',
     amountUsd:    String(plan.amountUsd),
-    minBudgetUsd: plan.minBudgetUsd != null ? String(plan.minBudgetUsd) : '',
     maxBudgetUsd: plan.maxBudgetUsd != null ? String(plan.maxBudgetUsd) : '',
     frequency:    plan.frequency,
     intervalDays: plan.intervalDays ? String(plan.intervalDays) : '',
@@ -227,22 +226,14 @@ function PlanFields({ form, setForm, assets, allocations, setAllocations }: {
           onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className={INPUT} />
       </div>
       <div>
-        <label className="block text-xs text-gray-400 mb-1.5">Base amount (USD) *</label>
+        <label className="block text-xs text-gray-400 mb-1.5">Amount (USD) *</label>
         <input type="number" required min="0.01" step="0.01" value={form.amountUsd}
           onChange={e => setForm(f => ({ ...f, amountUsd: e.target.value }))}
           placeholder="100" className={INPUT} />
       </div>
       <div>
         <label className="block text-xs text-gray-400 mb-1.5">
-          Min budget <span className="text-gray-600">(bullish, optional)</span>
-        </label>
-        <input type="number" min="0.01" step="0.01" value={form.minBudgetUsd}
-          onChange={e => setForm(f => ({ ...f, minBudgetUsd: e.target.value }))}
-          placeholder="e.g. 50" className={INPUT} />
-      </div>
-      <div>
-        <label className="block text-xs text-gray-400 mb-1.5">
-          Max budget <span className="text-gray-600">(bearish cap, optional)</span>
+          Max amount <span className="text-gray-600">(optional)</span>
         </label>
         <input type="number" min="0.01" step="0.01" value={form.maxBudgetUsd}
           onChange={e => setForm(f => ({ ...f, maxBudgetUsd: e.target.value }))}
@@ -318,7 +309,6 @@ function CreateModal({ assets, onClose }: {
       await createPlan.mutateAsync({
         name: form.name || undefined,
         amountUsd: parseFloat(form.amountUsd),
-        minBudgetUsd: form.minBudgetUsd ? parseFloat(form.minBudgetUsd) : undefined,
         maxBudgetUsd: form.maxBudgetUsd ? parseFloat(form.maxBudgetUsd) : undefined,
         frequency: form.frequency,
         intervalDays: form.frequency === 'CUSTOM' ? parseInt(form.intervalDays) : undefined,
@@ -409,7 +399,6 @@ export function EditModal({ plan, assets, onClose }: {
         data: {
           name: form.name || undefined,
           amountUsd: parseFloat(form.amountUsd),
-          minBudgetUsd: form.minBudgetUsd ? parseFloat(form.minBudgetUsd) : null,
           maxBudgetUsd: form.maxBudgetUsd ? parseFloat(form.maxBudgetUsd) : null,
           frequency: form.frequency,
           intervalDays: form.frequency === 'CUSTOM' ? parseInt(form.intervalDays) : undefined,
@@ -772,7 +761,12 @@ export function PlanRuleSetsPanel({ plan }: { plan: DcaPlan }) {
                         ) : <span className="text-gray-700 text-xs">-</span>}
                       </td>
                       <td className={`${TD} font-mono font-semibold ${anyFires ? 'text-brand-300' : 'text-gray-600'}`}>
-                        {format(total)}
+                        <div className="flex flex-col gap-0.5">
+                          <span>{format(total)}</span>
+                          {plan.maxBudgetUsd && total > plan.maxBudgetUsd && (
+                            <span className="text-xs text-yellow-500 font-normal">Exceeds max {format(plan.maxBudgetUsd)}</span>
+                          )}
+                        </div>
                       </td>
                       <td className={`${TD} text-right`}>
                         <div className="flex items-center justify-end gap-2">

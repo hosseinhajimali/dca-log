@@ -118,7 +118,6 @@ export interface DcaPlan {
   userId: string;
   name?: string;
   amountUsd: number;
-  minBudgetUsd?: number | null;
   maxBudgetUsd?: number | null;
   frequency: DcaFrequency;
   intervalDays?: number;

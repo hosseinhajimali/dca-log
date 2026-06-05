@@ -107,9 +107,8 @@ model DcaPlan {
   userId           String       @map("user_id")
   assetId          String?      @map("asset_id") // nullable, kept for legacy plans only
   name             String? // optional label, e.g. "Monthly BTC stack"
-  amountUsd        Float        @map("amount_usd") // base/fallback USD to buy each time
-  minBudgetUsd     Float?       @map("min_budget_usd") // minimum spend per cycle (bullish market)
-  maxBudgetUsd     Float?       @map("max_budget_usd") // maximum spend per cycle (bearish/aggressive)
+  amountUsd        Float        @map("amount_usd") // committed USD to buy each time
+  maxBudgetUsd     Float?       @map("max_budget_usd") // optional ceiling for flexible buying
   frequency        DcaFrequency
   intervalDays     Int?         @map("interval_days") // only for CUSTOM frequency
   isActive         Boolean      @default(true) @map("is_active")

@@ -189,6 +189,19 @@ export function QuickAddModal({ plan, onClose }: QuickAddModalProps) {
   const checkedCount = rows.filter(r => r.checked).length;
   const isMulti = rows.length > 1;
 
+  const totalUsd = rows
+    .filter(r => r.checked)
+    .reduce((sum, r) => sum + (parseFloat(r.amountUsd) || 0), 0);
+
+  const amountWarning = (() => {
+    if (totalUsd <= 0) return null;
+    if (plan.maxBudgetUsd && totalUsd > plan.maxBudgetUsd)
+      return `Total exceeds your plan max of $${plan.maxBudgetUsd.toLocaleString()}.`;
+    if (totalUsd < plan.amountUsd)
+      return `Total is below your committed amount of $${plan.amountUsd.toLocaleString()}.`;
+    return null;
+  })();
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
@@ -277,6 +290,10 @@ export function QuickAddModal({ plan, onClose }: QuickAddModalProps) {
               </div>
             ))}
           </div>
+
+          {amountWarning && (
+            <p className="text-xs text-yellow-500">{amountWarning}</p>
+          )}
 
           {/* date + time */}
           <div className="grid grid-cols-2 gap-3">
