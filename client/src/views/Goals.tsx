@@ -4,11 +4,13 @@ import { useState, useMemo } from 'react';
 import { useStore } from '@/store/useStore';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Layers, DollarSign, CalendarCheck, Info, ChevronDown, ChevronUp } from 'lucide-react';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { useGoals, useCreateGoal, useUpdateGoal, useDeleteGoal, GoalPayload } from '@/hooks/useGoals';
 import { useAssets } from '@/hooks/useAssets';
 import { Goal, GoalType } from '@/types';
 import type { LucideIcon } from 'lucide-react';
 import { useCurrencyFormatter, formatQuantity } from '@/lib/format';
+import PlanProjectionsModal from '@/components/PlanProjectionsModal';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -108,18 +110,20 @@ function GoalCard({
   onEdit,
   onDelete,
   onToggleComplete,
+  onProjections,
 }: {
   goal: Goal;
   onEdit: () => void;
   onDelete: () => void;
   onToggleComplete: () => void;
+  onProjections: () => void;
 }) {
   const { format } = useCurrencyFormatter();
   const pct = goal.progressPct ?? 0;
   const done = goal.isCompleted || pct >= 100;
 
   return (
-    <div className={`bg-gray-900 border rounded-xl p-5 space-y-4 transition-opacity ${done ? 'border-green-500/30 opacity-75' : 'border-gray-800'}`}>
+    <div className={`bg-gray-900 border rounded-xl p-5 flex flex-col gap-4 transition-opacity ${done ? 'border-green-500/30 opacity-75' : 'border-gray-800'}`}>
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -194,6 +198,19 @@ function GoalCard({
             ({new Date(goal.deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })})
           </span>
         </p>
+      )}
+
+      {/* Plan projections button */}
+      {(goal.type === 'ACCUMULATION' || goal.type === 'PORTFOLIO_VALUE') && (
+        <div className="flex items-center gap-1.5 mt-auto">
+          <button
+            onClick={onProjections}
+            className="flex-1 text-xs font-medium text-gray-300 border border-gray-700 hover:border-brand-500 hover:text-brand-400 rounded-lg py-1.5 transition-colors"
+          >
+            Plan projections
+          </button>
+          <InfoTooltip content="See how each of your DCA plans projects toward this goal. Pick an assumed annual growth rate and compare projected values, gaps, and whether each plan gets you there by the deadline." />
+        </div>
       )}
     </div>
   );
@@ -478,6 +495,7 @@ export default function Goals() {
   const [showModal, setShowModal] = useState(false);
   const [editGoal, setEditGoal] = useState<Goal | null>(null);
   const [deleteGoal, setDeleteGoal] = useState<Goal | null>(null);
+  const [projectionsGoal, setProjectionsGoal] = useState<Goal | null>(null);
 
   const { data: goals = [], isLoading } = useGoals();
   const updateGoal = useUpdateGoal();
@@ -498,6 +516,7 @@ export default function Goals() {
   }
 
   return (
+    <>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -562,6 +581,7 @@ export default function Goals() {
                     onEdit={() => { setEditGoal(goal); setShowModal(true); }}
                     onDelete={() => setDeleteGoal(goal)}
                     onToggleComplete={() => handleToggleComplete(goal)}
+                    onProjections={() => setProjectionsGoal(goal)}
                   />
                 ))}
               </div>
@@ -580,6 +600,7 @@ export default function Goals() {
                     onEdit={() => { setEditGoal(goal); setShowModal(true); }}
                     onDelete={() => setDeleteGoal(goal)}
                     onToggleComplete={() => handleToggleComplete(goal)}
+                    onProjections={() => setProjectionsGoal(goal)}
                   />
                 ))}
               </div>
@@ -588,21 +609,29 @@ export default function Goals() {
         </div>
       )}
 
-      {/* Modals */}
-      {showModal && (
-        <GoalModal
-          activeTab={activeTab}
-          initial={editGoal ?? undefined}
-          onClose={() => { setShowModal(false); setEditGoal(null); }}
-        />
-      )}
-      {deleteGoal && (
-        <DeleteModal
-          goal={deleteGoal}
-          onConfirm={handleDelete}
-          onCancel={() => setDeleteGoal(null)}
-        />
-      )}
     </div>
+
+    {/* Modals — outside space-y-6 to avoid inherited margin-top */}
+    {showModal && (
+      <GoalModal
+        activeTab={activeTab}
+        initial={editGoal ?? undefined}
+        onClose={() => { setShowModal(false); setEditGoal(null); }}
+      />
+    )}
+    {deleteGoal && (
+      <DeleteModal
+        goal={deleteGoal}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteGoal(null)}
+      />
+    )}
+    {projectionsGoal && (
+      <PlanProjectionsModal
+        goal={projectionsGoal}
+        onClose={() => setProjectionsGoal(null)}
+      />
+    )}
+    </>
   );
 }
