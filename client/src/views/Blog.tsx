@@ -25,6 +25,8 @@ export default function Blog() {
 
       <PublicNavbar />
 
+      <main>
+
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-6 pt-16 pb-12 text-center">
         <h1 className="text-3xl sm:text-4xl font-bold text-gray-50 mb-4">DCAlog Blog</h1>
@@ -88,6 +90,8 @@ export default function Blog() {
           </Link>
         </div>
       </section>
+
+      </main>
 
       <PublicFooter />
     </div>
