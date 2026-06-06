@@ -462,7 +462,7 @@ export function EditModal({ plan, assets, onClose }: {
 }
 
 // ─── delete plan modal ────────────────────────────────────────────────────────
-function DeletePlanModal({ plan, onConfirm, onClose }: {
+export function DeletePlanModal({ plan, onConfirm, onClose }: {
   plan: DcaPlan;
   onConfirm: () => void;
   onClose: () => void;

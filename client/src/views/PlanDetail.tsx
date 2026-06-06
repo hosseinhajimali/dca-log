@@ -4,14 +4,15 @@ import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useStore } from '@/store/useStore';
-import { PlusCircle, Pencil } from 'lucide-react';
+import { PlusCircle, Pencil, Copy, Trash2 } from 'lucide-react';
 import { QuickAddModal } from '@/components/QuickAddModal';
-import { EditModal } from '@/views/DcaPlans';
+import { EditModal, DeletePlanModal } from '@/views/DcaPlans';
 import { useAssets } from '@/hooks/useAssets';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
-import { usePlanStats, PlanStats } from '@/hooks/useDcaPlans';
+import { usePlanStats, PlanStats, useDeleteDcaPlan, useDuplicateDcaPlan } from '@/hooks/useDcaPlans';
+import { toast } from '@/lib/toast';
 import { StatCard } from '@/components/ui/StatCard';
 import { Badge } from '@/components/ui/Badge';
 import { useCurrencyFormatter, formatDate, formatQuantity } from '@/lib/format';
@@ -31,7 +32,29 @@ export default function PlanDetail() {
   const { format, formatPct } = useCurrencyFormatter();
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
   const { data: assets = [] } = useAssets();
+  const deletePlan = useDeleteDcaPlan();
+  const duplicatePlan = useDuplicateDcaPlan();
+
+  const handleDuplicate = async () => {
+    try {
+      await duplicatePlan.mutateAsync(id!);
+      toast('Plan duplicated', 'success');
+      router.push('/app/plans');
+    } catch {
+      toast('Failed to duplicate plan', 'error');
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deletePlan.mutateAsync(id!);
+      router.push('/app/plans');
+    } catch {
+      toast('Failed to delete plan', 'error');
+    }
+  };
   const theme = useStore((s) => s.theme);
   const isLight = theme === 'light' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
 
@@ -70,6 +93,13 @@ export default function PlanDetail() {
           qc.invalidateQueries({ queryKey: ['plan-stats', plan.id] });
         }} />
       )}
+      {showDelete && (
+        <DeletePlanModal
+          plan={plan}
+          onConfirm={handleDelete}
+          onClose={() => setShowDelete(false)}
+        />
+      )}
 
       {/* Back + header */}
       <div>
@@ -99,10 +129,10 @@ export default function PlanDetail() {
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setShowEdit(true)}
-              className="shrink-0 flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-100 border border-gray-700 hover:border-gray-500 px-3 py-2 rounded-lg transition-colors"
+              className="shrink-0 flex items-center gap-1.5 text-xs text-gray-500 hover:text-brand-400 hover:bg-gray-800 border border-gray-700 hover:border-brand-500/50 px-3 py-2 rounded-lg transition-colors"
             >
               <Pencil size={12} strokeWidth={1.75} />
-              Edit Plan
+              Edit
             </button>
             <button
               onClick={() => setShowQuickAdd(true)}
@@ -123,12 +153,26 @@ export default function PlanDetail() {
               return (
                 <button
                   onClick={() => router.push(`/app/simulator?${params.toString()}`)}
-                  className="shrink-0 flex items-center gap-1.5 text-xs text-gray-500 hover:text-brand-400 border border-gray-700 hover:border-brand-500/50 px-3 py-2 rounded-lg transition-colors"
+                  className="shrink-0 flex items-center gap-1.5 text-xs text-gray-500 hover:text-brand-400 hover:bg-gray-800 border border-gray-700 hover:border-brand-500/50 px-3 py-2 rounded-lg transition-colors"
                 >
-                  Simulate Plan
+                  ⏱ Simulate
                 </button>
               );
             })()}
+            <button
+              onClick={handleDuplicate}
+              className="shrink-0 flex items-center gap-1.5 text-xs text-gray-500 hover:text-brand-400 hover:bg-gray-800 border border-gray-700 hover:border-brand-500/50 px-3 py-2 rounded-lg transition-colors"
+            >
+              <Copy size={12} strokeWidth={1.75} />
+              Duplicate
+            </button>
+            <button
+              onClick={() => setShowDelete(true)}
+              className="shrink-0 flex items-center gap-1.5 text-xs text-white bg-red-600 hover:bg-red-500 border border-red-600 hover:border-red-500 px-3 py-2 rounded-lg transition-colors"
+            >
+              <Trash2 size={12} strokeWidth={1.75} />
+              Delete
+            </button>
           </div>
         </div>
       </div>
