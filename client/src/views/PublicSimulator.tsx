@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -38,6 +38,14 @@ const ASSET_COLORS: Record<string, string> = {
   ARB: '#28a0f0', TON: '#0088cc', TRX: '#ef0027', UNI: '#ff007a',
   ATOM: '#6f7390', INJ: '#00b2ff', SUI: '#4da2ff',
 };
+
+/** Darkens a hex color by 55% so it passes 4.5:1 contrast on light tinted backgrounds. */
+function darkenHex(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgb(${Math.round(r * 0.45)},${Math.round(g * 0.45)},${Math.round(b * 0.45)})`;
+}
 
 const FREQ_LABELS: Record<string, string> = {
   WEEKLY: 'Weekly', BIWEEKLY: 'Bi-weekly', MONTHLY: 'Monthly', DAILY: 'Daily',
@@ -389,6 +397,7 @@ export default function PublicSimulator() {
   const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isLight = typeof document !== 'undefined' && document.documentElement.classList.contains('light');
 
   // Load asset list
   useEffect(() => {
@@ -476,6 +485,8 @@ export default function PublicSimulator() {
         />
       )}
 
+      <main>
+
       {/* Hero */}
       <section className="max-w-4xl mx-auto px-6 pt-16 pb-10 text-center">
         <div className="inline-flex items-center gap-2 bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-medium px-3 py-1.5 rounded-full mb-6">
@@ -496,8 +507,9 @@ export default function PublicSimulator() {
 
             {/* Asset */}
             <div className="col-span-2 sm:col-span-1">
-              <label className="block text-xs text-gray-500 mb-1.5">Asset</label>
+              <label htmlFor="sim-asset" className="block text-xs text-gray-500 mb-1.5">Asset</label>
               <select
+                id="sim-asset"
                 value={symbol}
                 onChange={e => setSymbol(e.target.value)}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-brand-500"
@@ -510,8 +522,9 @@ export default function PublicSimulator() {
 
             {/* Amount */}
             <div>
-              <label className="block text-xs text-gray-500 mb-1.5">Amount (USD)</label>
+              <label htmlFor="sim-amount" className="block text-xs text-gray-500 mb-1.5">Amount (USD)</label>
               <input
+                id="sim-amount"
                 type="number" min="1" step="1" value={amountUsd}
                 onChange={e => setAmountUsd(e.target.value)}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-brand-500"
@@ -521,8 +534,9 @@ export default function PublicSimulator() {
 
             {/* Frequency */}
             <div>
-              <label className="block text-xs text-gray-500 mb-1.5">Frequency</label>
+              <label htmlFor="sim-frequency" className="block text-xs text-gray-500 mb-1.5">Frequency</label>
               <select
+                id="sim-frequency"
                 value={frequency}
                 onChange={e => setFrequency(e.target.value)}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-brand-500"
@@ -536,8 +550,9 @@ export default function PublicSimulator() {
 
             {/* Start date */}
             <div>
-              <label className="block text-xs text-gray-500 mb-1.5">Start date</label>
+              <label htmlFor="sim-start-date" className="block text-xs text-gray-500 mb-1.5">Start date</label>
               <input
+                id="sim-start-date"
                 type="date" value={startDate}
                 max={new Date().toISOString().slice(0, 10)}
                 onChange={e => setStartDate(e.target.value)}
@@ -691,7 +706,7 @@ export default function PublicSimulator() {
                 className="flex items-center gap-3 bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-gray-700 rounded-xl p-4 transition-colors text-left"
               >
                 <span className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                  style={{ background: (ASSET_COLORS[p.symbol] ?? '#7c3aed') + '22', color: ASSET_COLORS[p.symbol] ?? '#7c3aed' }}>
+                  style={{ background: (ASSET_COLORS[p.symbol] ?? '#7c3aed') + (isLight ? '33' : '22'), color: isLight ? darkenHex(ASSET_COLORS[p.symbol] ?? '#7c3aed') : (ASSET_COLORS[p.symbol] ?? '#7c3aed') }}>
                   {p.symbol.slice(0, 2)}
                 </span>
                 <div>
@@ -703,6 +718,8 @@ export default function PublicSimulator() {
           </div>
         </section>
       )}
+
+      </main>
 
       <PublicFooter />
     </div>

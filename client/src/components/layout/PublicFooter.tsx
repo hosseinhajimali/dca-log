@@ -8,7 +8,7 @@ export function PublicFooter() {
   const isLight = theme === 'light' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
 
   return (
-    <footer className="border-t border-gray-800">
+    <footer className="border-t border-gray-800 bg-gray-950">
       <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
         <a href="/"><img src={isLight ? '/logo-horizontal-light.svg' : '/logo-horizontal.svg'} alt="DCAlog" className="h-7 w-auto opacity-60 hover:opacity-100 transition-opacity" /></a>
         <div className="flex items-center gap-6">

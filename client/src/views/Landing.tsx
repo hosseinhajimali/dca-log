@@ -70,8 +70,8 @@ function BrowserFrame({ src, srcLight, alt }: { src: string; srcLight?: string; 
         <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
         <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
         <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
-        <div className="flex-1 mx-3 bg-gray-700/50 rounded h-5 flex items-center px-3 light-browser-urlbar">
-          <span className="text-[11px] text-gray-500">dcalog.com</span>
+        <div className="flex-1 mx-3 bg-gray-700 rounded h-5 flex items-center px-3 light-browser-urlbar">
+          <span className="text-[11px] text-gray-300 light-browser-urlbar-text">dcalog.com</span>
         </div>
       </div>
       {/* dark screenshot, hidden in light mode */}
@@ -104,9 +104,11 @@ export default function Landing() {
 
       <PublicNavbar />
 
+      <main>
+
       {/* ── Hero ── */}
       <section id="hero" className="max-w-6xl mx-auto px-6 pt-14 sm:pt-24 pb-10 sm:pb-16 text-center">
-        <div className="inline-flex items-center gap-2 bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-medium px-3 py-1.5 rounded-full mb-8">
+        <div className="inline-flex items-center gap-2 bg-brand-500/15 border border-brand-500/40 text-brand-400 text-xs font-medium px-3 py-1.5 rounded-full mb-8">
           <ShieldCheck size={12} />
           Built for long-term crypto investors
         </div>
@@ -163,7 +165,7 @@ export default function Landing() {
       <section id="features" className="max-w-6xl mx-auto px-6 py-20">
         <div className="text-center mb-14">
           <h2 className="text-3xl font-bold text-gray-100 mb-3">Everything you need to DCA smarter</h2>
-          <p className="text-gray-500 max-w-xl mx-auto">Stop guessing. Start tracking with the tools that keep your strategy on course.</p>
+          <p className="text-gray-400 max-w-xl mx-auto">Stop guessing. Start tracking with the tools that keep your strategy on course.</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {FEATURES.map(({ Icon, title, desc }) => (
@@ -175,7 +177,7 @@ export default function Landing() {
                 <Icon size={18} className="text-brand-400" strokeWidth={1.75} />
               </div>
               <h3 className="text-sm font-semibold text-gray-100 mb-2">{title}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
+              <p className="text-sm text-gray-400 leading-relaxed">{desc}</p>
             </div>
           ))}
         </div>
@@ -250,14 +252,14 @@ export default function Landing() {
       <section id="how-it-works" className="max-w-6xl mx-auto px-6 py-20">
         <div className="text-center mb-14">
           <h2 className="text-3xl font-bold text-gray-100 mb-3">How it works</h2>
-          <p className="text-gray-500">Get up and running in minutes.</p>
+          <p className="text-gray-400">Get up and running in minutes.</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
           {STEPS.map(({ n, title, desc }) => (
             <div key={n} className="text-center">
-              <div className="text-4xl font-black text-brand-500/20 mb-4 font-mono">{n}</div>
+              <div className="text-4xl font-black text-brand-500 mb-4 font-mono" aria-hidden="true">{n}</div>
               <h3 className="text-base font-semibold text-gray-100 mb-2">{title}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
+              <p className="text-sm text-gray-400 leading-relaxed">{desc}</p>
             </div>
           ))}
         </div>
@@ -267,7 +269,7 @@ export default function Landing() {
       <section className="max-w-6xl mx-auto px-6 pb-20">
         <div className="bg-brand-500/10 border border-brand-500/20 rounded-2xl px-8 py-12 text-center">
           <h2 className="text-2xl font-bold text-gray-100 mb-2">Ready to think in years?</h2>
-          <p className="text-gray-500 mb-8 text-sm">Join DCAlog and turn your investing discipline into a data-driven strategy.</p>
+          <p className="text-gray-400 mb-8 text-sm">Join DCAlog and turn your investing discipline into a data-driven strategy.</p>
           <Link
             href="/login"
             className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white font-semibold px-6 py-3 rounded-xl transition-colors text-sm"
@@ -277,6 +279,8 @@ export default function Landing() {
           </Link>
         </div>
       </section>
+
+      </main>
 
       {/* ── Footer ── */}
       <PublicFooter />
