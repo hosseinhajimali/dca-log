@@ -15,8 +15,10 @@ const CATEGORY_COLORS: Record<string, string> = {
   'Tax & Tracking':'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
 };
 
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const [year, month, day] = iso.split('-').map(Number);
+  return `${MONTHS[month - 1]} ${day}, ${year}`;
 }
 
 function ShareButtons({ title, excerpt, slug }: { title: string; excerpt: string; slug: string }) {

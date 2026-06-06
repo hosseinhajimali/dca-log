@@ -21,8 +21,10 @@ function categoryToSlug(category: string): string {
   return category.toLowerCase().replace(/\s+/g, '-');
 }
 
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const [year, month, day] = iso.split('-').map(Number);
+  return `${MONTHS[month - 1]} ${day}, ${year}`;
 }
 
 export async function generateStaticParams() {
