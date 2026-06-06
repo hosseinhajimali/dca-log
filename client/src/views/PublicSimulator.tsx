@@ -397,7 +397,15 @@ export default function PublicSimulator() {
   const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const isLight = typeof document !== 'undefined' && document.documentElement.classList.contains('light');
+  const [isLight, setIsLight] = useState(false);
+  useEffect(() => {
+    setIsLight(document.documentElement.classList.contains('light'));
+    const observer = new MutationObserver(() =>
+      setIsLight(document.documentElement.classList.contains('light'))
+    );
+    observer.observe(document.documentElement, { attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   // Load asset list
   useEffect(() => {
