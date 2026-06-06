@@ -6,6 +6,7 @@ import {
   useBuyingRuleSets, useCreateBuyingRuleSet, useUpdateBuyingRuleSet, useDeleteBuyingRuleSet,
   useSellRuleSets,   useCreateSellRuleSet,   useUpdateSellRuleSet,   useDeleteSellRuleSet,
 } from '@/hooks/useRuleSets';
+import { useDcaPlans } from '@/hooks/useDcaPlans';
 import { BuyingRuleSet, SellRuleSet } from '@/types';
 import { toast as showToast } from '@/lib/toast';
 
@@ -361,8 +362,23 @@ export default function RuleSets() {
 
   const { data: buyingSets = [], isLoading: loadingBuy } = useBuyingRuleSets();
   const { data: sellSets = [], isLoading: loadingSell } = useSellRuleSets();
+  const { data: plans = [] } = useDcaPlans();
   const delBuy = useDeleteBuyingRuleSet();
   const delSell = useDeleteSellRuleSet();
+
+  // Derive usage maps: ruleSetId -> { total, active }
+  const buyUsage = new Map<string, { total: number; active: number }>();
+  const sellUsage = new Map<string, { total: number; active: number }>();
+  for (const plan of plans) {
+    for (const pr of plan.planBuyingRuleSets) {
+      const prev = buyUsage.get(pr.ruleSetId) ?? { total: 0, active: 0 };
+      buyUsage.set(pr.ruleSetId, { total: prev.total + 1, active: prev.active + (pr.isActive ? 1 : 0) });
+    }
+    for (const pr of plan.planSellRuleSets) {
+      const prev = sellUsage.get(pr.ruleSetId) ?? { total: 0, active: 0 };
+      sellUsage.set(pr.ruleSetId, { total: prev.total + 1, active: prev.active + (pr.isActive ? 1 : 0) });
+    }
+  }
 
   const TH = 'px-5 py-3 text-left text-xs text-gray-500 uppercase tracking-wider font-medium whitespace-nowrap';
   const TD = 'px-5 py-3.5 text-sm';
@@ -427,16 +443,34 @@ export default function RuleSets() {
                     <th className={TH}>Label</th>
                     <th className={TH}>Type</th>
                     <th className={TH}>Rows</th>
+                    <th className={TH}>Plans</th>
                     <th className={TH}>Notes</th>
                     <th className={TH}></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {buyingSets.map(set => (
+                  {buyingSets.map(set => {
+                    const usage = buyUsage.get(set.id);
+                    return (
                     <tr key={set.id} className="hover:bg-gray-700/50 transition-colors">
                       <td className={`${TD} font-medium text-gray-100`}>{set.label}</td>
                       <td className={`${TD} text-gray-500`}>Drawdown vs ATH</td>
                       <td className={`${TD} text-gray-400`}>{set.rows.length}</td>
+                      <td className={TD}>
+                        {!usage ? (
+                          <span className="text-xs text-gray-600">Not used</span>
+                        ) : usage.active > 0 ? (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-400">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" />
+                            {usage.active} active
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 text-xs text-gray-500">
+                            <span className="w-1.5 h-1.5 rounded-full bg-gray-600 shrink-0" />
+                            {usage.total} assigned
+                          </span>
+                        )}
+                      </td>
                       <td className={`${TD} text-gray-500 max-w-xs truncate`}>{set.notes ?? '-'}</td>
                       <td className={`${TD} text-right`}>
                         <div className="flex items-center justify-end gap-1">
@@ -451,7 +485,7 @@ export default function RuleSets() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  ); })}
                 </tbody>
               </table>
             </div>
@@ -489,16 +523,34 @@ export default function RuleSets() {
                     <th className={TH}>Label</th>
                     <th className={TH}>Type</th>
                     <th className={TH}>Rows</th>
+                    <th className={TH}>Plans</th>
                     <th className={TH}>Notes</th>
                     <th className={TH}></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {sellSets.map(set => (
+                  {sellSets.map(set => {
+                    const usage = sellUsage.get(set.id);
+                    return (
                     <tr key={set.id} className="hover:bg-gray-700/50 transition-colors">
                       <td className={`${TD} font-medium text-gray-100`}>{set.label}</td>
                       <td className={`${TD} text-gray-500`}>Profit target</td>
                       <td className={`${TD} text-gray-400`}>{set.rows.length}</td>
+                      <td className={TD}>
+                        {!usage ? (
+                          <span className="text-xs text-gray-600">Not used</span>
+                        ) : usage.active > 0 ? (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-400">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" />
+                            {usage.active} active
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 text-xs text-gray-500">
+                            <span className="w-1.5 h-1.5 rounded-full bg-gray-600 shrink-0" />
+                            {usage.total} assigned
+                          </span>
+                        )}
+                      </td>
                       <td className={`${TD} text-gray-500 max-w-xs truncate`}>{set.notes ?? '-'}</td>
                       <td className={`${TD} text-right`}>
                         <div className="flex items-center justify-end gap-1">
@@ -513,7 +565,7 @@ export default function RuleSets() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  ); })}
                 </tbody>
               </table>
             </div>
