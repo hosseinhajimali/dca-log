@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useStore } from '@/store/useStore';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Layers, DollarSign, CalendarCheck, Info, ChevronDown, ChevronUp } from 'lucide-react';
+import { Layers, DollarSign, CalendarCheck, Info, ChevronDown, ChevronUp, Copy, Trash2 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { useGoals, useCreateGoal, useUpdateGoal, useDeleteGoal, GoalPayload } from '@/hooks/useGoals';
 import { useAssets } from '@/hooks/useAssets';
@@ -109,12 +109,14 @@ function GoalCard({
   goal,
   onEdit,
   onDelete,
+  onDuplicate,
   onToggleComplete,
   onProjections,
 }: {
   goal: Goal;
   onEdit: () => void;
   onDelete: () => void;
+  onDuplicate: () => void;
   onToggleComplete: () => void;
   onProjections: () => void;
 }) {
@@ -148,8 +150,9 @@ function GoalCard({
           >
             ✓
           </button>
-          <button onClick={onEdit} className="w-7 h-7 rounded-lg text-gray-600 hover:text-gray-300 hover:bg-gray-800 text-xs flex items-center justify-center transition-colors">✎</button>
-          <button onClick={onDelete} className="w-7 h-7 rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/10 text-xs flex items-center justify-center transition-colors">✕</button>
+          <button onClick={onDuplicate} title="Duplicate goal" className="w-7 h-7 rounded-lg text-gray-600 hover:text-brand-400 hover:bg-brand-500/10 flex items-center justify-center transition-colors"><Copy size={13} /></button>
+          <button onClick={onEdit} title="Edit goal" className="w-7 h-7 rounded-lg text-gray-600 hover:text-gray-300 hover:bg-gray-800 text-xs flex items-center justify-center transition-colors">✎</button>
+          <button onClick={onDelete} title="Delete goal" className="w-7 h-7 rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/10 flex items-center justify-center transition-colors"><Trash2 size={13} /></button>
         </div>
       </div>
 
@@ -500,6 +503,7 @@ export default function Goals() {
   const { data: goals = [], isLoading } = useGoals();
   const updateGoal = useUpdateGoal();
   const deleteGoalMutation = useDeleteGoal();
+  const createGoal = useCreateGoal();
 
   const filtered = useMemo(() => goals.filter(g => g.type === activeTab), [goals, activeTab]);
   const active = filtered.filter(g => !g.isCompleted && (g.progressPct ?? 0) < 100);
@@ -507,6 +511,21 @@ export default function Goals() {
 
   function handleToggleComplete(goal: Goal) {
     updateGoal.mutate({ id: goal.id, isCompleted: !goal.isCompleted });
+  }
+
+  function handleDuplicate(goal: Goal) {
+    const payload: GoalPayload = {
+      type: goal.type,
+      name: `${goal.name} (copy)`,
+      notes: goal.notes ?? undefined,
+      assetId: goal.asset?.id ?? undefined,
+      targetQty: goal.targetQty ?? undefined,
+      targetValue: goal.targetValue ?? undefined,
+      targetMonthlyAmount: goal.targetMonthlyAmount ?? undefined,
+      startDate: goal.startDate ? goal.startDate.slice(0, 10) : undefined,
+      deadline: goal.deadline ? goal.deadline.slice(0, 10) : undefined,
+    };
+    createGoal.mutate(payload);
   }
 
   async function handleDelete() {
@@ -580,6 +599,7 @@ export default function Goals() {
                     goal={goal}
                     onEdit={() => { setEditGoal(goal); setShowModal(true); }}
                     onDelete={() => setDeleteGoal(goal)}
+                    onDuplicate={() => handleDuplicate(goal)}
                     onToggleComplete={() => handleToggleComplete(goal)}
                     onProjections={() => setProjectionsGoal(goal)}
                   />
@@ -599,6 +619,7 @@ export default function Goals() {
                     goal={goal}
                     onEdit={() => { setEditGoal(goal); setShowModal(true); }}
                     onDelete={() => setDeleteGoal(goal)}
+                    onDuplicate={() => handleDuplicate(goal)}
                     onToggleComplete={() => handleToggleComplete(goal)}
                     onProjections={() => setProjectionsGoal(goal)}
                   />
