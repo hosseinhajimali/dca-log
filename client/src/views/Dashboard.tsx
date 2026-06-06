@@ -177,6 +177,18 @@ function ActivePlanCard({ plan, onClick }: { plan: ActivePlanSummary; onClick: (
             <p className="text-sm text-gray-600">Not scheduled</p>
         )}
       </div>
+
+      {/* Rule labels */}
+      <div className="mt-3 pt-3 border-t border-gray-800 space-y-1">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs text-gray-600">Buying rule</span>
+          <span className="text-xs text-gray-400 font-medium truncate max-w-[60%] text-right">{plan.buyingRuleName ?? 'None'}</span>
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs text-gray-600">Selling rule</span>
+          <span className="text-xs text-gray-400 font-medium truncate max-w-[60%] text-right">{plan.sellingRuleName ?? 'None'}</span>
+        </div>
+      </div>
     </button>
   );
 }

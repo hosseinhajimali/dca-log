@@ -167,6 +167,8 @@ export async function getDashboardStats(req: AuthRequest, res: Response, next: N
         suggestedSellAmount,
         frequency:            plan.frequency,
         nextPurchaseDate:     effectiveNext?.toISOString() ?? null,
+        buyingRuleName:       activeBuySet?.ruleSet.label ?? null,
+        sellingRuleName:      activeSellSet?.ruleSet.label ?? null,
         allocations:          plan.allocations.map((a) => ({
           assetId: a.asset.id,
           allocationPct: a.allocationPct,

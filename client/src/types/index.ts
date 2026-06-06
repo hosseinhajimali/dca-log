@@ -186,6 +186,8 @@ export interface ActivePlanSummary {
   suggestedSellAmount:  number | null;
   frequency:            string;
   nextPurchaseDate:     string | null;
+  buyingRuleName:       string | null;
+  sellingRuleName:      string | null;
   allocations: {
     assetId: string;
     allocationPct: number;

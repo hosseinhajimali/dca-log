@@ -116,7 +116,10 @@ export function useAssignBuyingRuleSet() {
     mutationFn: async ({ planId, ruleSetId, isActive }: { planId: string; ruleSetId: string; isActive: boolean }) => {
       await api.post(`/rule-sets/buying/assign/${planId}`, { ruleSetId, isActive });
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['dca-plans'] }),
+    onSuccess: (_data, { planId }) => {
+      qc.invalidateQueries({ queryKey: ['dca-plans'] });
+      qc.invalidateQueries({ queryKey: ['plan-stats', planId] });
+    },
   });
 }
 
@@ -126,7 +129,10 @@ export function useUnassignBuyingRuleSet() {
     mutationFn: async ({ planId, ruleSetId }: { planId: string; ruleSetId: string }) => {
       await api.delete(`/rule-sets/buying/assign/${planId}/${ruleSetId}`);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['dca-plans'] }),
+    onSuccess: (_data, { planId }) => {
+      qc.invalidateQueries({ queryKey: ['dca-plans'] });
+      qc.invalidateQueries({ queryKey: ['plan-stats', planId] });
+    },
   });
 }
 
@@ -136,7 +142,10 @@ export function useAssignSellRuleSet() {
     mutationFn: async ({ planId, ruleSetId, isActive }: { planId: string; ruleSetId: string; isActive: boolean }) => {
       await api.post(`/rule-sets/selling/assign/${planId}`, { ruleSetId, isActive });
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['dca-plans'] }),
+    onSuccess: (_data, { planId }) => {
+      qc.invalidateQueries({ queryKey: ['dca-plans'] });
+      qc.invalidateQueries({ queryKey: ['plan-stats', planId] });
+    },
   });
 }
 
@@ -146,6 +155,9 @@ export function useUnassignSellRuleSet() {
     mutationFn: async ({ planId, ruleSetId }: { planId: string; ruleSetId: string }) => {
       await api.delete(`/rule-sets/selling/assign/${planId}/${ruleSetId}`);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['dca-plans'] }),
+    onSuccess: (_data, { planId }) => {
+      qc.invalidateQueries({ queryKey: ['dca-plans'] });
+      qc.invalidateQueries({ queryKey: ['plan-stats', planId] });
+    },
   });
 }
