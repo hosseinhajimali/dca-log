@@ -114,7 +114,7 @@ html.light .text-gray-200 { color: #1e293b; }
 html.light .text-gray-300 { color: #334155; }
 html.light .text-gray-400 { color: #475569; }
 html.light .text-gray-500 { color: #475569; }
-html.light .text-gray-600 { color: #64748b; } /* slate-500, ~4.7:1 on #f1f5f9 */
+html.light .text-gray-600 { color: #475569; } /* slate-600, 6.3:1 on #f1f5f9 */
 
 /* Brand + category tag colors, boost contrast on light bg */
 html.light .text-brand-400  { color: #1d4ed8; }
