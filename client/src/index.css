@@ -98,6 +98,13 @@ html.light .border-purple-500\/20 { border-color: #c4b5fd !important; } /* purpl
 html.light .border-green-500\/20  { border-color: #86efac !important; } /* green-300 */
 html.light .border-yellow-500\/20 { border-color: #fde047 !important; } /* yellow-300 */
 
+/* Contact page buttons */
+html.light .bg-\[\#229ED9\]\/10  { background-color: #e0f2fe !important; } /* sky-100 */
+html.light .text-\[\#229ED9\]    { color: #0369a1 !important; }            /* sky-700, 8:1 on sky-100 */
+html.light .border-\[\#229ED9\]\/30 { border-color: #7dd3fc !important; }  /* sky-300 */
+html.light .bg-white\/5         { background-color: #f1f5f9 !important; }
+html.light .border-white\/10    { border-color: #cbd5e1 !important; }
+
 /* Opacity backgrounds, top bar, modals etc. */
 html.light .bg-gray-900\/80  { background-color: rgba(255,255,255,0.88) !important; }
 html.light .bg-gray-800\/60  { background-color: rgba(241,245,249,0.8) !important; }

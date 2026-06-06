@@ -34,7 +34,7 @@ export default function ContactPage() {
             <Mail size={24} className="text-brand-400" />
           </div>
 
-          <h1 className="text-3xl font-bold text-white mb-4">Get in touch</h1>
+          <h1 className="text-3xl font-bold text-gray-50 mb-4">Get in touch</h1>
           <p className="text-gray-400 mb-8 leading-relaxed">
             Have a question, found a bug, or want to share feedback? We'd love to hear from you.
           </p>
