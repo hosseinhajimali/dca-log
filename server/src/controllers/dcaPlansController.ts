@@ -494,6 +494,71 @@ export async function getPlanStats(req: AuthRequest, res: Response, next: NextFu
   }
 }
 
+export async function duplicateDcaPlan(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params as { id: string };
+    const source = await (prisma as any).dcaPlan.findFirst({
+      where: { id, userId: req.userId },
+      include: PLAN_INCLUDE,
+    });
+    if (!source) return next(new AppError(404, 'Plan not found'));
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const duplicate = await (prisma as any).$transaction(async (tx: any) => {
+      const { id: _id, createdAt: _c, updatedAt: _u, userId: _uid,
+              allocations, planBuyingRuleSets, planSellRuleSets,
+              name, ...rest } = source;
+
+      const created = await tx.dcaPlan.create({
+        data: {
+          ...rest,
+          name: name ? `${name} (copy)` : null,
+          userId: req.userId!,
+        },
+      });
+
+      // Copy allocations
+      if (allocations.length > 0) {
+        await tx.planAllocation.createMany({
+          data: allocations.map((a: { assetId: string; allocationPct: number }) => ({
+            planId: created.id,
+            assetId: a.assetId,
+            allocationPct: a.allocationPct,
+          })),
+        });
+      }
+
+      // Copy buying rule set assignments
+      if (planBuyingRuleSets.length > 0) {
+        await tx.planBuyingRuleSet.createMany({
+          data: planBuyingRuleSets.map((p: { ruleSetId: string; isActive: boolean }) => ({
+            planId: created.id,
+            ruleSetId: p.ruleSetId,
+            isActive: p.isActive,
+          })),
+        });
+      }
+
+      // Copy sell rule set assignments
+      if (planSellRuleSets.length > 0) {
+        await tx.planSellRuleSet.createMany({
+          data: planSellRuleSets.map((p: { ruleSetId: string; isActive: boolean }) => ({
+            planId: created.id,
+            ruleSetId: p.ruleSetId,
+            isActive: p.isActive,
+          })),
+        });
+      }
+
+      return tx.dcaPlan.findUniqueOrThrow({ where: { id: created.id }, include: PLAN_INCLUDE });
+    });
+
+    res.status(201).json({ success: true, data: duplicate });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function deleteDcaPlan(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const { id } = req.params as { id: string };

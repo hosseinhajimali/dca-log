@@ -75,6 +75,20 @@ export function useDeleteDcaPlan() {
   });
 }
 
+export function useDuplicateDcaPlan() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await api.post<ApiResponse<DcaPlan>>(`/dca-plans/${id}/duplicate`);
+      return res.data.data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['dca-plans'] });
+      qc.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+  });
+}
+
 // ─── Buying Rules ─────────────────────────────────────────────────────────────
 export function useCreateBuyingRule(planId: string) {
   const qc = useQueryClient();

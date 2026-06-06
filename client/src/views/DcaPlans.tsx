@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Eye, PlusCircle, Pencil, Trash2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Eye, PlusCircle, Pencil, Trash2, Copy } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { useRouter } from 'next/navigation';
 import { QuickAddModal } from '@/components/QuickAddModal';
 import {
-  useDcaPlans, useCreateDcaPlan, useUpdateDcaPlan, useDeleteDcaPlan,
+  useDcaPlans, useCreateDcaPlan, useUpdateDcaPlan, useDeleteDcaPlan, useDuplicateDcaPlan,
 } from '@/hooks/useDcaPlans';
 import { useAssets } from '@/hooks/useAssets';
 import { useQueryClient } from '@tanstack/react-query';
@@ -502,59 +502,6 @@ function DeletePlanModal({ plan, onConfirm, onClose }: {
   );
 }
 
-// ─── plan card 3-dot menu ─────────────────────────────────────────────────────
-function PlanMenu({ plan, onEdit, onDelete }: {
-  plan: DcaPlan;
-  onEdit: () => void;
-  onDelete: () => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [open]);
-
-  return (
-    <div ref={ref} className="relative shrink-0">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="text-gray-500 hover:text-gray-200 hover:bg-gray-800 rounded-lg w-8 h-8 flex items-center justify-center transition-colors"
-        aria-label="Plan actions"
-      >
-        ···
-      </button>
-      {open && (
-        <div className="absolute right-0 top-9 z-20 w-44 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden">
-          <button onClick={() => { onEdit(); setOpen(false); }}
-            className="w-full text-left px-4 py-2.5 text-sm text-gray-200 hover:bg-gray-800 transition-colors flex items-center gap-2">
-            <Pencil size={13} />
-            Edit
-          </button>
-          <div className="border-t border-gray-800 mt-1 pt-1">
-            <button onClick={() => { onDelete(); setOpen(false); }}
-              className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-gray-800 transition-colors flex items-center gap-2">
-              <Trash2 size={13} />
-              Delete
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ─── rule sets panel ─────────────────────────────────────────────────────────
 
@@ -848,8 +795,18 @@ export default function DcaPlans() {
   const { data: assets = [] } = useAssets();
   const updatePlan = useUpdateDcaPlan();
   const deletePlan = useDeleteDcaPlan();
+  const duplicatePlan = useDuplicateDcaPlan();
   const { format } = useCurrencyFormatter();
   const router = useRouter();
+
+  const handleDuplicate = async (plan: DcaPlan) => {
+    try {
+      await duplicatePlan.mutateAsync(plan.id);
+      toast('Plan duplicated', 'success');
+    } catch {
+      toast('Failed to duplicate plan', 'error');
+    }
+  };
 
   // Quick Purchase modal
   const [quickAddPlan, setQuickAddPlan] = useState<DcaPlan | null>(null);
@@ -922,7 +879,7 @@ export default function DcaPlans() {
               className="bg-gray-900 border border-gray-800 rounded-xl p-5">
               <div className="flex flex-col gap-4">
                 {/* content */}
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-4">
                   <div className="flex-1 min-w-0">
                     {/* title */}
                     <div className="flex items-center gap-2 flex-wrap">
@@ -989,22 +946,13 @@ export default function DcaPlans() {
                     {/* rule set assignments */}
                     <PlanRuleSetsPanel plan={plan} />
                   </div>
-
-                  {/* desktop-only 3-dot menu (top-right corner) */}
-                  <div className="hidden md:block shrink-0">
-                    <PlanMenu
-                      plan={plan}
-                      onEdit={() => setEditingPlan(plan)}
-                      onDelete={() => setPlanToDelete(plan)}
-                    />
-                  </div>
                 </div>
 
-                {/* actions row, bottom of card, full-width on mobile */}
+                {/* actions row */}
                 <div className="flex items-center gap-2 pt-3 border-t border-gray-800">
                   <button
                     onClick={() => router.push(`/app/plans/${plan.id}`)}
-                    className="flex-1 md:flex-none text-xs text-gray-500 hover:text-brand-400 border border-gray-700 hover:border-brand-500/50 px-3 py-2 md:py-1.5 rounded-lg transition-colors inline-flex items-center justify-center gap-1.5"
+                    className="flex-1 md:flex-none text-xs text-gray-500 hover:text-brand-400 hover:bg-gray-800 border border-gray-700 hover:border-brand-500/50 px-3 py-2 md:py-1.5 rounded-lg transition-colors inline-flex items-center justify-center gap-1.5"
                   >
                     <Eye size={12} strokeWidth={1.75} />
                     View
@@ -1028,19 +976,33 @@ export default function DcaPlans() {
                       });
                       router.push(`/app/simulator?${params.toString()}`);
                     }}
-                    className="flex-1 md:flex-none text-xs text-gray-500 hover:text-brand-400 border border-gray-700 hover:border-brand-500/50 px-3 py-2 md:py-1.5 rounded-lg transition-colors text-center"
+                    className="flex-1 md:flex-none text-xs text-gray-500 hover:text-brand-400 hover:bg-gray-800 border border-gray-700 hover:border-brand-500/50 px-3 py-2 md:py-1.5 rounded-lg transition-colors text-center"
                     title="Simulate this plan"
                   >
                     ⏱ Simulate
                   </button>
-                  {/* 3-dot menu moves here on mobile */}
-                  <div className="md:hidden shrink-0">
-                    <PlanMenu
-                      plan={plan}
-                      onEdit={() => setEditingPlan(plan)}
-                      onDelete={() => setPlanToDelete(plan)}
-                    />
-                  </div>
+
+                  <button
+                    onClick={() => setEditingPlan(plan)}
+                    className="flex-1 md:flex-none text-xs text-gray-500 hover:text-brand-400 hover:bg-gray-800 border border-gray-700 hover:border-brand-500/50 px-3 py-2 md:py-1.5 rounded-lg transition-colors inline-flex items-center justify-center gap-1.5"
+                  >
+                    <Pencil size={12} strokeWidth={1.75} />
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDuplicate(plan)}
+                    className="flex-1 md:flex-none text-xs text-gray-500 hover:text-brand-400 hover:bg-gray-800 border border-gray-700 hover:border-brand-500/50 px-3 py-2 md:py-1.5 rounded-lg transition-colors inline-flex items-center justify-center gap-1.5"
+                  >
+                    <Copy size={12} strokeWidth={1.75} />
+                    Duplicate
+                  </button>
+                  <button
+                    onClick={() => setPlanToDelete(plan)}
+                    className="flex-1 md:flex-none text-xs text-white bg-red-600 hover:bg-red-500 border border-red-600 hover:border-red-500 px-3 py-2 md:py-1.5 rounded-lg transition-colors inline-flex items-center justify-center gap-1.5"
+                  >
+                    <Trash2 size={12} strokeWidth={1.75} />
+                    Delete
+                  </button>
                 </div>
               </div>
             </div>
