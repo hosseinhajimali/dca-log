@@ -82,12 +82,21 @@ html.light .bg-gray-800   { background-color: #f1f5f9; }
 html.light .bg-gray-700   { background-color: #e2e8f0; }
 html.light .bg-gray-600   { background-color: #cbd5e1; }
 
-/* Brand opacity backgrounds — solid overrides for light mode so Lighthouse can resolve contrast */
+/* Opacity backgrounds — solid overrides for light mode so Lighthouse can resolve contrast */
 html.light .bg-brand-500\/10  { background-color: #eff6ff !important; } /* brand-50  */
 html.light .bg-brand-500\/15  { background-color: #eff6ff !important; }
 html.light .border-brand-500\/20 { border-color: #bfdbfe !important; } /* brand-200 */
 html.light .border-brand-500\/30 { border-color: #93c5fd !important; } /* brand-300 */
 html.light .border-brand-500\/40 { border-color: #93c5fd !important; }
+
+html.light .bg-blue-500\/10   { background-color: #dbeafe !important; } /* blue-100  */
+html.light .bg-purple-500\/10 { background-color: #ede9fe !important; } /* purple-100 */
+html.light .bg-green-500\/10  { background-color: #dcfce7 !important; } /* green-100 */
+html.light .bg-yellow-500\/10 { background-color: #fef9c3 !important; } /* yellow-100 */
+html.light .border-blue-500\/20   { border-color: #93c5fd !important; } /* blue-300  */
+html.light .border-purple-500\/20 { border-color: #c4b5fd !important; } /* purple-300 */
+html.light .border-green-500\/20  { border-color: #86efac !important; } /* green-300 */
+html.light .border-yellow-500\/20 { border-color: #fde047 !important; } /* yellow-300 */
 
 /* Opacity backgrounds, top bar, modals etc. */
 html.light .bg-gray-900\/80  { background-color: rgba(255,255,255,0.88) !important; }
@@ -105,10 +114,13 @@ html.light .text-gray-200 { color: #1e293b; }
 html.light .text-gray-300 { color: #334155; }
 html.light .text-gray-400 { color: #475569; }
 html.light .text-gray-500 { color: #475569; }
-html.light .text-gray-600 { color: #94a3b8; }
+html.light .text-gray-600 { color: #64748b; } /* slate-500, ~4.7:1 on #f1f5f9 */
 
-/* Brand, boost contrast on light bg */
-html.light .text-brand-400 { color: #2563eb; }
+/* Brand + category tag colors, boost contrast on light bg */
+html.light .text-brand-400  { color: #1d4ed8; }
+html.light .text-blue-400   { color: #1d4ed8; } /* blue-700   */
+html.light .text-purple-400 { color: #7e22ce; } /* purple-700 */
+html.light .text-yellow-400 { color: #a16207; } /* yellow-700 */
 
 /* Brand, boost contrast on dark bg */
 html.dark .text-brand-400  { color: #93c5fd; }
