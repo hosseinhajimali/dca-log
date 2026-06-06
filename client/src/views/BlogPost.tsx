@@ -146,6 +146,7 @@ export default function BlogPost() {
 
       <PublicNavbar />
 
+      <main>
       <article className="max-w-2xl mx-auto px-6 pt-12 pb-20">
 
         <Link href="/blog" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-300 transition-all duration-150 hover:-translate-x-0.5 mb-10 group">
@@ -215,6 +216,8 @@ export default function BlogPost() {
           </div>
         </section>
       )}
+
+      </main>
 
       <PublicFooter />
     </div>

@@ -124,6 +124,7 @@ html.light .text-yellow-400 { color: #a16207; } /* yellow-700 */
 
 /* Brand, boost contrast on dark bg */
 html.dark .text-brand-400  { color: #93c5fd; }
+html.dark .text-gray-600   { color: #9ca3af; } /* gray-400, lifts contrast on dark bg */
 
 /* Amber, boost contrast on light bg */
 html.light .text-amber-400     { color: #b45309; }
