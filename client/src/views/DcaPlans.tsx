@@ -658,8 +658,8 @@ export function PlanRuleSetsPanel({ plan }: { plan: DcaPlan }) {
 
       {/* Buying rules table */}
       {hasBuyingSets && (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-800">
+        <div className="bg-gray-900 border border-gray-800 rounded-xl">
+          <div className="flex items-center justify-between flex-wrap px-5 py-3.5 border-b border-gray-800">
             <h2 className="text-sm font-semibold text-gray-300">Buying rules</h2>
             <button onClick={() => setAddModal('buying')}
               className="text-xs text-brand-400 hover:text-brand-300 transition-colors">
@@ -669,77 +669,79 @@ export function PlanRuleSetsPanel({ plan }: { plan: DcaPlan }) {
           {buyingSets.length === 0 ? (
             <p className="text-xs text-gray-600 px-3 py-3">No rule sets assigned.</p>
           ) : (
-            <table className="w-full">
-              <thead>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
                 <tr className="border-b border-gray-800">
                   <th className={TH}>Label</th>
                   <th className={TH}>Per asset</th>
                   <th className={TH}>Total</th>
                   <th className={TH}></th>
                 </tr>
-              </thead>
-              <tbody>
+                </thead>
+                <tbody>
                 {buyingSets.map(prs => {
                   const perAsset = getPerAssetSuggestions(prs.ruleSet);
                   const total = +perAsset.reduce((s, a) => s + a.amount, 0).toFixed(2);
                   const anyFires = perAsset.some(a => a.fires);
                   return (
-                    <tr key={prs.ruleSetId} className="border-b border-gray-800 last:border-0">
-                      <td className={TD}>
-                        <span className="text-gray-200">{prs.ruleSet.label}</span>
-                      </td>
-                      <td className={TD}>
-                        {anyFires || plan.allocations.length > 0 ? (
-                          <div className="space-y-0.5">
-                            {perAsset.map(a => (
-                              <div key={a.symbol} className="flex items-center gap-1.5 text-xs font-mono">
-                                <span style={a.color ? { color: a.color } : { color: '#9ca3af' }} className="font-medium">{a.symbol}</span>
-                                {a.drawdownPct != null
-                                  ? <span className="text-red-400/70">-{a.drawdownPct.toFixed(1)}%</span>
-                                  : <span className="text-gray-700">no price</span>}
-                                <span className="text-gray-600">→</span>
-                                <span className={a.fires ? 'text-brand-300 font-semibold' : 'text-gray-500'}>
-                                  {a.multiplier}× {format(a.amount)}
-                                </span>
-                                {!a.fires && a.drawdownPct != null && <span className="text-gray-700">no rule</span>}
+                      <tr key={prs.ruleSetId} className="border-b border-gray-800 last:border-0">
+                        <td className={TD}>
+                          <span className="text-gray-200">{prs.ruleSet.label}</span>
+                        </td>
+                        <td className={TD}>
+                          {anyFires || plan.allocations.length > 0 ? (
+                              <div className="space-y-0.5">
+                                {perAsset.map(a => (
+                                    <div key={a.symbol} className="flex items-center gap-1.5 text-xs font-mono">
+                                      <span style={a.color ? { color: a.color } : { color: '#9ca3af' }} className="font-medium">{a.symbol}</span>
+                                      {a.drawdownPct != null
+                                          ? <span className="text-red-400/70">-{a.drawdownPct.toFixed(1)}%</span>
+                                          : <span className="text-gray-700">no price</span>}
+                                      <span className="text-gray-600">→</span>
+                                      <span className={a.fires ? 'text-brand-300 font-semibold whitespace-nowrap' : 'text-gray-500 whitespace-nowrap'}>
+                                {a.multiplier}× {format(a.amount)}
+                              </span>
+                                      {!a.fires && a.drawdownPct != null && <span className="text-gray-700">no rule</span>}
+                                    </div>
+                                ))}
                               </div>
-                            ))}
+                          ) : <span className="text-gray-700 text-xs">-</span>}
+                        </td>
+                        <td className={`${TD} font-mono font-semibold ${anyFires ? 'text-brand-300' : 'text-gray-600'}`}>
+                          <div className="flex flex-col gap-0.5">
+                            <span>{format(total)}</span>
+                            {plan.maxBudgetUsd && total > plan.maxBudgetUsd && (
+                                <span className="text-xs text-yellow-500 font-normal">Exceeds max {format(plan.maxBudgetUsd)}</span>
+                            )}
                           </div>
-                        ) : <span className="text-gray-700 text-xs">-</span>}
-                      </td>
-                      <td className={`${TD} font-mono font-semibold ${anyFires ? 'text-brand-300' : 'text-gray-600'}`}>
-                        <div className="flex flex-col gap-0.5">
-                          <span>{format(total)}</span>
-                          {plan.maxBudgetUsd && total > plan.maxBudgetUsd && (
-                            <span className="text-xs text-yellow-500 font-normal">Exceeds max {format(plan.maxBudgetUsd)}</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className={`${TD} text-right`}>
-                        <div className="flex items-center justify-end gap-2">
-                          {prs.isActive && <Badge variant="green">default</Badge>}
-                          {!prs.isActive && (
-                            <button onClick={() => assignBuy.mutate({ planId: plan.id, ruleSetId: prs.ruleSetId, isActive: true })}
-                              className="text-xs text-gray-500 hover:text-brand-400 border border-gray-700 hover:border-brand-500/50 px-2 py-0.5 rounded transition-colors whitespace-nowrap">
-                              Set default
-                            </button>
-                          )}
-                          <button onClick={() => setRemoveConfirm({ kind: 'buying', ruleSetId: prs.ruleSetId, label: prs.ruleSet.label })}
-                            title="Remove" className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={13} /></button>
-                        </div>
-                      </td>
-                    </tr>
+                        </td>
+                        <td className={`${TD} text-right`}>
+                          <div className="flex items-center justify-end gap-2">
+                            {prs.isActive && <Badge variant="green">default</Badge>}
+                            {!prs.isActive && (
+                                <button onClick={() => assignBuy.mutate({ planId: plan.id, ruleSetId: prs.ruleSetId, isActive: true })}
+                                        className="text-xs text-gray-500 hover:text-brand-400 border border-gray-700 hover:border-brand-500/50 px-2 py-0.5 rounded transition-colors whitespace-nowrap">
+                                  Set default
+                                </button>
+                            )}
+                            <button onClick={() => setRemoveConfirm({ kind: 'buying', ruleSetId: prs.ruleSetId, label: prs.ruleSet.label })}
+                                    title="Remove" className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={13} /></button>
+                          </div>
+                        </td>
+                      </tr>
                   );
                 })}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}
 
       {/* Selling rules table */}
       {hasSellingSets && (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+        <div className="bg-gray-900 border border-gray-800 rounded-xl">
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-800">
             <h2 className="text-sm font-semibold text-gray-300">Selling rules</h2>
             <button onClick={() => setAddModal('selling')}
@@ -750,38 +752,40 @@ export function PlanRuleSetsPanel({ plan }: { plan: DcaPlan }) {
           {sellingSets.length === 0 ? (
             <p className="text-xs text-gray-600 px-3 py-3">No rule sets assigned.</p>
           ) : (
-            <table className="w-full">
-              <thead>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
                 <tr className="border-b border-gray-800">
                   <th className={TH}>Label</th>
                   <th className={TH}>Type</th>
                   <th className={TH}></th>
                 </tr>
-              </thead>
-              <tbody>
+                </thead>
+                <tbody>
                 {sellingSets.map(prs => (
-                  <tr key={prs.ruleSetId} className="border-b border-gray-800 last:border-0">
-                    <td className={TD}>
-                      <span className="text-gray-200">{prs.ruleSet.label}</span>
-                    </td>
-                    <td className={`${TD} text-xs text-gray-500`}>Profit target</td>
-                    <td className={`${TD} text-right`}>
-                      <div className="flex items-center justify-end gap-2">
-                        {prs.isActive && <Badge variant="green">default</Badge>}
-                        {!prs.isActive && (
-                          <button onClick={() => assignSell.mutate({ planId: plan.id, ruleSetId: prs.ruleSetId, isActive: true })}
-                            className="text-xs text-gray-500 hover:text-brand-400 border border-gray-700 hover:border-brand-500/50 px-2 py-0.5 rounded transition-colors whitespace-nowrap">
-                            Set default
-                          </button>
-                        )}
-                        <button onClick={() => setRemoveConfirm({ kind: 'selling', ruleSetId: prs.ruleSetId, label: prs.ruleSet.label })}
-                          title="Remove" className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={13} /></button>
-                      </div>
-                    </td>
-                  </tr>
+                    <tr key={prs.ruleSetId} className="border-b border-gray-800 last:border-0">
+                      <td className={TD}>
+                        <span className="text-gray-200">{prs.ruleSet.label}</span>
+                      </td>
+                      <td className={`${TD} text-xs text-gray-500 whitespace-nowrap`}>Profit target</td>
+                      <td className={`${TD} text-right`}>
+                        <div className="flex items-center justify-end gap-2">
+                          {prs.isActive && <Badge variant="green">default</Badge>}
+                          {!prs.isActive && (
+                              <button onClick={() => assignSell.mutate({ planId: plan.id, ruleSetId: prs.ruleSetId, isActive: true })}
+                                      className="text-xs text-gray-500 hover:text-brand-400 border border-gray-700 hover:border-brand-500/50 px-2 py-0.5 rounded transition-colors whitespace-nowrap">
+                                Set default
+                              </button>
+                          )}
+                          <button onClick={() => setRemoveConfirm({ kind: 'selling', ruleSetId: prs.ruleSetId, label: prs.ruleSet.label })}
+                                  title="Remove" className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={13} /></button>
+                        </div>
+                      </td>
+                    </tr>
                 ))}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}
@@ -876,7 +880,7 @@ export default function DcaPlans() {
         <div className="grid gap-4">
           {plans.map(plan => (
             <div key={plan.id}
-              className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              className="bg-gray-900 border border-gray-800 rounded-xl p-5 overflow-hidden">
               <div className="flex flex-col gap-4">
                 {/* content */}
                 <div className="flex items-start gap-4">
@@ -949,17 +953,17 @@ export default function DcaPlans() {
                 </div>
 
                 {/* actions row */}
-                <div className="flex items-center gap-2 pt-3 border-t border-gray-800">
+                <div className="flex items-center flex-wrap gap-2 pt-3 border-t border-gray-800">
                   <button
                     onClick={() => router.push(`/app/plans/${plan.id}`)}
-                    className="flex-1 md:flex-none text-xs text-gray-500 hover:text-brand-400 hover:bg-gray-800 border border-gray-700 hover:border-brand-500/50 px-3 py-2 md:py-1.5 rounded-lg transition-colors inline-flex items-center justify-center gap-1.5"
+                    className="flex-1 md:flex-none text-xs text-gray-500 hover:text-brand-400 hover:bg-gray-800 border border-gray-700 hover:border-brand-500/50 px-3 py-2 md:py-1.5 rounded-lg transition-colors inline-flex items-center justify-center gap-1.5 whitespace-nowrap"
                   >
                     <Eye size={12} strokeWidth={1.75} />
                     View
                   </button>
                   <button
                     onClick={() => setQuickAddPlan(plan)}
-                    className="flex-1 md:flex-none text-xs text-brand-400 hover:text-brand-300 border border-brand-500/40 hover:border-brand-500/70 bg-brand-500/5 hover:bg-brand-500/10 px-3 py-2 md:py-1.5 rounded-lg transition-colors font-medium inline-flex items-center justify-center gap-1.5"
+                    className="flex-1 md:flex-none text-xs text-brand-400 hover:text-brand-300 border border-brand-500/40 hover:border-brand-500/70 bg-brand-500/5 hover:bg-brand-500/10 px-3 py-2 md:py-1.5 rounded-lg transition-colors font-medium inline-flex items-center justify-center gap-1.5 whitespace-nowrap"
                   >
                     <PlusCircle size={12} strokeWidth={1.75} />
                     Quick Purchase
@@ -976,7 +980,7 @@ export default function DcaPlans() {
                       });
                       router.push(`/app/simulator?${params.toString()}`);
                     }}
-                    className="flex-1 md:flex-none text-xs text-gray-500 hover:text-brand-400 hover:bg-gray-800 border border-gray-700 hover:border-brand-500/50 px-3 py-2 md:py-1.5 rounded-lg transition-colors text-center"
+                    className="flex-1 md:flex-none text-xs text-gray-500 hover:text-brand-400 hover:bg-gray-800 border border-gray-700 hover:border-brand-500/50 px-3 py-2 md:py-1.5 rounded-lg transition-colors text-center whitespace-nowrap"
                     title="Simulate this plan"
                   >
                     ⏱ Simulate
@@ -984,21 +988,21 @@ export default function DcaPlans() {
 
                   <button
                     onClick={() => setEditingPlan(plan)}
-                    className="flex-1 md:flex-none text-xs text-gray-500 hover:text-brand-400 hover:bg-gray-800 border border-gray-700 hover:border-brand-500/50 px-3 py-2 md:py-1.5 rounded-lg transition-colors inline-flex items-center justify-center gap-1.5"
+                    className="flex-1 md:flex-none text-xs text-gray-500 hover:text-brand-400 hover:bg-gray-800 border border-gray-700 hover:border-brand-500/50 px-3 py-2 md:py-1.5 rounded-lg transition-colors inline-flex items-center justify-center gap-1.5 whitespace-nowrap"
                   >
                     <Pencil size={12} strokeWidth={1.75} />
                     Edit
                   </button>
                   <button
                     onClick={() => handleDuplicate(plan)}
-                    className="flex-1 md:flex-none text-xs text-gray-500 hover:text-brand-400 hover:bg-gray-800 border border-gray-700 hover:border-brand-500/50 px-3 py-2 md:py-1.5 rounded-lg transition-colors inline-flex items-center justify-center gap-1.5"
+                    className="flex-1 md:flex-none text-xs text-gray-500 hover:text-brand-400 hover:bg-gray-800 border border-gray-700 hover:border-brand-500/50 px-3 py-2 md:py-1.5 rounded-lg transition-colors inline-flex items-center justify-center gap-1.5 whitespace-nowrap"
                   >
                     <Copy size={12} strokeWidth={1.75} />
                     Duplicate
                   </button>
                   <button
                     onClick={() => setPlanToDelete(plan)}
-                    className="flex-1 md:flex-none text-xs text-white bg-red-600 hover:bg-red-500 border border-red-600 hover:border-red-500 px-3 py-2 md:py-1.5 rounded-lg transition-colors inline-flex items-center justify-center gap-1.5"
+                    className="flex-1 md:flex-none text-xs text-white bg-red-600 hover:bg-red-500 border border-red-600 hover:border-red-500 px-3 py-2 md:py-1.5 rounded-lg transition-colors inline-flex items-center justify-center gap-1.5 whitespace-nowrap"
                   >
                     <Trash2 size={12} strokeWidth={1.75} />
                     Delete
