@@ -122,32 +122,32 @@ function SellRowEditor({ rows, setRows }: { rows: DrawdownSellRow[]; setRows: (r
 
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-[1fr_1fr_1fr_80px_28px] gap-2 mb-1">
-        <span className="text-xs text-gray-500">Min profit %</span>
-        <span className="text-xs text-gray-500">Max profit %</span>
-        <span className="text-xs text-gray-500">Sell amount</span>
-        <span className="text-xs text-gray-500">Type</span>
-        <span />
+      <div className="flex gap-1.5 mb-1">
+        <span className="flex-1 min-w-0 text-xs text-gray-500">Min %</span>
+        <span className="flex-1 min-w-0 text-xs text-gray-500">Max %</span>
+        <span className="flex-1 min-w-0 text-xs text-gray-500">Amount</span>
+        <span className="w-14 shrink-0 text-xs text-gray-500">Type</span>
+        <span className="w-7 shrink-0" />
       </div>
       {rows.map((row, i) => (
-        <div key={i} className="grid grid-cols-[1fr_1fr_1fr_80px_28px] gap-2 items-center">
-          <input type="number" min="0" step="0.1" placeholder="e.g. 50"
+        <div key={i} className="flex gap-1.5 items-center">
+          <input type="number" min="0" step="0.1" placeholder="50"
             value={row.minProfit} onChange={e => update(i, 'minProfit', e.target.value)}
-            className={INPUT_SM} required />
-          <input type="number" min="0" step="0.1" placeholder="e.g. 100"
+            className={`${INPUT_SM} flex-1 min-w-0`} required />
+          <input type="number" min="0" step="0.1" placeholder="100"
             value={row.maxProfit} onChange={e => update(i, 'maxProfit', e.target.value)}
-            className={INPUT_SM} required />
-          <input type="number" min="0.01" step="0.01" placeholder="e.g. 500"
+            className={`${INPUT_SM} flex-1 min-w-0`} required />
+          <input type="number" min="0.01" step="0.01" placeholder="500"
             value={row.sellAmount} onChange={e => update(i, 'sellAmount', e.target.value)}
-            className={INPUT_SM} required />
+            className={`${INPUT_SM} flex-1 min-w-0`} required />
           <select value={row.sellAmountType} onChange={e => update(i, 'sellAmountType', e.target.value as 'USD' | 'PCT')}
-            className={INPUT_SM}>
+            className={`${INPUT_SM} w-14 shrink-0`}>
             <option value="USD">USD</option>
             <option value="PCT">%</option>
           </select>
-          <button type="button" onClick={() => remove(i)}
-            className="text-gray-600 hover:text-red-400 transition-colors w-7 h-7 flex items-center justify-center rounded">
-            ×
+          <button type="button" onClick={() => remove(i)} title="Delete row"
+            className="text-gray-600 hover:text-red-400 transition-colors w-7 h-7 shrink-0 flex items-center justify-center rounded">
+            <Trash2 size={13} />
           </button>
         </div>
       ))}
@@ -436,7 +436,7 @@ export default function RuleSets() {
               <p className="text-xs text-gray-600 mt-1">Create one to assign it to your plans.</p>
             </div>
           ) : (
-            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-800">
@@ -516,7 +516,7 @@ export default function RuleSets() {
               <p className="text-xs text-gray-600 mt-1">Create one to assign it to your plans.</p>
             </div>
           ) : (
-            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border border-gray-800 last:border-0">
