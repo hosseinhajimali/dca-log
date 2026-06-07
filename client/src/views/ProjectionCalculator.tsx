@@ -505,28 +505,30 @@ export default function ProjectionCalculator() {
                   <span className="text-gray-500">{format(projection.monthlyInvested)}/month</span>
                 </p>
               </div>
-              <table className="w-full text-sm">
-                <thead>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
                   <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-800">
                     {['Scenario', 'Portfolio value', 'Total invested', 'Return'].map(h => (
-                      <th key={h} className="px-5 py-3.5 text-left font-medium whitespace-nowrap">{h}</th>
+                        <th key={h} className="px-5 py-3.5 text-left font-medium whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
                   {SCENARIOS.map(s => {
                     const last = chartData[chartData.length - 1];
                     return (
-                      <HorizonRow
-                        key={s.key}
-                        scenario={s}
-                        finalValue={last?.[s.key] ?? 0}
-                        totalInvested={totalInvestedAtHorizon}
-                      />
+                        <HorizonRow
+                            key={s.key}
+                            scenario={s}
+                            finalValue={last?.[s.key] ?? 0}
+                            totalInvested={totalInvestedAtHorizon}
+                        />
                     );
                   })}
-                </tbody>
-              </table>
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 
