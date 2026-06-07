@@ -1059,7 +1059,7 @@ export default function Transactions() {
                         : <span className="text-gray-600">—</span>}
                     </td>
                     <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-2">
                         <button
                           onClick={() => setEditingTx(tx)}
                           title="Edit"
