@@ -448,31 +448,35 @@ export default function Dashboard() {
           </div>
 
           {/* Base row */}
-          <div className="flex items-center justify-between gap-4 px-5 py-2.5">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <span className="text-xs text-gray-500 w-28 shrink-0">Scheduled</span>
-              <span className="font-semibold font-mono text-brand-400">{basePct.toFixed(1)}%</span>
-              <span className="text-gray-500 text-xs">of monthly budget</span>
+          <div className="px-5 py-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-xs text-gray-500 shrink-0">Scheduled</span>
+                <span className="font-semibold font-mono text-brand-400">{basePct.toFixed(1)}%</span>
+              </div>
+              <span className="text-xs text-gray-600 whitespace-nowrap shrink-0">{format(monthlyBaseUsd)} / mo</span>
             </div>
-            <span className="text-xs text-gray-600 whitespace-nowrap shrink-0">{format(monthlyBaseUsd)} / mo</span>
+            <span className="text-gray-500 text-xs">of monthly budget</span>
           </div>
 
           {/* Rules row — only shown when rules are actually doing something */}
           {rulesActive && rulesPct !== null && (
-            <div className="flex items-center justify-between gap-4 px-5 py-2.5 pb-3 border-t border-gray-800">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <span className="text-xs text-gray-500 w-28 shrink-0">With buying rules</span>
-                <span className={`font-semibold font-mono ${rulesPct > 30 ? 'text-yellow-400' : monthlyRulesUsd > monthlyBaseUsd ? 'text-orange-400' : 'text-green-400'}`}>
-                  {rulesPct.toFixed(1)}%
-                </span>
-                <span className="text-gray-500 text-xs">
-                  {monthlyRulesUsd > monthlyBaseUsd ? '↑ boosted by drawdown rules' : '↓ reduced by rules'}
-                </span>
-                {rulesPct > 30 && (
-                  <span className="text-xs font-medium text-yellow-500 bg-yellow-500/10 px-1.5 py-0.5 rounded">High utilization</span>
-                )}
+            <div className="px-5 py-2.5 pb-3 border-t border-gray-800">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                  <span className="text-xs text-gray-500 shrink-0">With buying rules</span>
+                  <span className={`font-semibold font-mono ${rulesPct > 30 ? 'text-yellow-400' : monthlyRulesUsd > monthlyBaseUsd ? 'text-orange-400' : 'text-green-400'}`}>
+                    {rulesPct.toFixed(1)}%
+                  </span>
+                  {rulesPct > 30 && (
+                    <span className="text-xs font-medium text-yellow-500 bg-yellow-500/10 px-1.5 py-0.5 rounded">High utilization</span>
+                  )}
+                </div>
+                <span className="text-xs text-gray-600 whitespace-nowrap shrink-0">{format(monthlyRulesUsd)} / mo</span>
               </div>
-              <span className="text-xs text-gray-600 whitespace-nowrap shrink-0">{format(monthlyRulesUsd)} / mo</span>
+              <span className="text-gray-500 text-xs">
+                {monthlyRulesUsd > monthlyBaseUsd ? '↑ boosted by drawdown rules' : '↓ reduced by rules'}
+              </span>
             </div>
           )}
         </div>

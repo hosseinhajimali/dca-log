@@ -181,28 +181,13 @@ export default function TransactionHeatmap({ hideFilters = false }: { hideFilter
         </div>
 
         <div>
-          {/* legend */}
-          <div className="flex items-center justify-end gap-2 mb-2">
-            <div className="flex items-center gap-1">
-              <span className="w-[11px] h-[11px] rounded-sm inline-block" style={{ backgroundColor: LEVEL_COLORS[0] }} />
-              <span className="text-[10px] text-gray-500">No purchase</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-[10px] text-gray-500">Low</span>
-              {LEVEL_COLORS.slice(1).map((color, i) => (
-                <span key={i} className="w-[11px] h-[11px] rounded-sm inline-block" style={{ backgroundColor: color }} />
-              ))}
-              <span className="text-[10px] text-gray-500">High</span>
-            </div>
-          </div>
-
           {hideFilters ? (
             <div className="flex justify-end">
               <a
                 href="/app/transactions"
-                className="text-xs text-brand-400 hover:text-brand-300 transition-colors"
+                className="text-xs text-gray-500 hover:text-brand-400 transition-all duration-150 hover:gap-1 group flex items-center gap-0.5"
               >
-                View transactions →
+                View transactions <span className="inline-block transition-transform duration-150 group-hover:translate-x-0.5">→</span>
               </a>
             </div>
           ) : (
@@ -314,6 +299,21 @@ export default function TransactionHeatmap({ hideFilters = false }: { hideFilter
       </div>
 
       {tooltip && <HeatmapTooltip data={tooltip} formatAmount={formatAmount} />}
+
+      {/* legend */}
+      <div className="flex items-center justify-end gap-2 mt-3">
+        <div className="flex items-center gap-1">
+          <span className="w-[11px] h-[11px] rounded-sm inline-block" style={{ backgroundColor: LEVEL_COLORS[0] }} />
+          <span className="text-[10px] text-gray-500">No purchase</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] text-gray-500">Low</span>
+          {LEVEL_COLORS.slice(1).map((color, i) => (
+              <span key={i} className="w-[11px] h-[11px] rounded-sm inline-block" style={{ backgroundColor: color }} />
+          ))}
+          <span className="text-[10px] text-gray-500">High</span>
+        </div>
+      </div>
     </div>
   );
 }
