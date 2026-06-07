@@ -28,7 +28,7 @@ function ConfirmModal({ title, message, onConfirm, onClose }: {
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm !mt-0"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="w-full max-w-sm bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-6">
         <h2 className="text-base font-semibold text-gray-100 mb-2">{title}</h2>
@@ -334,7 +334,7 @@ function FormModal({ title, onClose, children }: { title: string; onClose: () =>
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm !mt-0"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="w-full max-w-2xl bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 shrink-0">
