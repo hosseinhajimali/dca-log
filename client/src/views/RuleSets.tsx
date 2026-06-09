@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Eye, Pencil, Trash2 } from 'lucide-react';
 import {
   useBuyingRuleSets, useCreateBuyingRuleSet, useUpdateBuyingRuleSet, useDeleteBuyingRuleSet,
   useSellRuleSets,   useCreateSellRuleSet,   useUpdateSellRuleSet,   useDeleteSellRuleSet,
@@ -349,6 +349,150 @@ function FormModal({ title, onClose, children }: { title: string; onClose: () =>
   );
 }
 
+// ─── View modal ───────────────────────────────────────────────────────────────
+
+function BuyViewModal({ set, onClose }: { set: BuyingRuleSet; onClose: () => void }) {
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [onClose]);
+
+  const rows = toBuyRows(set);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm !mt-0"
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="w-full max-w-xl bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 shrink-0">
+          <div>
+            <h2 className="text-base font-semibold text-gray-100">{set.label}</h2>
+            <p className="text-xs text-gray-500 mt-0.5">Drawdown vs ATH. buying rule set</p>
+          </div>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-200 text-xl leading-none transition-colors">×</button>
+        </div>
+        <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
+          {set.notes && (
+            <div className="bg-gray-800/50 border border-gray-700/60 rounded-lg px-4 py-3">
+              <p className="text-xs text-gray-500 mb-1">Notes</p>
+              <p className="text-sm text-gray-300">{set.notes}</p>
+            </div>
+          )}
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Rules. price below ATH triggers a buy</p>
+            <div className="bg-gray-900 border border-gray-700 rounded-xl overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-700 bg-gray-800/40">
+                    <th className="px-4 py-2.5 text-left text-xs text-gray-500 font-medium">#</th>
+                    <th className="px-4 py-2.5 text-left text-xs text-gray-500 font-medium">Min drawdown</th>
+                    <th className="px-4 py-2.5 text-left text-xs text-gray-500 font-medium">Max drawdown</th>
+                    <th className="px-4 py-2.5 text-left text-xs text-gray-500 font-medium">Multiplier</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {rows.map((row, i) => (
+                    <tr key={i} className="hover:bg-gray-700/50 transition-colors">
+                      <td className="px-4 py-3 text-xs text-gray-600">{i + 1}</td>
+                      <td className="px-4 py-3 text-gray-300">{parseFloat(row.minDrawdown) !== 0 ? '-' : ''}{row.minDrawdown}%</td>
+                      <td className="px-4 py-3 text-gray-300">{parseFloat(row.maxDrawdown) !== 0 ? '-' : ''}{row.maxDrawdown}%</td>
+                      <td className="px-4 py-3">
+                        <span className="inline-flex items-center gap-1 font-medium text-brand-400">
+                          {row.multiplier}<span className="text-gray-500 font-normal">×</span>
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div className="px-6 py-4 border-t border-gray-800 shrink-0 flex justify-end">
+          <button onClick={onClose}
+            className="px-4 py-2 text-sm text-gray-400 hover:text-gray-200 border border-gray-700 rounded-lg transition-colors">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SellViewModal({ set, onClose }: { set: SellRuleSet; onClose: () => void }) {
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [onClose]);
+
+  const rows = toSellRows(set);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm !mt-0"
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="w-full max-w-xl bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 shrink-0">
+          <div>
+            <h2 className="text-base font-semibold text-gray-100">{set.label}</h2>
+            <p className="text-xs text-gray-500 mt-0.5">Profit target. selling rule set</p>
+          </div>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-200 text-xl leading-none transition-colors">×</button>
+        </div>
+        <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
+          {set.notes && (
+            <div className="bg-gray-800/50 border border-gray-700/60 rounded-lg px-4 py-3">
+              <p className="text-xs text-gray-500 mb-1">Notes</p>
+              <p className="text-sm text-gray-300">{set.notes}</p>
+            </div>
+          )}
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Rules. profit % above avg buy price triggers a sell</p>
+            <div className="bg-gray-900 border border-gray-700 rounded-xl overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-700 bg-gray-800/40">
+                    <th className="px-4 py-2.5 text-left text-xs text-gray-500 font-medium">#</th>
+                    <th className="px-4 py-2.5 text-left text-xs text-gray-500 font-medium">Min profit</th>
+                    <th className="px-4 py-2.5 text-left text-xs text-gray-500 font-medium">Max profit</th>
+                    <th className="px-4 py-2.5 text-left text-xs text-gray-500 font-medium">Sell amount</th>
+                    <th className="px-4 py-2.5 text-left text-xs text-gray-500 font-medium">Type</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {rows.map((row, i) => (
+                    <tr key={i} className="hover:bg-gray-700/50 transition-colors">
+                      <td className="px-4 py-3 text-xs text-gray-600">{i + 1}</td>
+                      <td className="px-4 py-3 text-gray-300">{row.minProfit}%</td>
+                      <td className="px-4 py-3 text-gray-300">{row.maxProfit}%</td>
+                      <td className="px-4 py-3 font-medium text-brand-400">{row.sellAmount}</td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-md ${
+                          row.sellAmountType === 'PCT'
+                            ? 'bg-purple-500/10 text-purple-400'
+                            : 'bg-green-500/10 text-green-400'
+                        }`}>
+                          {row.sellAmountType === 'PCT' ? '%' : 'USD'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div className="px-6 py-4 border-t border-gray-800 shrink-0 flex justify-end">
+          <button onClick={onClose}
+            className="px-4 py-2 text-sm text-gray-400 hover:text-gray-200 border border-gray-700 rounded-lg transition-colors">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main view ────────────────────────────────────────────────────────────────
 
 type Tab = 'buying' | 'selling';
@@ -356,6 +500,7 @@ type Tab = 'buying' | 'selling';
 export default function RuleSets() {
   const [tab, setTab] = useState<Tab>('buying');
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [viewingId, setViewingId] = useState<string | null>(null);
   const [addingBuy, setAddingBuy] = useState(false);
   const [addingSell, setAddingSell] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; label: string; kind: Tab } | null>(null);
@@ -408,7 +553,7 @@ export default function RuleSets() {
       <div className="flex items-center justify-between border-b border-gray-00">
         <div className="flex">
           {(['buying', 'selling'] as Tab[]).map(t => (
-            <button key={t} onClick={() => { setTab(t); setEditingId(null); setAddingBuy(false); setAddingSell(false); }}
+            <button key={t} onClick={() => { setTab(t); setEditingId(null); setViewingId(null); setAddingBuy(false); setAddingSell(false); }}
               className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                 tab === t
                   ? 'border-brand-400 text-brand-400'
@@ -474,11 +619,15 @@ export default function RuleSets() {
                       <td className={`${TD} text-gray-500 max-w-xs truncate`}>{set.notes ?? '-'}</td>
                       <td className={`${TD} text-right`}>
                         <div className="flex items-center justify-end gap-1">
-                          <button onClick={() => setEditingId(set.id)}
+                          <button onClick={() => setViewingId(set.id)} title="View rule set"
+                            className="text-gray-500 hover:text-gray-200 transition-colors p-1.5 rounded hover:bg-gray-800">
+                            <Eye size={13} />
+                          </button>
+                          <button onClick={() => setEditingId(set.id)} title="Edit rule set"
                             className="text-gray-500 hover:text-brand-400 transition-colors p-1.5 rounded hover:bg-gray-800">
                             <Pencil size={13} />
                           </button>
-                          <button onClick={() => setConfirmDelete({ id: set.id, label: set.label, kind: 'buying' })}
+                          <button onClick={() => setConfirmDelete({ id: set.id, label: set.label, kind: 'buying' })} title="Delete rule set"
                             className="text-gray-500 hover:text-red-400 transition-colors p-1.5 rounded hover:bg-gray-800">
                             <Trash2 size={13} />
                           </button>
@@ -501,6 +650,10 @@ export default function RuleSets() {
             <FormModal title="Edit buying rule set" onClose={() => setEditingId(null)}>
               <BuyingRuleSetForm initial={set} onDone={() => setEditingId(null)} />
             </FormModal>
+          ) : null; })()}
+
+          {viewingId && tab === 'buying' && (() => { const set = buyingSets.find(s => s.id === viewingId); return set ? (
+            <BuyViewModal set={set} onClose={() => setViewingId(null)} />
           ) : null; })()}
         </div>
       )}
@@ -554,11 +707,15 @@ export default function RuleSets() {
                       <td className={`${TD} text-gray-500 max-w-xs truncate`}>{set.notes ?? '-'}</td>
                       <td className={`${TD} text-right`}>
                         <div className="flex items-center justify-end gap-1">
-                          <button onClick={() => setEditingId(set.id)}
+                          <button onClick={() => setViewingId(set.id)} title="View rule set"
+                            className="text-gray-500 hover:text-gray-200 transition-colors p-1.5 rounded hover:bg-gray-800">
+                            <Eye size={13} />
+                          </button>
+                          <button onClick={() => setEditingId(set.id)} title="Edit rule set"
                             className="text-gray-500 hover:text-brand-400 transition-colors p-1.5 rounded hover:bg-gray-800">
                             <Pencil size={13} />
                           </button>
-                          <button onClick={() => setConfirmDelete({ id: set.id, label: set.label, kind: 'selling' })}
+                          <button onClick={() => setConfirmDelete({ id: set.id, label: set.label, kind: 'selling' })} title="Delete rule set"
                             className="text-gray-500 hover:text-red-400 transition-colors p-1.5 rounded hover:bg-gray-800">
                             <Trash2 size={13} />
                           </button>
@@ -581,6 +738,10 @@ export default function RuleSets() {
             <FormModal title="Edit selling rule set" onClose={() => setEditingId(null)}>
               <SellRuleSetForm initial={set} onDone={() => setEditingId(null)} />
             </FormModal>
+          ) : null; })()}
+
+          {viewingId && tab === 'selling' && (() => { const set = sellSets.find(s => s.id === viewingId); return set ? (
+            <SellViewModal set={set} onClose={() => setViewingId(null)} />
           ) : null; })()}
         </div>
       )}
