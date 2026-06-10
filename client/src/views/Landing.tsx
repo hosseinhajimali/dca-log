@@ -10,6 +10,9 @@ import {
 } from 'lucide-react';
 import { PublicNavbar } from '@/components/layout/PublicNavbar';
 import { PublicFooter } from '@/components/layout/PublicFooter';
+import { HeroDashboardMock } from '@/components/landing/HeroDashboardMock';
+import { PlansMock } from '@/components/landing/PlansMock';
+import { SimulatorMini } from '@/components/landing/SimulatorMini';
 
 const FEATURES = [
   {
@@ -62,7 +65,7 @@ const STEPS = [
   },
 ];
 
-function BrowserFrame({ src, srcLight, alt }: { src: string; srcLight?: string; alt: string }) {
+function BrowserFrame({ children }: { children: React.ReactNode }) {
   return (
     <div className="rounded-lg border overflow-hidden border-gray-700 bg-gray-900 light-browser-frame">
       {/* fake browser toolbar */}
@@ -74,10 +77,7 @@ function BrowserFrame({ src, srcLight, alt }: { src: string; srcLight?: string; 
           <span className="text-[11px] text-gray-300 light-browser-urlbar-text">dcalog.com</span>
         </div>
       </div>
-      {/* dark screenshot, hidden in light mode */}
-      <img src={src} alt={alt} className="w-full block screenshot-dark" />
-      {/* light screenshot, hidden in dark mode */}
-      {srcLight && <img src={srcLight} alt={alt} className="w-full block screenshot-light" />}
+      {children}
     </div>
   );
 }
@@ -158,8 +158,10 @@ export default function Landing() {
           </p>
         </div>
 
-        {/* ── Hero screenshot ── */}
-        <BrowserFrame src="/screenshots/dashboard.png" srcLight="/screenshots/dashboard-light.png" alt="DCAlog dashboard showing portfolio overview, active plans and fear & greed index" />
+        {/* ── Hero product mock, live DOM so it always matches the current design ── */}
+        <BrowserFrame>
+          <HeroDashboardMock />
+        </BrowserFrame>
       </section>
 
       {/* ── Divider ── */}
@@ -208,13 +210,15 @@ export default function Landing() {
               Set up your first plan <ArrowRight size={14} />
             </Link>
           </div>
-          <BrowserFrame src="/screenshots/plans.png" srcLight="/screenshots/plans-light.png" alt="DCA Plans page showing ETH and BTC plans with smart buying rules" />
+          <BrowserFrame>
+            <PlansMock />
+          </BrowserFrame>
         </div>
 
         {/* Simulator */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
           <div className="order-2 lg:order-1">
-            <BrowserFrame src="/screenshots/simulator.png" srcLight="/screenshots/simulator-light.png" alt="DCA Simulator showing portfolio value vs total invested over time" />
+            <SimulatorMini />
           </div>
           <div className="order-1 lg:order-2">
             <SectionLabel>Strategy simulator</SectionLabel>

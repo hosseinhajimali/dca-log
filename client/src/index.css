@@ -188,16 +188,8 @@ html.light ::-webkit-scrollbar-thumb       { background: #d5dae0; }
 html.light ::-webkit-scrollbar-thumb:hover { background: #848e9c; }
 
 /* =====================================================
-   Landing page browser frame, theme-aware screenshots
+   Landing page browser frame
    ===================================================== */
-
-/* Dark mode: show dark screenshot, hide light */
-.screenshot-light { display: none; }
-.screenshot-dark  { display: block; }
-
-/* Light mode: show light screenshot, hide dark */
-html.light .screenshot-light { display: block; }
-html.light .screenshot-dark  { display: none; }
 
 /* Light mode: browser chrome */
 html.light .light-browser-frame   { border-color: #eaecef !important; background-color: #ffffff !important; }
