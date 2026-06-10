@@ -364,6 +364,47 @@ export const BLOG_POSTS: BlogPost[] = [
       },
     ],
   },
+  {
+    slug: 'dca-frequency-daily-weekly-monthly',
+    title: 'DCA Frequency: Daily, Weekly, or Monthly? What Actually Matters',
+    excerpt: 'Does buying every day beat buying once a month? The data says the difference is smaller than you think, but fees, consistency, and psychology can make one frequency clearly better for you.',
+    date: '2026-06-10',
+    readTime: '6 min read',
+    category: 'Strategy',
+    sections: [
+      {
+        body: 'Once you have decided to dollar cost average, the next question is always the same: how often should I buy? Daily, weekly, bi-weekly, or monthly? It feels like an important decision, and in some ways it is, but probably not for the reasons you expect. The raw return difference between frequencies is tiny. What actually separates a good schedule from a bad one is fees, consistency, and whether you can stick to it.',
+      },
+      {
+        heading: 'The math: frequency barely changes your average cost',
+        body: 'Backtests across Bitcoin’s history show that daily, weekly, and monthly DCA over the same period and the same total capital end up within roughly 1% to 2% of each other in final cost basis. This makes intuitive sense. All three schedules sample the same price curve, just at different resolutions. Over months and years, the samples converge toward the same average price. Anyone telling you that daily DCA dramatically outperforms monthly DCA is describing luck in a specific window, not a structural edge. The frequency decision should therefore be made on practical grounds, not on expected return.',
+      },
+      {
+        heading: 'Fees: where frequency really costs you',
+        body: 'Fees are the one place where frequency has a direct, predictable impact. Many exchanges charge a minimum fee or a higher percentage on small orders. If your budget is $200 per month and you split it into daily buys of about $6.50, a $0.99 minimum fee would consume over 15% of every purchase. The same $200 as a single monthly buy might cost 0.5% in fees. As a rule of thumb: the smaller your monthly budget, the less frequently you should buy. Below roughly $100 per month, monthly buys usually make sense. Between $100 and $500, weekly or bi-weekly is reasonable on a low-fee exchange. Daily DCA only makes sense with larger budgets or fee-free recurring purchase programs.',
+      },
+      {
+        heading: 'Volatility capture: the case for buying more often',
+        body: 'The argument for higher frequency is volatility capture. Crypto can move 10% in a day, and a monthly buyer might miss a sharp dip entirely while a weekly buyer catches it. Higher frequency smooths your entry across more price points, which slightly reduces the variance of your outcome. You are less likely to get unlucky with a monthly buy that happens to land on a local top. Note that this cuts both ways: you are also less likely to get lucky and land on a local bottom. Higher frequency narrows the range of outcomes, it does not improve the average outcome.',
+      },
+      {
+        heading: 'Psychology: the schedule you keep is the one that works',
+        body: 'The best frequency on paper is worthless if you abandon it in practice. Some investors find daily buys reassuring, every red day is a small discount, and the habit keeps them engaged. Others find daily exposure exhausting and are better served by a monthly buy they barely think about. There is also the income-matching argument: if you are paid monthly, buying monthly right after payday means the money is invested before you can spend it. Matching your DCA schedule to your salary cycle is one of the most reliable ways to stay consistent for years.',
+      },
+      {
+        heading: 'Combining frequency with buying rules',
+        body: 'Frequency does not have to be a fixed-amount decision. A popular hybrid is a base schedule with dynamic sizing: buy weekly, but scale the amount based on how far the asset is below its all-time high. This keeps the discipline of a regular schedule while letting you accumulate more aggressively during drawdowns. In DCAlog you can attach buying rules to any plan, so a weekly plan might buy 1x the base amount near the ATH, 1.5x at 20% below, and 2x at 40% below. The schedule provides consistency; the rules provide opportunism.',
+      },
+      {
+        heading: 'What about bi-weekly?',
+        body: 'Bi-weekly is the quiet favourite of many long-term DCA investors, and for good reason. It keeps individual purchases large enough that fees stay negligible, it samples the market twice as often as monthly, and it maps neatly onto bi-weekly pay cycles. If you are unsure where to start and your budget is moderate, bi-weekly is a sensible default that you will rarely regret.',
+      },
+      {
+        heading: 'The bottom line',
+        body: 'Pick the highest frequency at which your fees stay below roughly 1% per purchase, then adjust for your own psychology and pay cycle. If that means monthly, buy monthly without guilt, the long-term return difference versus daily is noise. What matters is that the schedule survives contact with a bear market. Whichever frequency you choose, DCAlog tracks every purchase, shows your true average cost across the whole history, and makes it easy to compare how your plan is performing, so the only thing left to do is keep buying.',
+      },
+    ],
+  },
 ];
 
 export function getBlogPost(slug: string): BlogPost | undefined {
