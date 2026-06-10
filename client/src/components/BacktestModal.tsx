@@ -16,6 +16,7 @@ import {
   ResponsiveContainer, Legend,
 } from 'recharts';
 import { useAssets } from '@/hooks/useAssets';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import {
   useBacktestAvailability, useBacktest,
   BacktestParams, BacktestResult,
@@ -105,7 +106,7 @@ function BacktestResults({ data }: { data: BacktestResult }) {
 
   const shortHistory = daysBetween(data.dataStartDate, new Date()) < 90;
 
-  const rows: { label: string; s: string; c: string; d: string; dPositive?: boolean }[] = [
+  const rows: { label: string; tooltip?: string; s: string; c: string; d: string; dPositive?: boolean }[] = [
     {
       label: 'Total invested',
       s: format(strategy.totalInvested),
@@ -134,6 +135,7 @@ function BacktestResults({ data }: { data: BacktestResult }) {
     },
     {
       label: 'ROI',
+      tooltip: 'Return on invested capital: (final value - total invested) / total invested, valued at the last price in your date range. Not annualized. The rule set may invest more than plain DCA when multipliers fire, so ROI compares the two per dollar, which makes it the fair headline metric.',
       s: `${strategy.roiPct >= 0 ? '+' : ''}${strategy.roiPct.toFixed(2)}%`,
       c: `${control.roiPct >= 0 ? '+' : ''}${control.roiPct.toFixed(2)}%`,
       d: `${comparison.deltaFinalValuePct >= 0 ? '+' : ''}${comparison.deltaFinalValuePct.toFixed(2)} pts`,
@@ -215,7 +217,14 @@ function BacktestResults({ data }: { data: BacktestResult }) {
           <tbody className="divide-y divide-gray-700">
             {rows.map(r => (
               <tr key={r.label} className="hover:bg-gray-700/50 transition-colors">
-                <td className="px-4 py-3 text-gray-400 whitespace-nowrap">{r.label}</td>
+                <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
+                  {r.tooltip ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      {r.label}
+                      <InfoTooltip content={r.tooltip} />
+                    </span>
+                  ) : r.label}
+                </td>
                 <td className="px-4 py-3 text-right font-mono text-gray-200 whitespace-nowrap">{r.s}</td>
                 <td className="px-4 py-3 text-right font-mono text-gray-400 whitespace-nowrap">{r.c}</td>
                 <td className={`px-4 py-3 text-right font-mono whitespace-nowrap ${
