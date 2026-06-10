@@ -98,10 +98,12 @@ html.light .bg-blue-500\/10   { background-color: #dbeafe !important; } /* blue-
 html.light .bg-purple-500\/10 { background-color: #ede9fe !important; } /* purple-100 */
 html.light .bg-green-500\/10  { background-color: #e6faf2 !important; } /* green-50  */
 html.light .bg-yellow-500\/10 { background-color: #fef9c3 !important; } /* yellow-100 */
+html.light .bg-yellow-500\/5  { background-color: #fefce8 !important; } /* yellow-50  */
 html.light .border-blue-500\/20   { border-color: #93c5fd !important; } /* blue-300  */
 html.light .border-purple-500\/20 { border-color: #c4b5fd !important; } /* purple-300 */
 html.light .border-green-500\/20  { border-color: #8ee7c2 !important; } /* green-200 */
 html.light .border-yellow-500\/20 { border-color: #fde047 !important; } /* yellow-300 */
+html.light .border-yellow-500\/25 { border-color: #fde047 !important; } /* yellow-300 */
 
 /* Contact page buttons */
 html.light .bg-\[\#229ED9\]\/10  { background-color: #e0f2fe !important; } /* sky-100 */
@@ -134,6 +136,7 @@ html.light .text-brand-400  { color: #1d4ed8; }
 html.light .text-blue-400   { color: #1d4ed8; } /* blue-700   */
 html.light .text-purple-400 { color: #7e22ce; } /* purple-700 */
 html.light .text-yellow-400 { color: #a16207; } /* yellow-700 */
+html.light .text-yellow-500 { color: #a16207; } /* yellow-700, 4.6:1 on yellow-100 */
 
 /* Brand, boost contrast on dark bg */
 html.dark .text-brand-400  { color: #93c5fd; }

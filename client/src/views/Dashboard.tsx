@@ -443,7 +443,7 @@ export default function Dashboard() {
         }`}>
           {/* Header */}
           <div className="px-5 pt-3 pb-1 flex items-center gap-1.5">
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Monthly DCA Usage</span>
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Monthly DCA Usage</span>
             <InfoTooltip content="Shows how much of your monthly budget goes toward DCA. 'Scheduled' is your base plan with no rules applied. 'With buying rules' reflects the actual amount after any active buying rules (e.g. drawdown boosters) adjust it. If this reaches 30% or more, a high utilization warning appears as a reminder to review your budget." />
           </div>
 
@@ -465,7 +465,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0 flex-wrap">
                   <span className="text-xs text-gray-500 shrink-0">With buying rules</span>
-                  <span className={`font-semibold font-mono ${rulesPct > 30 ? 'text-yellow-400' : monthlyRulesUsd > monthlyBaseUsd ? 'text-orange-400' : 'text-green-400'}`}>
+                  <span className={`font-semibold font-mono ${rulesPct > 30 ? 'text-yellow-400' : monthlyRulesUsd > monthlyBaseUsd ? 'text-brand-400' : 'text-green-400'}`}>
                     {rulesPct.toFixed(1)}%
                   </span>
                   {rulesPct > 30 && (
