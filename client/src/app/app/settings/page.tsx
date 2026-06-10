@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import General from '@/views/settings/General';
+import Preferences from '@/views/settings/Preferences';
 
 export const metadata: Metadata = { title: 'Settings | DCAlog' };
 
-export default General;
+export default Preferences;

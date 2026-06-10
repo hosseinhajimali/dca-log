@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Menu, UserCircle, LogOut, TriangleAlert } from 'lucide-react';
+import { Menu, UserCircle, LogOut, TriangleAlert, Settings } from 'lucide-react';
 import { Sidebar } from './Sidebar';
 import { NotificationBell } from './NotificationBell';
 import { Toaster } from '@/components/ui/Toaster';
@@ -111,11 +111,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     <p className="text-xs text-gray-500 truncate mt-0.5">{user?.email}</p>
                   </div>
                   <button
-                    onClick={() => { router.push('/app/settings/profile'); setMenuOpen(false); }}
+                    onClick={() => { router.push('/app/settings/account'); setMenuOpen(false); }}
                     className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-400 hover:text-gray-100 hover:bg-gray-800 transition-colors"
                   >
                     <UserCircle size={14} />
-                    Profile settings
+                    Account
+                  </button>
+                  <button
+                    onClick={() => { router.push('/app/settings'); setMenuOpen(false); }}
+                    className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-400 hover:text-gray-100 hover:bg-gray-800 transition-colors"
+                  >
+                    <Settings size={14} />
+                    Settings
                   </button>
                   <button
                     onClick={() => { logout(); setMenuOpen(false); }}

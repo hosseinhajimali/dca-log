@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, ArrowRight, UserCircle, LogOut } from 'lucide-react';
+import { Menu, X, ArrowRight, UserCircle, LogOut, Settings } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { Avatar } from '@/components/ui/Avatar';
 import { NotificationBell } from '@/components/layout/NotificationBell';
@@ -138,12 +138,20 @@ export function PublicNavbar() {
                         <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                       </div>
                       <Link
-                        href="/app/settings/profile"
+                        href="/app/settings/account"
                         onClick={() => setMenuOpen(false)}
                         className="flex items-center gap-2.5 px-4 py-3 text-sm text-gray-400 hover:text-gray-100 hover:bg-gray-800 transition-colors"
                       >
                         <UserCircle size={14} />
-                        Profile settings
+                        Account
+                      </Link>
+                      <Link
+                        href="/app/settings"
+                        onClick={() => setMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-3 text-sm text-gray-400 hover:text-gray-100 hover:bg-gray-800 transition-colors"
+                      >
+                        <Settings size={14} />
+                        Settings
                       </Link>
                       <button
                         onClick={() => { logout(); setMenuOpen(false); }}

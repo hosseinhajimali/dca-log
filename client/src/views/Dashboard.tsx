@@ -412,7 +412,7 @@ export default function Dashboard() {
               Create your first plan
             </a>
             <a
-              href="/app/settings#backup"
+              href="/app/settings/data#backup"
               className="inline-flex items-center gap-2 text-sm font-medium px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 hover:text-white transition-colors"
             >
               Try with sample data

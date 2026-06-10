@@ -35,7 +35,7 @@ function cropToSquare(file: File): Promise<string> {
   });
 }
 
-export default function Profile() {
+export default function Account() {
   const { user } = useStore();
   const updateProfile = useUpdateProfile();
   const changePassword = useChangePassword();
@@ -116,6 +116,7 @@ export default function Profile() {
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
+              title="Upload a photo"
               className="absolute inset-0 rounded-full bg-black/55 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-0.5 transition-opacity disabled:cursor-wait"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
@@ -228,6 +229,15 @@ export default function Profile() {
           >
             {updateProfile.isPending ? 'Saving…' : 'Save'}
           </button>
+        </div>
+      </section>
+
+      {/* ── Email ──────────────────────────────────────────────────────────── */}
+      <section className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <h2 className="text-sm font-semibold text-gray-300 mb-3">Email</h2>
+        <div className="space-y-1 text-sm text-gray-400">
+          <p>{user?.email}</p>
+          <p className="text-xs text-gray-600">Email cannot be changed</p>
         </div>
       </section>
 

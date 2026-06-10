@@ -1,6 +1,6 @@
-import type { Metadata } from 'next';
-import ProfilePage from '@/views/settings/Profile';
+import { redirect } from 'next/navigation';
 
-export const metadata: Metadata = { title: 'Profile | DCAlog' };
-
-export default ProfilePage;
+// Profile merged into Account. Keep old URL working.
+export default function ProfileRedirect() {
+  redirect('/app/settings/account');
+}

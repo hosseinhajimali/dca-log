@@ -28,9 +28,11 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
         <p className="text-sm text-gray-500 mt-1">Manage your account and preferences</p>
       </div>
 
-      <div className="flex border-b border-gray-800 overflow-x-hidden">
-        <Tab to="/app/settings" exact label="General" />
-        <Tab to="/app/settings/profile" label="Profile" />
+      <div className="flex border-b border-gray-800 overflow-x-auto">
+        <Tab to="/app/settings" exact label="Preferences" />
+        <Tab to="/app/settings/assets" label="Assets" />
+        <Tab to="/app/settings/account" label="Account" />
+        <Tab to="/app/settings/data" label="Data" />
       </div>
 
       {children}
