@@ -12,6 +12,7 @@ export function PublicFooter() {
       <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
         <a href="/"><img src={isLight ? '/logo-horizontal-light.svg' : '/logo-horizontal.svg'} alt="DCAlog" className="h-7 w-auto opacity-60 hover:opacity-100 transition-opacity" /></a>
         <div className="flex items-center gap-6">
+          <Link href="/faq" className="text-xs text-gray-400 hover:text-gray-200 transition-colors">FAQ</Link>
           <Link href="/contact" className="text-xs text-gray-400 hover:text-gray-200 transition-colors">Contact</Link>
           <a href="https://x.com/DCAlogApp" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" title="DCAlog on X">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
