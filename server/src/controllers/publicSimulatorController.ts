@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { getHistoricalPrices } from '../services/historicalPriceService';
+import { advanceDate, findNearestPrice, round2 } from '../services/simulationUtils';
 
 // Supported public assets (symbol → display name)
 export const PUBLIC_ASSETS: Record<string, string> = {
@@ -32,39 +33,6 @@ const querySchema = z.object({
   frequency:   z.enum(['DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY']),
   endDate:     z.string().optional(),
 });
-
-function advanceDate(d: Date, freq: string): Date {
-  const next = new Date(d);
-  switch (freq) {
-    case 'DAILY':    next.setUTCDate(next.getUTCDate() + 1);   break;
-    case 'WEEKLY':   next.setUTCDate(next.getUTCDate() + 7);   break;
-    case 'BIWEEKLY': next.setUTCDate(next.getUTCDate() + 14);  break;
-    case 'MONTHLY':  next.setUTCMonth(next.getUTCMonth() + 1); break;
-  }
-  return next;
-}
-
-function findNearestPrice(prices: [number, number][], targetMs: number): number | null {
-  const THREE_DAYS = 3 * 24 * 60 * 60 * 1000;
-  let lo = 0, hi = prices.length - 1;
-  while (lo < hi) {
-    const mid = (lo + hi) >> 1;
-    if (prices[mid][0] < targetMs) lo = mid + 1;
-    else hi = mid;
-  }
-  const candidates = [prices[lo]];
-  if (lo > 0) candidates.push(prices[lo - 1]);
-  let best: [number, number] | null = null;
-  let minDiff = Infinity;
-  for (const c of candidates) {
-    if (!c) continue;
-    const diff = Math.abs(c[0] - targetMs);
-    if (diff < minDiff) { minDiff = diff; best = c; }
-  }
-  return best && minDiff <= THREE_DAYS ? best[1] : null;
-}
-
-function round2(n: number) { return Math.round(n * 100) / 100; }
 
 export async function runPublicSimulation(req: Request, res: Response, next: NextFunction) {
   try {

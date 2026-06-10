@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Eye, PlusCircle, Pencil, Trash2, Copy } from 'lucide-react';
+import { Eye, PlusCircle, Pencil, Trash2, Copy, FlaskConical } from 'lucide-react';
+import BacktestModal from '@/components/BacktestModal';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { useRouter } from 'next/navigation';
 import { QuickAddModal } from '@/components/QuickAddModal';
@@ -582,6 +583,7 @@ function AddRuleSetModal({ plan, kind, onClose }: {
 export function PlanRuleSetsPanel({ plan }: { plan: DcaPlan }) {
   const [addModal, setAddModal] = useState<'buying' | 'selling' | null>(null);
   const [removeConfirm, setRemoveConfirm] = useState<{ kind: 'buying' | 'selling'; ruleSetId: string; label: string } | null>(null);
+  const [backtestSet, setBacktestSet] = useState<BuyingRuleSet | null>(null);
 
   const { data: allBuyingSets = [] } = useBuyingRuleSets();
   const { data: allSellSets = [] } = useSellRuleSets();
@@ -632,6 +634,18 @@ export function PlanRuleSetsPanel({ plan }: { plan: DcaPlan }) {
     <div className="mt-3 space-y-3">
       {addModal && (
         <AddRuleSetModal plan={plan} kind={addModal} onClose={() => setAddModal(null)} />
+      )}
+      {backtestSet && (
+        <BacktestModal
+          ruleSet={backtestSet}
+          onClose={() => setBacktestSet(null)}
+          initialAssetId={plan.allocations[0]?.assetId}
+          initialAmountUsd={plan.allocations.length === 1
+            ? plan.amountUsd
+            : +(plan.amountUsd * ((plan.allocations[0]?.allocationPct ?? 100) / 100)).toFixed(2)}
+          initialFrequency={plan.frequency}
+          initialIntervalDays={plan.intervalDays ?? undefined}
+        />
       )}
       {removeConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
@@ -725,6 +739,8 @@ export function PlanRuleSetsPanel({ plan }: { plan: DcaPlan }) {
                                   Set default
                                 </button>
                             )}
+                            <button onClick={() => setBacktestSet(prs.ruleSet)}
+                                    title="Backtest rule set" className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-600 hover:text-green-400 hover:bg-green-500/10 transition-colors"><FlaskConical size={13} /></button>
                             <button onClick={() => setRemoveConfirm({ kind: 'buying', ruleSetId: prs.ruleSetId, label: prs.ruleSet.label })}
                                     title="Remove" className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={13} /></button>
                           </div>

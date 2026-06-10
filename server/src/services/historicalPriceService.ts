@@ -93,6 +93,65 @@ async function fetchAllCandles(pair: string): Promise<PriceSeries> {
   return prices;
 }
 
+// ─── Availability check ───────────────────────────────────────────────────────
+
+export type AvailabilityResult =
+  | { available: true; pair: string; dataStartMs: number }
+  | { available: false; pair: string; reason: 'NOT_LISTED' | 'PROVIDER_DOWN' };
+
+interface CachedAvailability {
+  result: AvailabilityResult;
+  fetchedAt: number;
+}
+
+const availabilityCache = new Map<string, CachedAvailability>();
+
+/**
+ * Cheap availability probe: fetches a single earliest candle for the pair.
+ * Answers "can this asset be backtested?" and "when does its data start?"
+ * without pulling the full history. Results are cached; PROVIDER_DOWN is
+ * never cached so a transient outage does not stick.
+ */
+export async function checkPairAvailability(symbol: string): Promise<AvailabilityResult> {
+  const pair = toBinancePair(symbol);
+  const now  = Date.now();
+
+  const cached = availabilityCache.get(pair);
+  if (cached && now - cached.fetchedAt < CACHE_TTL_MS) {
+    return cached.result;
+  }
+
+  // A full history fetch in the main cache also proves availability
+  const history = historyCache.get(pair);
+  if (history && history.prices.length > 0) {
+    const result: AvailabilityResult = { available: true, pair, dataStartMs: history.prices[0][0] };
+    availabilityCache.set(pair, { result, fetchedAt: now });
+    return result;
+  }
+
+  let result: AvailabilityResult;
+  try {
+    const url = `${BINANCE_BASE}/klines?symbol=${pair}&interval=1d&limit=1&startTime=0`;
+    const resp = await fetch(url);
+
+    if (resp.status === 400) {
+      result = { available: false, pair, reason: 'NOT_LISTED' };
+    } else if (!resp.ok) {
+      return { available: false, pair, reason: 'PROVIDER_DOWN' }; // not cached
+    } else {
+      const rows = (await resp.json()) as [number, ...unknown[]][];
+      result = rows.length > 0
+        ? { available: true, pair, dataStartMs: rows[0][0] }
+        : { available: false, pair, reason: 'NOT_LISTED' };
+    }
+  } catch {
+    return { available: false, pair, reason: 'PROVIDER_DOWN' }; // not cached
+  }
+
+  availabilityCache.set(pair, { result, fetchedAt: now });
+  return result;
+}
+
 /**
  * Returns the full daily price history for a given asset symbol.
  * Results are cached for 2 hours.

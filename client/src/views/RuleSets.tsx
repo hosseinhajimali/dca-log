@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Eye, Pencil, Trash2 } from 'lucide-react';
+import { Eye, Pencil, Trash2, FlaskConical } from 'lucide-react';
+import BacktestModal from '@/components/BacktestModal';
 import {
   useBuyingRuleSets, useCreateBuyingRuleSet, useUpdateBuyingRuleSet, useDeleteBuyingRuleSet,
   useSellRuleSets,   useCreateSellRuleSet,   useUpdateSellRuleSet,   useDeleteSellRuleSet,
@@ -503,6 +504,7 @@ export default function RuleSets() {
   const [viewingId, setViewingId] = useState<string | null>(null);
   const [addingBuy, setAddingBuy] = useState(false);
   const [addingSell, setAddingSell] = useState(false);
+  const [backtestingId, setBacktestingId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; label: string; kind: Tab } | null>(null);
 
   const { data: buyingSets = [], isLoading: loadingBuy } = useBuyingRuleSets();
@@ -623,6 +625,10 @@ export default function RuleSets() {
                             className="text-gray-500 hover:text-gray-200 transition-colors p-1.5 rounded hover:bg-gray-800">
                             <Eye size={13} />
                           </button>
+                          <button onClick={() => setBacktestingId(set.id)} title="Backtest rule set"
+                            className="text-gray-500 hover:text-green-400 transition-colors p-1.5 rounded hover:bg-gray-800">
+                            <FlaskConical size={13} />
+                          </button>
                           <button onClick={() => setEditingId(set.id)} title="Edit rule set"
                             className="text-gray-500 hover:text-brand-400 transition-colors p-1.5 rounded hover:bg-gray-800">
                             <Pencil size={13} />
@@ -654,6 +660,10 @@ export default function RuleSets() {
 
           {viewingId && tab === 'buying' && (() => { const set = buyingSets.find(s => s.id === viewingId); return set ? (
             <BuyViewModal set={set} onClose={() => setViewingId(null)} />
+          ) : null; })()}
+
+          {backtestingId && (() => { const set = buyingSets.find(s => s.id === backtestingId); return set ? (
+            <BacktestModal ruleSet={set} onClose={() => setBacktestingId(null)} />
           ) : null; })()}
         </div>
       )}

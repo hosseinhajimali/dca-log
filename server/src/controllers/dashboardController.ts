@@ -4,6 +4,7 @@ import { AuthRequest } from '../types';
 import { fetchAndCachePrices } from '../services/priceService';
 import { computeNextPurchaseDate } from '../services/dcaService';
 import { maybeNotify } from '../services/notificationService';
+import { matchBuyRow, drawdownPct } from '../services/ruleEvaluation';
 
 export async function getDashboardStats(req: AuthRequest, res: Response, next: NextFunction) {
   try {
@@ -100,16 +101,6 @@ export async function getDashboardStats(req: AuthRequest, res: Response, next: N
       orderBy: { name: 'asc' as const },
     });
 
-    function matchBuyRow(dd: number | null, rows: { params: unknown; multiplier: number; sortOrder: number }[]) {
-      if (dd === null || rows.length === 0) return null;
-      return [...rows]
-        .sort((a, b) => b.sortOrder - a.sortOrder)
-        .find(r => {
-          const p = r.params as { minDrawdown?: number; maxDrawdown?: number };
-          return p.minDrawdown != null && p.maxDrawdown != null && dd >= p.minDrawdown && dd <= p.maxDrawdown;
-        }) ?? null;
-    }
-
     const activePlanList = activePlanRows.map((plan) => {
       const activeBuySet = plan.planBuyingRuleSets.find(p => p.isActive);
 
@@ -118,7 +109,7 @@ export async function getDashboardStats(req: AuthRequest, res: Response, next: N
       const suggestedAllocations = plan.allocations.map(alloc => {
         const price = priceMap.get(alloc.asset.symbol) ?? 0;
         const ath   = alloc.asset.athOverride ?? athMap.get(alloc.asset.symbol) ?? null;
-        const dd    = ath && price > 0 ? Math.abs(((price - ath) / ath) * 100) : null;
+        const dd    = price > 0 ? drawdownPct(price, ath) : null;
         const baseShare = plan.amountUsd * (alloc.allocationPct / 100);
         const match = activeBuySet ? matchBuyRow(dd, activeBuySet.ruleSet.rows) : null;
         const amount = +(baseShare * (match ? match.multiplier : 1)).toFixed(2);

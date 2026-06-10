@@ -5,6 +5,7 @@ import { AuthRequest } from '../types';
 import { AppError } from '../middleware/errorHandler';
 import { computeNextPurchaseDate } from '../services/dcaService';
 import { maybeNotify } from '../services/notificationService';
+import { matchBuyRow, drawdownPct } from '../services/ruleEvaluation';
 
 // ─── validation ───────────────────────────────────────────────────────────────
 
@@ -69,19 +70,8 @@ type RichPlan = {
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
 function assetDrawdown(price: PriceEntry | undefined): number | null {
-  if (!price?.ath || price.ath <= 0 || price.priceUsd <= 0) return null;
-  return Math.abs(((price.priceUsd - price.ath) / price.ath) * 100);
-}
-
-function matchBuyRow(drawdownPct: number | null, rows: RuleSetRow[]): RuleSetRow | null {
-  if (drawdownPct === null || rows.length === 0) return null;
-  return [...rows]
-    .sort((a, b) => b.sortOrder - a.sortOrder)
-    .find((r) => {
-      const p = r.params as { minDrawdown?: number; maxDrawdown?: number };
-      return p.minDrawdown != null && p.maxDrawdown != null
-        && drawdownPct >= p.minDrawdown && drawdownPct <= p.maxDrawdown;
-    }) ?? null;
+  if (!price) return null;
+  return drawdownPct(price.priceUsd, price.ath);
 }
 
 function enrichPlan(

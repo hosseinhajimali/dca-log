@@ -105,6 +105,13 @@ html.light .border-green-500\/20  { border-color: #8ee7c2 !important; } /* green
 html.light .border-yellow-500\/20 { border-color: #fde047 !important; } /* yellow-300 */
 html.light .border-yellow-500\/25 { border-color: #fde047 !important; } /* yellow-300 */
 
+/* Backtest modal notices */
+html.light .bg-red-500\/10        { background-color: #fee2e2 !important; } /* red-100 */
+html.light .border-red-500\/30    { border-color: #fca5a5 !important; }     /* red-300 */
+html.light .border-yellow-500\/30 { border-color: #fde047 !important; }     /* yellow-300 */
+html.light .border-green-500\/30  { border-color: #8ee7c2 !important; }     /* green-200 */
+html.light .text-yellow-200       { color: #854d0e; } /* yellow-800, 7.2:1 on yellow-100 */
+
 /* Contact page buttons */
 html.light .bg-\[\#229ED9\]\/10  { background-color: #e0f2fe !important; } /* sky-100 */
 html.light .text-\[\#229ED9\]    { color: #0369a1 !important; }            /* sky-700, 8:1 on sky-100 */

@@ -10,7 +10,8 @@
     "db:migrate:prod": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@prisma/client": "^5.10.2",
@@ -37,6 +38,7 @@
     "@types/passport-google-oauth20": "^2.0.17",
     "prisma": "^5.10.2",
     "tsx": "^4.7.1",
-    "typescript": "^5.4.3"
+    "typescript": "^5.4.3",
+    "vitest": "^4.1.8"
   }
 }

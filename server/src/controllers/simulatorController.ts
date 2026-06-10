@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { AuthRequest } from '../types';
 import { prisma } from '../lib/prisma';
 import { getHistoricalPrices } from '../services/historicalPriceService';
+import { advanceDate, findNearestPrice, round2 } from '../services/simulationUtils';
 
 // ─── Query validation ─────────────────────────────────────────────────────────
 
@@ -14,51 +15,6 @@ const querySchema = z.object({
   endDate:      z.string().optional(),
   intervalDays: z.coerce.number().int().positive().optional(),
 });
-
-// ─── Date helpers ─────────────────────────────────────────────────────────────
-
-function advanceDate(d: Date, freq: string, intervalDays = 30): Date {
-  const next = new Date(d);
-  switch (freq) {
-    case 'DAILY':    next.setUTCDate(next.getUTCDate() + 1);    break;
-    case 'WEEKLY':   next.setUTCDate(next.getUTCDate() + 7);    break;
-    case 'BIWEEKLY': next.setUTCDate(next.getUTCDate() + 14);   break;
-    case 'MONTHLY':  next.setUTCMonth(next.getUTCMonth() + 1);  break;
-    case 'CUSTOM':   next.setUTCDate(next.getUTCDate() + intervalDays); break;
-  }
-  return next;
-}
-
-/**
- * Binary-search the price series for the entry closest to targetMs.
- * Rejects matches further than 3 days away (data gap or future date).
- */
-function findNearestPrice(
-  prices: [number, number][],
-  targetMs: number,
-): number | null {
-  const THREE_DAYS = 3 * 24 * 60 * 60 * 1000;
-  let lo = 0, hi = prices.length - 1;
-  while (lo < hi) {
-    const mid = (lo + hi) >> 1;
-    if (prices[mid][0] < targetMs) lo = mid + 1;
-    else hi = mid;
-  }
-  // Check lo and lo-1 for the closest match
-  const candidates = [prices[lo]];
-  if (lo > 0) candidates.push(prices[lo - 1]);
-
-  let best: [number, number] | null = null;
-  let minDiff = Infinity;
-  for (const c of candidates) {
-    if (!c) continue;
-    const diff = Math.abs(c[0] - targetMs);
-    if (diff < minDiff) { minDiff = diff; best = c; }
-  }
-  return best && minDiff <= THREE_DAYS ? best[1] : null;
-}
-
-function round2(n: number) { return Math.round(n * 100) / 100; }
 
 // ─── Controller ───────────────────────────────────────────────────────────────
 
