@@ -405,6 +405,48 @@ export const BLOG_POSTS: BlogPost[] = [
       },
     ],
   },
+
+  {
+    slug: 'we-backtested-our-own-buying-rules',
+    title: 'We Backtested Our Own Buying Rules. Plain DCA Almost Won.',
+    excerpt: 'We built a backtesting feature to prove that smart drawdown rules beat plain DCA. Then we ran it. Here is what the data actually says, and why we are publishing it anyway.',
+    date: '2026-06-10',
+    readTime: '6 min read',
+    category: 'Strategy',
+    sections: [
+      {
+        body: 'We just shipped backtesting in DCAlog. You can now take any buying rule set, run it against years of real historical prices, and see exactly how it would have performed next to a plain fixed-amount DCA schedule. Naturally, the first thing we did was backtest our own favourite feature: drawdown buying rules. We expected a comfortable win. What we got was a lesson in humility, and honestly, the most useful insight the feature has produced so far.',
+      },
+      {
+        heading: 'The experiment',
+        body: 'The setup is simple. Take a rule set like the one we recommend in our ATH drawdown guide: buy 1.5x your normal amount when the price is 20% to 40% below its all-time high, and 2x when it is more than 40% below. Run it on Bitcoin with a weekly schedule over the past few years. The backtest executes every scheduled buy twice, once with the rules applied and once as a plain 1x control, on exactly the same dates and prices. Same asset, same schedule, same discipline. The only difference is the rules.',
+      },
+      {
+        heading: 'The result',
+        body: 'Over most date ranges, the two strategies finish almost identical. The rule set usually ends a little ahead, a slightly lower average buy price, a slightly better ROI, but the gap is far smaller than the marketing of "smart DCA" tools would have you believe. If you expected the rules to double your returns, the chart is sobering: two lines hugging each other for years, with the strategy line peeling just barely above the control.',
+      },
+      {
+        heading: 'Why the gap is so small',
+        body: 'The math is unglamorous. Most of the time, price sits within 20% of its running all-time high, so your multiplier rules simply never fire. The vast majority of buys execute at 1x on both sides of the comparison. A handful of boosted buys, however well timed, gets diluted across hundreds of ordinary ones. And when the rules do fire, they also invest more total money, so the fair comparison is return percentage, not final dollars. Shifting your average buy price by a few percent over years of accumulation just does not move the endgame much.',
+      },
+      {
+        heading: 'When the rules genuinely win',
+        body: 'There is one scenario where the gap stops being subtle: a deep, prolonged bear market inside your window. Run the same backtest across 2021 to 2023, when Bitcoin spent over a year between 50% and 75% below its peak, and the drawdown rules fire week after week, stacking cheap coins the plain schedule never gets. The lesson is not that rules are useless, it is that they are insurance against a specific market condition. In a steady bull market they sit idle. In a crash they quietly do their best work.',
+      },
+      {
+        heading: 'Why we are publishing this anyway',
+        body: 'It would have been easy to cherry-pick a 2022 date range, screenshot the winning chart, and call it a day. But DCAlog exists because we believe DCA investors deserve honest tools, and an honest backtest that makes our own feature look modest is worth more than a flattering one. The backtest engine only uses the all-time high that was actually known on each historical date, it tells you when data was missing, and it shows losing results as plainly as winning ones. If a strategy cannot survive an honest test, it does not deserve your money.',
+      },
+      {
+        heading: 'The real takeaway: consistency beats cleverness',
+        body: 'Here is what the data actually argues for. The biggest driver of your DCA outcome is not the cleverness of your rules, it is whether you keep buying through the periods when everyone else stops. Drawdown rules earn you a small discount, and perhaps more importantly, they give you a plan for the exact moments when fear is loudest. That psychological edge does not show up in a backtest, but it is the difference between investors who accumulate through a bear market and investors who watch one. The rules will not make you rich on their own. They will help you stay systematic, and staying systematic is what works.',
+      },
+      {
+        heading: 'Run your own backtest',
+        body: 'Do not take our word for any of this. Open Rule sets in DCAlog, click the flask icon on any buying rule set, pick an asset and a date range, and see the comparison for yourself. Try a bull-market window, then try one that includes a crash. Look at the average buy price row, that is where a strategy shows its edge first. Whatever the result says, you will know something true about your strategy, and that is the entire point.',
+      },
+    ],
+  },
 ];
 
 export function getBlogPost(slug: string): BlogPost | undefined {
