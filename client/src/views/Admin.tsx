@@ -134,7 +134,7 @@ function ConfirmModal({ message, onConfirm, onCancel, loading }: {
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
+      <div className="absolute inset-0 bg-black/60" onClick={onCancel} />
       <div className="relative bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
         <p className="text-sm text-gray-300 leading-relaxed">{message}</p>
         <div className="flex items-center justify-end gap-2">
@@ -291,7 +291,7 @@ function AnnouncementsTab() {
       {/* preview modal */}
       {previewItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setPreviewItem(null)} />
+          <div className="absolute inset-0 bg-black/60" onClick={() => setPreviewItem(null)} />
           <div className="relative bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-4">
             <h3 className="text-base font-semibold text-gray-100">{previewItem.title}</h3>
             <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{previewItem.message}</p>

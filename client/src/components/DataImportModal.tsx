@@ -117,7 +117,7 @@ export function DataImportModal({ onClose }: DataImportModalProps) {
   // ── render ───────────────────────────────────────────────────────────────────
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
       onClick={e => { if (e.target === e.currentTarget && step !== 'importing') onClose(); }}
     >
       <div className="w-full max-w-md bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
@@ -293,7 +293,7 @@ export function DataImportModal({ onClose }: DataImportModalProps) {
                 <p className="text-3xl mb-2">✅</p>
                 <p className="text-sm font-medium text-gray-200">Import complete</p>
               </div>
-              <div className="bg-gray-800/40 border border-gray-800 rounded-xl divide-y divide-gray-200 text-sm">
+              <div className="bg-gray-800/40 border border-gray-800 rounded-xl divide-y divide-gray-700 text-sm">
                 {result.assets > 0 && (
                   <div className="flex justify-between px-4 py-2.5">
                     <span className="text-gray-400">Assets created</span>

@@ -53,7 +53,7 @@ export function NotificationBell() {
       {/* Announcement full-message modal, portalled to body to escape relative parent */}
       {announcementModal && createPortal(
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setAnnouncementModal(null)} />
+          <div className="absolute inset-0 bg-black/60" onClick={() => setAnnouncementModal(null)} />
           <div className="relative bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
             <div className="flex items-start justify-between gap-3">
               <h3 className="text-base font-semibold text-gray-100">{announcementModal.title}</h3>
@@ -100,14 +100,14 @@ export function NotificationBell() {
                 </button>
               )}
               {items.length > 0 && (
-                <button onClick={() => clearAll.mutate()} className="text-xs text-red-500/70 hover:text-red-400 transition-colors">
+                <button onClick={() => clearAll.mutate()} className="text-xs text-red-500 hover:text-red-400 transition-colors">
                   Clear all
                 </button>
               )}
             </div>
           </div>
 
-          <div className="max-h-96 overflow-y-auto divide-y divide-gray-200">
+          <div className="max-h-96 overflow-y-auto divide-y divide-gray-700">
             {items.length === 0 ? (
               <div className="px-4 py-8 text-center text-sm text-gray-600">No notifications yet</div>
             ) : (

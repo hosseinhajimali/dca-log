@@ -204,7 +204,7 @@ export function QuickAddModal({ plan, onClose }: QuickAddModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="w-full max-w-lg bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">

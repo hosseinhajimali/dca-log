@@ -91,7 +91,7 @@ export function PublicNavbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm">
+      <header className="sticky top-0 z-50 border-b border-gray-800 bg-gray-950">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <a href="/"><img src={mounted && theme === 'light' ? '/logo-horizontal-light.svg' : '/logo-horizontal.svg'} alt="DCAlog" className="h-8 w-auto" /></a>
 

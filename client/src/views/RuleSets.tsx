@@ -28,7 +28,7 @@ function ConfirmModal({ title, message, onConfirm, onClose }: {
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm !mt-0"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 !mt-0"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="w-full max-w-sm bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-6">
         <h2 className="text-base font-semibold text-gray-100 mb-2">{title}</h2>
@@ -334,7 +334,7 @@ function FormModal({ title, onClose, children }: { title: string; onClose: () =>
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm !mt-0"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 !mt-0"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="w-full max-w-2xl bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 shrink-0">
@@ -361,7 +361,7 @@ function BuyViewModal({ set, onClose }: { set: BuyingRuleSet; onClose: () => voi
   const rows = toBuyRows(set);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm !mt-0"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 !mt-0"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="w-full max-w-xl bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 shrink-0">
@@ -390,7 +390,7 @@ function BuyViewModal({ set, onClose }: { set: BuyingRuleSet; onClose: () => voi
                     <th className="px-4 py-2.5 text-left text-xs text-gray-500 font-medium">Multiplier</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-700">
                   {rows.map((row, i) => (
                     <tr key={i} className="hover:bg-gray-700/50 transition-colors">
                       <td className="px-4 py-3 text-xs text-gray-600">{i + 1}</td>
@@ -429,7 +429,7 @@ function SellViewModal({ set, onClose }: { set: SellRuleSet; onClose: () => void
   const rows = toSellRows(set);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm !mt-0"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 !mt-0"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="w-full max-w-xl bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 shrink-0">
@@ -459,7 +459,7 @@ function SellViewModal({ set, onClose }: { set: SellRuleSet; onClose: () => void
                     <th className="px-4 py-2.5 text-left text-xs text-gray-500 font-medium">Type</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-700">
                   {rows.map((row, i) => (
                     <tr key={i} className="hover:bg-gray-700/50 transition-colors">
                       <td className="px-4 py-3 text-xs text-gray-600">{i + 1}</td>
@@ -550,7 +550,7 @@ export default function RuleSets() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center justify-between border-b border-gray-00">
+      <div className="flex items-center justify-between border-b border-gray-800">
         <div className="flex">
           {(['buying', 'selling'] as Tab[]).map(t => (
             <button key={t} onClick={() => { setTab(t); setEditingId(null); setViewingId(null); setAddingBuy(false); setAddingSell(false); }}
@@ -584,7 +584,7 @@ export default function RuleSets() {
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-800">
+                  <tr className="border-b border-gray-700">
                     <th className={TH}>Label</th>
                     <th className={TH}>Type</th>
                     <th className={TH}>Rows</th>
@@ -593,7 +593,7 @@ export default function RuleSets() {
                     <th className={TH}></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-700">
                   {buyingSets.map(set => {
                     const usage = buyUsage.get(set.id);
                     return (
@@ -672,7 +672,7 @@ export default function RuleSets() {
             <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border border-gray-800 last:border-0">
+                  <tr className="border border-gray-700 last:border-0">
                     <th className={TH}>Label</th>
                     <th className={TH}>Type</th>
                     <th className={TH}>Rows</th>
@@ -681,7 +681,7 @@ export default function RuleSets() {
                     <th className={TH}></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-700">
                   {sellSets.map(set => {
                     const usage = sellUsage.get(set.id);
                     return (

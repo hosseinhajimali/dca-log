@@ -334,7 +334,7 @@ function CreateModal({ assets, onClose }: {
     : null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="w-full max-w-xl bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 shrink-0">
@@ -421,7 +421,7 @@ export function EditModal({ plan, assets, onClose }: {
   const assetLabels = plan.allocations.map(a => a.asset.symbol).join(' · ');
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="w-full max-w-xl bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
 
@@ -477,7 +477,7 @@ export function DeletePlanModal({ plan, onConfirm, onClose }: {
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="w-full max-w-sm bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-6">
         <h2 className="text-base font-semibold text-gray-100 mb-2">Delete plan?</h2>
@@ -543,7 +543,7 @@ function AddRuleSetModal({ plan, kind, onClose }: {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="w-full max-w-sm bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-6">
         <h2 className="text-base font-semibold text-gray-100 mb-4">
@@ -634,7 +634,7 @@ export function PlanRuleSetsPanel({ plan }: { plan: DcaPlan }) {
         <AddRuleSetModal plan={plan} kind={addModal} onClose={() => setAddModal(null)} />
       )}
       {removeConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
           onClick={e => { if (e.target === e.currentTarget) setRemoveConfirm(null); }}>
           <div className="w-full max-w-sm bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-6">
             <h2 className="text-base font-semibold text-gray-100 mb-2">Remove rule set?</h2>
@@ -672,7 +672,7 @@ export function PlanRuleSetsPanel({ plan }: { plan: DcaPlan }) {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                <tr className="border-b border-gray-800">
+                <tr className="border-b border-gray-700">
                   <th className={TH}>Label</th>
                   <th className={TH}>Per asset</th>
                   <th className={TH}>Total</th>
@@ -685,7 +685,7 @@ export function PlanRuleSetsPanel({ plan }: { plan: DcaPlan }) {
                   const total = +perAsset.reduce((s, a) => s + a.amount, 0).toFixed(2);
                   const anyFires = perAsset.some(a => a.fires);
                   return (
-                      <tr key={prs.ruleSetId} className="border-b border-gray-800 last:border-0">
+                      <tr key={prs.ruleSetId} className="border-b border-gray-700 last:border-0">
                         <td className={TD}>
                           <span className="text-gray-200">{prs.ruleSet.label}</span>
                         </td>
@@ -696,7 +696,7 @@ export function PlanRuleSetsPanel({ plan }: { plan: DcaPlan }) {
                                     <div key={a.symbol} className="flex items-center gap-1.5 text-xs font-mono">
                                       <span style={a.color ? { color: a.color } : { color: '#9ca3af' }} className="font-medium">{a.symbol}</span>
                                       {a.drawdownPct != null
-                                          ? <span className="text-red-400/70">-{a.drawdownPct.toFixed(1)}%</span>
+                                          ? <span className="text-red-400">-{a.drawdownPct.toFixed(1)}%</span>
                                           : <span className="text-gray-700">no price</span>}
                                       <span className="text-gray-600">→</span>
                                       <span className={a.fires ? 'text-brand-300 font-semibold whitespace-nowrap' : 'text-gray-500 whitespace-nowrap'}>
@@ -755,7 +755,7 @@ export function PlanRuleSetsPanel({ plan }: { plan: DcaPlan }) {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                <tr className="border-b border-gray-800">
+                <tr className="border-b border-gray-700">
                   <th className={TH}>Label</th>
                   <th className={TH}>Type</th>
                   <th className={TH}></th>
@@ -763,7 +763,7 @@ export function PlanRuleSetsPanel({ plan }: { plan: DcaPlan }) {
                 </thead>
                 <tbody>
                 {sellingSets.map(prs => (
-                    <tr key={prs.ruleSetId} className="border-b border-gray-800 last:border-0">
+                    <tr key={prs.ruleSetId} className="border-b border-gray-700 last:border-0">
                       <td className={TD}>
                         <span className="text-gray-200">{prs.ruleSet.label}</span>
                       </td>

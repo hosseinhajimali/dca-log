@@ -1,7 +1,22 @@
 import type { Metadata } from 'next';
+import { IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import { Providers } from './providers';
 import '../index.css';
+
+const plexSans = IBM_Plex_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-sans',
+  display: 'swap',
+});
+
+const plexMono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-mono',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'DCAlog | Invest consistently. Profit systematically.',
@@ -58,12 +73,12 @@ if ('serviceWorker' in navigator) {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" className={`dark ${plexSans.variable} ${plexMono.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script dangerouslySetInnerHTML={{ __html: swScript }} />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="theme-color" content="#0a0a0f" />
+        <meta name="theme-color" content="#0b0e11" />
       </head>
       <body>
         <Providers>{children}</Providers>

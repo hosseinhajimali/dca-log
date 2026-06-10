@@ -81,7 +81,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 md:ml-60 flex flex-col min-h-screen overflow-x-hidden">
-        <header className="h-[60px] border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm flex items-center px-4 md:px-6 gap-3 shrink-0 sticky top-0 z-20">
+        <header className="h-[60px] border-b border-gray-800 bg-gray-950 flex items-center px-4 md:px-6 gap-3 shrink-0 sticky top-0 z-20">
           <button
             onClick={() => setSidebarOpen(true)}
             className="md:hidden text-gray-400 hover:text-gray-200 transition-colors p-1.5 rounded-lg hover:bg-gray-800 mr-1"

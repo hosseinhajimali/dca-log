@@ -65,7 +65,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 z-20 bg-black/60 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-20 bg-black/60 md:hidden"
           onClick={onClose}
         />
       )}

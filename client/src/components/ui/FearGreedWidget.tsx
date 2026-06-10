@@ -7,15 +7,15 @@ import { InfoTooltip } from '@/components/ui/InfoTooltip';
 
 // ── Zone definitions ─────────────────────────────────────────────────────────
 const ZONES = [
-  { from: 0,  to: 25,  color: '#ef4444', label: 'Extreme Fear' },
+  { from: 0,  to: 25,  color: '#f6465d', label: 'Extreme Fear' },
   { from: 25, to: 46,  color: '#f97316', label: 'Fear' },
   { from: 46, to: 54,  color: '#eab308', label: 'Neutral' },
   { from: 54, to: 75,  color: '#84cc16', label: 'Greed' },
-  { from: 75, to: 100, color: '#22c55e', label: 'Extreme Greed' },
+  { from: 75, to: 100, color: '#0ecb81', label: 'Extreme Greed' },
 ];
 
 function zoneColor(value: number) {
-  return ZONES.find(z => value <= z.to)?.color ?? '#22c55e';
+  return ZONES.find(z => value <= z.to)?.color ?? '#0ecb81';
 }
 function zoneLabel(value: number) {
   return ZONES.find(z => value <= z.to)?.label ?? 'Extreme Greed';
@@ -54,7 +54,7 @@ function FngTooltip({ active, payload, label }: any) {
 function alertForValue(value: number): { msg: string; color: string } | null {
   if (value <= 25) return {
     msg: 'Crypto market sentiment is Extreme Fear. For DCA investors, this has historically been a strong time to stay consistent or consider increasing your position size.',
-    color: '#ef4444',
+    color: '#f6465d',
   };
   if (value <= 45) return {
     msg: 'Crypto market sentiment is Fear. A good reminder to stick to your plan and not react to short-term volatility.',
@@ -67,7 +67,7 @@ function alertForValue(value: number): { msg: string; color: string } | null {
   };
   return {
     msg: 'Crypto market sentiment is Extreme Greed. This is typically not the best time to deviate from your plan or increase position sizes beyond what you set.',
-    color: '#22c55e',
+    color: '#0ecb81',
   };
 }
 

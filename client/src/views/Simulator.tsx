@@ -108,8 +108,8 @@ function ResultsSection({ data }: { data: SimulationResult }) {
           <AreaChart data={displayChart} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="simValue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%"  stopColor={profitable ? '#22c55e' : '#ef4444'} stopOpacity={0.25} />
-                <stop offset="95%" stopColor={profitable ? '#22c55e' : '#ef4444'} stopOpacity={0} />
+                <stop offset="5%"  stopColor={profitable ? '#0ecb81' : '#f6465d'} stopOpacity={0.25} />
+                <stop offset="95%" stopColor={profitable ? '#0ecb81' : '#f6465d'} stopOpacity={0} />
               </linearGradient>
               <linearGradient id="simInvested" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%"  stopColor="#6366f1" stopOpacity={0.15} />
@@ -143,7 +143,7 @@ function ResultsSection({ data }: { data: SimulationResult }) {
             <Area
               type="monotone"
               dataKey="portfolioValue"
-              stroke={profitable ? '#22c55e' : '#ef4444'}
+              stroke={profitable ? '#0ecb81' : '#f6465d'}
               fill="url(#simValue)"
               strokeWidth={2}
               dot={false}
@@ -170,7 +170,7 @@ function ResultsSection({ data }: { data: SimulationResult }) {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-800">
+              <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-700">
                 {['Date', 'Price', 'Qty bought', 'Amount', 'Portfolio value'].map(h => (
                   <th key={h} className="px-5 py-3.5 text-left font-medium whitespace-nowrap">{h}</th>
                 ))}
@@ -178,7 +178,7 @@ function ResultsSection({ data }: { data: SimulationResult }) {
             </thead>
             <tbody>
               {recentBuys.map((buy, i) => (
-                <tr key={i} className="hover:bg-gray-700/50 transition-colors border-b border-gray-800 last:border-0">
+                <tr key={i} className="hover:bg-gray-700/50 transition-colors border-b border-gray-700 last:border-0">
                   <td className="px-5 py-3.5 text-gray-400">{buy.date}</td>
                   <td className="px-5 py-3.5 font-mono text-gray-300">{format(buy.price)}</td>
                   <td className="px-5 py-3.5 font-mono text-gray-400">

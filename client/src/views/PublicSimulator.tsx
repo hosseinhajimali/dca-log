@@ -96,7 +96,7 @@ function drawShareCard(
   const { summary, asset, params, chartData } = result;
   const profitable = summary.totalReturn >= 0;
   const accentColor = ASSET_COLORS[asset.symbol] ?? '#7c3aed';
-  const returnColor = profitable ? '#4ade80' : '#f87171';
+  const returnColor = profitable ? '#2ed794' : '#f8657a';
 
   // Left accent bar
   ctx.fillStyle = accentColor;
@@ -305,7 +305,7 @@ function ShareModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="w-full max-w-lg bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl overflow-hidden">
@@ -629,8 +629,8 @@ export default function PublicSimulator() {
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="gVal" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={profitable ? '#4ade80' : '#f87171'} stopOpacity={0.25} />
-                      <stop offset="95%" stopColor={profitable ? '#4ade80' : '#f87171'} stopOpacity={0} />
+                      <stop offset="5%" stopColor={profitable ? '#2ed794' : '#f8657a'} stopOpacity={0.25} />
+                      <stop offset="95%" stopColor={profitable ? '#2ed794' : '#f8657a'} stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="gInv" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#6b7280" stopOpacity={0.15} />
@@ -652,7 +652,7 @@ export default function PublicSimulator() {
                   <Area type="monotone" dataKey="totalInvested" stroke="#6b7280" strokeWidth={1.5}
                     fill="url(#gInv)" dot={false} />
                   <Area type="monotone" dataKey="portfolioValue"
-                    stroke={profitable ? '#4ade80' : '#f87171'} strokeWidth={2}
+                    stroke={profitable ? '#2ed794' : '#f8657a'} strokeWidth={2}
                     fill="url(#gVal)" dot={false} />
                 </AreaChart>
               </ResponsiveContainer>

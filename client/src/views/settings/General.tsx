@@ -71,7 +71,7 @@ function AssetModal({ mode, asset, onClose }: AssetModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="w-full max-w-md bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
@@ -448,7 +448,7 @@ export default function General() {
         {assets.length === 0 ? (
           <div className="px-5 py-8 text-center text-gray-600 text-sm">No assets yet. Add one above.</div>
         ) : (
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-gray-700">
             {assets.map(asset => (
               <AssetRow key={asset.id} asset={asset}
                 onEdit={() => setEditingAsset(asset)}
@@ -552,7 +552,7 @@ export default function General() {
       {/* Restore confirm modal */}
       {/* Clear all data modal */}
       {showClearConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
           <div className="w-full max-w-sm bg-gray-900 border border-gray-700 rounded-2xl p-6 space-y-4">
             <div className="flex flex-col gap-2">
               <span className="text-2xl">⚠️</span>
@@ -591,7 +591,7 @@ export default function General() {
       )}
 
       {showRestoreConfirm && pendingFile && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
           <div className="w-full max-w-sm bg-gray-900 border border-gray-700 rounded-2xl p-6 space-y-4">
             <div className="flex flex-col gap-2">
               <span className="text-2xl">⚠️</span>

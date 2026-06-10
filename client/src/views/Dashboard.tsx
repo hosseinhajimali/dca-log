@@ -45,7 +45,7 @@ function HoverTooltip({ message }: { message: string }) {
   );
 }
 
-const COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#a78bfa', '#06b6d4', '#f97316'];
+const COLORS = ['#0ecb81', '#3b82f6', '#f59e0b', '#f6465d', '#a78bfa', '#06b6d4', '#f97316'];
 
 const FREQ_LABELS: Record<string, string> = {
   DAILY: 'Daily', WEEKLY: 'Weekly', BIWEEKLY: 'Bi-weekly', MONTHLY: 'Monthly', CUSTOM: 'Custom',
@@ -286,7 +286,7 @@ function GoalsSummary({ goals }: { goals: Goal[] }) {
                         className="h-full rounded-full transition-all duration-500"
                         style={{
                           width: `${Math.min((goal.currentValue ?? 0) / goal.targetMonthlyAmount * 100, 100)}%`,
-                          background: (goal.currentValue ?? 0) >= goal.targetMonthlyAmount ? '#22c55e' : '#6366f1',
+                          background: (goal.currentValue ?? 0) >= goal.targetMonthlyAmount ? '#0ecb81' : '#6366f1',
                         }}
                       />
                     </div>
@@ -535,10 +535,10 @@ export default function Dashboard() {
                 <Tooltip
                   contentStyle={{ background: isLight ? '#ffffff' : '#111827', border: `1px solid ${isLight ? '#e8ecf1' : '#1f2937'}`, borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                   labelStyle={{ color: isLight ? '#475569' : '#9ca3af' }}
-                  itemStyle={{ color: '#22c55e' }}
+                  itemStyle={{ color: '#0ecb81' }}
                   cursor={{ fill: isLight ? '#f1f5f9' : '#1f2937' }}
                 />
-                <Bar dataKey="invested" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="invested" fill="#0ecb81" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -606,7 +606,7 @@ export default function Dashboard() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-800">
+                <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-700">
                   {['Asset', 'Total Amount', 'Invested', 'Current Value', 'Avg Buy', 'Current Price', 'P&L', 'Drawdown vs ATH', 'Purchases'].map((h) => (
                     <th key={h} className="px-5 py-3.5 text-left font-medium whitespace-nowrap">{h}</th>
                   ))}
@@ -614,7 +614,7 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {assetStats.map((stat) => (
-                  <tr key={stat.asset.id} className="hover:bg-gray-700/50 transition-colors border-b border-gray-800 last:border-0">
+                  <tr key={stat.asset.id} className="hover:bg-gray-700/50 transition-colors border-b border-gray-700 last:border-0">
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2">
                         <span className="font-bold font-mono"

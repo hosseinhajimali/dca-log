@@ -13,7 +13,7 @@ export function StatCard({ label, value, sub, positive, negative, className = ''
   return (
     <div className={`bg-gray-900 border border-gray-800 rounded-xl p-5 ${className}`}>
       <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{label}</p>
-      <p className="text-2xl font-bold text-gray-100 mt-1.5 font-mono">{value}</p>
+      <p className="text-2xl font-semibold text-gray-100 mt-1.5 tracking-tight tabular">{value}</p>
       {sub && <p className={`text-sm mt-1 font-medium ${subColor}`}>{sub}</p>}
     </div>
   );

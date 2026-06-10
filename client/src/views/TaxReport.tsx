@@ -351,7 +351,7 @@ export default function TaxReport() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-800">
+                    <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-700">
                       {[
                         'Asset',
                         `Bought in ${selectedYear}`,
@@ -365,7 +365,7 @@ export default function TaxReport() {
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-700">
                     {summaries.map((s) => (
                       <tr key={s.symbol} className="hover:bg-gray-700/50 transition-colors">
                         <td className="px-5 py-3.5">
@@ -429,13 +429,13 @@ export default function TaxReport() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-800">
+                    <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-700">
                       {['Date', 'Asset', 'Quantity', 'Price / unit', 'Amount', 'Running avg cost', 'Exchange'].map((h) => (
                         <th key={h} className="px-5 py-3.5 text-left font-medium whitespace-nowrap">{h}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-700">
                     {yearEntries.slice(0, 20).map((e, i) => (
                       <tr key={i} className="hover:bg-gray-700/50 transition-colors">
                         <td className="px-5 py-3.5 text-gray-400 whitespace-nowrap">{formatDate(e.tx.purchasedAt)}</td>

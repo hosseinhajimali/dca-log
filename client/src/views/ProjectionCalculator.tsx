@@ -17,10 +17,10 @@ import { useStore } from '@/store/useStore';
 const MAX_MONTHS = 360; // 30 years cap
 
 const SCENARIOS = [
-  { key: 'bear',     label: 'Bear',     color: '#ef4444', defaultRate: -25 },
+  { key: 'bear',     label: 'Bear',     color: '#f6465d', defaultRate: -25 },
   { key: 'flat',     label: 'Flat',     color: '#9ca3af', defaultRate:   0 },
   { key: 'moderate', label: 'Moderate', color: '#60a5fa', defaultRate:  30 },
-  { key: 'bull',     label: 'Bull',     color: '#22c55e', defaultRate: 100 },
+  { key: 'bull',     label: 'Bull',     color: '#0ecb81', defaultRate: 100 },
 ] as const;
 
 type ScenarioKey = typeof SCENARIOS[number]['key'];
@@ -194,7 +194,7 @@ function HorizonRow({
   const positive = finalValue >= totalInvested;
 
   return (
-    <tr className="border-b border-gray-800 last:border-0">
+    <tr className="border-b border-gray-700 last:border-0">
       <td className="px-5 py-3.5">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full" style={{ background: scenario.color }} />
@@ -360,7 +360,7 @@ export default function ProjectionCalculator() {
               className={inputCls}
             />
             {!fetchedPrice && !manualPrice && assetId && (
-              <p className="text-xs text-amber-500/80 mt-1">Price not cached, enter it manually or refresh prices.</p>
+              <p className="text-xs text-amber-500 mt-1">Price not cached, enter it manually or refresh prices.</p>
             )}
           </div>
 
@@ -508,13 +508,13 @@ export default function ProjectionCalculator() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                  <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-800">
+                  <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-700">
                     {['Scenario', 'Portfolio value', 'Total invested', 'Return'].map(h => (
                         <th key={h} className="px-5 py-3.5 text-left font-medium whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-700">
                   {SCENARIOS.map(s => {
                     const last = chartData[chartData.length - 1];
                     return (

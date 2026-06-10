@@ -56,11 +56,11 @@ function Icon({ id }: { id: AvatarId }) {
       return (
         <>
           <rect x="8" y="11" width="24" height="18" rx="2.5" fill="none"
-            stroke="#4ade80" strokeWidth="1.5" />
-          <circle cx="12" cy="15" r="1.2" fill="#f87171" />
+            stroke="#2ed794" strokeWidth="1.5" />
+          <circle cx="12" cy="15" r="1.2" fill="#f8657a" />
           <circle cx="16" cy="15" r="1.2" fill="#fbbf24" />
-          <circle cx="20" cy="15" r="1.2" fill="#4ade80" />
-          <text x="10" y="26" fill="#4ade80" fontFamily="monospace" fontSize="9" fontWeight="700">
+          <circle cx="20" cy="15" r="1.2" fill="#2ed794" />
+          <text x="10" y="26" fill="#2ed794" fontFamily="monospace" fontSize="9" fontWeight="700">
             {'$ _'}
           </text>
         </>

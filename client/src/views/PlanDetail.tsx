@@ -203,10 +203,10 @@ export default function PlanDetail() {
               <Tooltip
                 contentStyle={{ background: isLight ? '#ffffff' : '#111827', border: `1px solid ${isLight ? '#e8ecf1' : '#1f2937'}`, borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                 labelStyle={{ color: isLight ? '#475569' : '#9ca3af' }}
-                itemStyle={{ color: '#22c55e' }}
+                itemStyle={{ color: '#0ecb81' }}
                 cursor={{ fill: isLight ? '#f1f5f9' : '#1f2937' }}
               />
-              <Bar dataKey="invested" fill="#22c55e" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="invested" fill="#0ecb81" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -220,7 +220,7 @@ export default function PlanDetail() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-800">
+              <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-700">
                 {['Asset', 'Allocation', 'Holdings', 'Invested', 'Value', 'Avg Buy', 'Price', 'P&L', 'Drawdown'].map(h => (
                   <th key={h} className="px-5 py-3.5 text-left font-medium whitespace-nowrap">{h}</th>
                 ))}
@@ -228,7 +228,7 @@ export default function PlanDetail() {
             </thead>
             <tbody>
               {assetStats.map((stat) => (
-                <tr key={stat.asset.id} className="hover:bg-gray-700/50 transition-colors border-b border-gray-800 last:border-0">
+                <tr key={stat.asset.id} className="hover:bg-gray-700/50 transition-colors border-b border-gray-700 last:border-0">
                   <td className="px-5 py-3.5">
                     <span className="font-bold font-mono" style={stat.asset.color ? { color: stat.asset.color } : undefined}>
                       {stat.asset.symbol}
@@ -303,7 +303,7 @@ export default function PlanDetail() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-800">
+                <tr className="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-700">
                   {['Date', 'Type', 'Asset', 'Amount', 'Quantity', 'Price'].map(h => (
                     <th key={h} className="px-5 py-3.5 text-left font-medium whitespace-nowrap">{h}</th>
                   ))}
@@ -311,7 +311,7 @@ export default function PlanDetail() {
               </thead>
               <tbody>
                 {recentTransactions.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-gray-700/50 transition-colors border-b border-gray-800 last:border-0">
+                  <tr key={tx.id} className="hover:bg-gray-700/50 transition-colors border-b border-gray-700 last:border-0">
                     <td className="px-5 py-3.5 text-gray-400">{formatDate(tx.purchasedAt)}</td>
                     <td className="px-5 py-3.5">
                       <span className={`text-xs font-medium font-mono px-2 py-0.5 rounded-full ${

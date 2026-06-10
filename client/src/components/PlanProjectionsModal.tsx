@@ -13,7 +13,7 @@ import { useCurrencyFormatter, formatQuantity } from '@/lib/format';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const LINE_COLORS = ['#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899'];
+const LINE_COLORS = ['#3b82f6', '#f59e0b', '#0ecb81', '#8b5cf6', '#f6465d', '#06b6d4', '#ec4899'];
 const COMBINED_COLOR = '#e5e7eb';
 
 const GROWTH_OPTIONS = [
@@ -284,7 +284,7 @@ export default function PlanProjectionsModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="w-full max-w-3xl bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
@@ -388,10 +388,10 @@ export default function PlanProjectionsModal({
                     {/* Target reference line */}
                     <ReferenceLine
                       y={target}
-                      stroke="#22c55e"
+                      stroke="#0ecb81"
                       strokeDasharray="5 4"
                       strokeWidth={1.5}
-                      label={{ value: 'Target', fill: '#22c55e', fontSize: 10, position: 'insideTopRight' }}
+                      label={{ value: 'Target', fill: '#0ecb81', fontSize: 10, position: 'insideTopRight' }}
                     />
                     {/* Individual plan lines */}
                     {projection.plans.map((p) => (
@@ -491,7 +491,7 @@ export default function PlanProjectionsModal({
                     </tbody>
                   </table>
                 </div>
-                <p className="flex items-center gap-1.5 text-xs text-amber-600/70 mt-3">
+                <p className="flex items-center gap-1.5 text-xs text-amber-600 mt-3">
                   <TriangleAlert size={12} className="shrink-0" />
                   Projections assume constant DCA at the selected annual growth rate. Actual results will vary.
                 </p>

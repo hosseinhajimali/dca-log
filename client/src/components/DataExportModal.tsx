@@ -377,7 +377,7 @@ export function DataExportModal({ onClose }: DataExportModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="w-full max-w-md bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
@@ -484,7 +484,7 @@ export function DataExportModal({ onClose }: DataExportModalProps) {
 
         {/* footer */}
         <div className="px-6 py-4 border-t border-gray-800 shrink-0 space-y-3">
-          <p className="text-xs text-amber-400/70">
+          <p className="text-xs text-amber-400">
             This export is for analysis only, it cannot be used with Restore. Use "Download backup" for a restorable snapshot.
           </p>
           {error && <p className="text-xs text-red-400">{error}</p>}

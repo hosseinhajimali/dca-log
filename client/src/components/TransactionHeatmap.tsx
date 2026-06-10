@@ -88,7 +88,7 @@ function HeatmapTooltip({ data, formatAmount }: { data: TooltipData; formatAmoun
         )}
       </div>
 
-      <div className="divide-y divide-gray-200">
+      <div className="divide-y divide-gray-700">
         {day.assets.map((a) => {
           const currentPrice = currentPrices[a.symbol] ?? null;
           const priceDiff = currentPrice && a.avgPrice > 0

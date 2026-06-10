@@ -95,7 +95,7 @@ function MonthlyBarsChart({
         />
         <Bar dataKey="invested" radius={[3, 3, 0, 0]}>
           {history.map((entry, i) => (
-            <Cell key={i} fill={entry.invested >= target ? '#22c55e' : isLight ? '#cbd5e1' : '#6b7280'} />
+            <Cell key={i} fill={entry.invested >= target ? '#0ecb81' : isLight ? '#cbd5e1' : '#6b7280'} />
           ))}
         </Bar>
       </BarChart>
@@ -293,7 +293,7 @@ function GoalModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="w-full max-w-md bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto">
@@ -440,7 +440,7 @@ function GoalModal({
 
 function DeleteModal({ goal, onConfirm, onCancel }: { goal: Goal; onConfirm: () => void; onCancel: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
       <div className="w-full max-w-sm bg-gray-900 border border-gray-700 rounded-2xl p-6 space-y-4">
         <p className="text-sm text-gray-300">Delete goal <span className="font-semibold text-gray-100">"{goal.name}"</span>?</p>
         <div className="flex gap-3">

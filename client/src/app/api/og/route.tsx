@@ -99,7 +99,7 @@ export async function GET(req: NextRequest) {
   const CW = 1060, CH = 120;
   const { valuePath, investedPath } = buildSparkline(chartData, CW, CH);
   const profitable = simResult ? simResult.summary.totalReturn >= 0 : true;
-  const returnColor = profitable ? '#4ade80' : '#f87171';
+  const returnColor = profitable ? '#2ed794' : '#f8657a';
   const freqLabel = freq ? (FREQ_LABELS[freq] ?? freq.toLowerCase()) : '';
   const startYear = start ? start.slice(0, 4) : null;
 

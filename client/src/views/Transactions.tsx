@@ -28,7 +28,7 @@ function DeleteConfirmModal({ tx, onConfirm, onCancel }: {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
       onClick={e => { if (e.target === e.currentTarget) onCancel(); }}
     >
       <div className="w-full max-w-sm bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-6 space-y-4">
@@ -294,7 +294,7 @@ function CreateModal({ assets, onClose }: {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="w-full max-w-2xl bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
@@ -371,7 +371,7 @@ function EditModal({ tx, assets, onClose }: EditModalProps) {
   return (
     // backdrop
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="w-full max-w-2xl bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
@@ -566,7 +566,7 @@ function ExportModal({ assets, onClose }: ExportModalProps) {
       : 'border-gray-700 text-gray-500 hover:text-gray-300 hover:border-gray-600'}`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="w-full max-w-lg bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl">
         {/* header */}
@@ -756,7 +756,7 @@ function ImportModal({ assets, onClose }: ImportModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
       onClick={e => { if (e.target === e.currentTarget && step !== 'importing') onClose(); }}>
       <div className="w-full max-w-2xl bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl">
         {/* header */}
@@ -840,7 +840,7 @@ function ImportModal({ assets, onClose }: ImportModalProps) {
               </div>
 
               {rows.some(r => r.matchError) && (
-                <p className="text-xs text-red-400/80 mt-2">
+                <p className="text-xs text-red-400 mt-2">
                   Rows marked ✗ will be skipped (asset symbol not recognised).
                 </p>
               )}
@@ -1024,7 +1024,7 @@ export default function Transactions() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-800">
+                <tr className="border-b border-gray-700">
                   <SortHeader label="Date"     field="purchasedAt" current={sortBy} order={sortOrder} onSort={handleSort} />
                   <th className="px-5 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
                   <th className="px-5 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asset</th>
@@ -1035,7 +1035,7 @@ export default function Transactions() {
                   <th className="px-5 py-3.5" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-700">
                 {transactions.map(tx => (
                   <tr key={tx.id} className="hover:bg-gray-700/50 transition-colors group">
                     <td className="px-5 py-3.5 text-gray-400 whitespace-nowrap">{formatDate(tx.purchasedAt)}</td>
