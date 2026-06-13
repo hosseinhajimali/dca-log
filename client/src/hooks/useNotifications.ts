@@ -23,7 +23,12 @@ export function useNotifications() {
       const res = await api.get<{ data: NotificationsResponse }>('/notifications');
       return res.data.data;
     },
-    refetchInterval: 60_000, // poll every minute
+    // No timed polling: an open tab no longer pings the database on a timer,
+    // so the Neon compute can stay suspended while idle. Instead we refetch
+    // when the user returns to the app. staleTime avoids refetching on every
+    // rapid focus change.
+    refetchOnWindowFocus: true,
+    staleTime: 60_000,
   });
 }
 

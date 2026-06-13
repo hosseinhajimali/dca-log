@@ -3,30 +3,46 @@ import { fetchAndCachePrices } from './priceService';
 import { prisma } from '../lib/prisma';
 import { dispatchAnnouncement } from '../controllers/announcementsController';
 
+// How often all scheduled work runs, in minutes.
+// Kept intentionally infrequent so the database can auto-suspend (scale to
+// zero) between runs. Previously the reminder and announcement checks ran
+// every minute, which kept the Neon compute awake 24/7 and burned the entire
+// monthly CU-hour allowance. CRON_INTERVAL_MINUTES is the new control;
+// PRICE_REFRESH_INTERVAL is honoured as a fallback for older deployments.
+function getIntervalMinutes(): number {
+  const raw =
+    process.env.CRON_INTERVAL_MINUTES ||
+    process.env.PRICE_REFRESH_INTERVAL ||
+    '30';
+  const parsed = parseInt(raw, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 30;
+}
+
 // ─── DCA Reminder notifications ───────────────────────────────────────────────
-async function checkDcaReminders(): Promise<void> {
+async function checkDcaReminders(windowMinutes: number): Promise<void> {
   const now = new Date();
-  // Use a 10-minute window to avoid missing notifications due to timing drift or brief server restarts.
-  // The duplicate-check below prevents double-firing within that window.
-  const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
+  // Look back over a window slightly larger than the run interval so a plan
+  // that became due between runs is not missed. The duplicate check below
+  // prevents firing the same reminder twice across overlapping windows.
+  const windowStart = new Date(now.getTime() - windowMinutes * 60 * 1000);
 
   const duePlans = await prisma.dcaPlan.findMany({
     where: {
       isActive: true,
       nextPurchaseDate: {
-        gte: tenMinutesAgo,
+        gte: windowStart,
         lte: now,
       },
     },
   });
 
   for (const plan of duePlans) {
-    // Avoid duplicate notifications (check if one already exists in the last 5 min)
+    // Avoid duplicate notifications: skip if one already exists within the window.
     const existing = await prisma.notification.findFirst({
       where: {
         userId: plan.userId,
         type: 'DCA_REMINDER',
-        createdAt: { gte: new Date(now.getTime() - 5 * 60 * 1000) },
+        createdAt: { gte: windowStart },
         metadata: { path: ['planId'], equals: plan.id },
       },
     });
@@ -47,45 +63,47 @@ async function checkDcaReminders(): Promise<void> {
   }
 }
 
+// ─── Scheduled announcements ──────────────────────────────────────────────────
+async function dispatchDueAnnouncements(): Promise<void> {
+  const due = await prisma.announcement.findMany({
+    where: {
+      sentAt:      null,
+      scheduledAt: { lte: new Date() },
+    },
+  });
+  for (const a of due) {
+    const count = await dispatchAnnouncement(a.id);
+    console.log(`[Cron] Announcement "${a.title}" sent to ${count} users`);
+  }
+}
+
+// ─── Single consolidated job ──────────────────────────────────────────────────
+// All database-touching work happens in one burst, then the connection goes
+// idle until the next interval, letting Neon suspend the compute in between.
+async function runScheduledWork(windowMinutes: number): Promise<void> {
+  try {
+    console.log('[Cron] Running scheduled work...');
+    await fetchAndCachePrices();
+    await checkDcaReminders(windowMinutes);
+    await dispatchDueAnnouncements();
+  } catch (err) {
+    console.error('[Cron] Scheduled work error:', err);
+  }
+}
+
 // ─── Start all cron jobs ──────────────────────────────────────────────────────
 export function startCronJobs(): void {
-  const intervalMinutes = parseInt(process.env.PRICE_REFRESH_INTERVAL || '5', 10);
+  const intervalMinutes = getIntervalMinutes();
   const cronExpression = `*/${intervalMinutes} * * * *`;
+  // Reminder window: interval plus a 2-minute buffer for timing drift.
+  const windowMinutes = intervalMinutes + 2;
 
-  // Price refresh
-  cron.schedule(cronExpression, async () => {
-    console.log(`[Cron] Refreshing prices...`);
-    await fetchAndCachePrices();
+  cron.schedule(cronExpression, () => {
+    void runScheduledWork(windowMinutes);
   });
 
-  // DCA reminders, run every minute
-  cron.schedule('* * * * *', async () => {
-    await checkDcaReminders().catch(err =>
-      console.error('[Cron] DCA reminder error:', err)
-    );
-  });
+  console.log(`⏰ Consolidated cron running every ${intervalMinutes} minutes`);
 
-  // Scheduled announcements, run every minute
-  cron.schedule('* * * * *', async () => {
-    try {
-      const due = await prisma.announcement.findMany({
-        where: {
-          sentAt:      null,
-          scheduledAt: { lte: new Date() },
-        },
-      });
-      for (const a of due) {
-        const count = await dispatchAnnouncement(a.id);
-        console.log(`[Cron] Announcement "${a.title}" sent to ${count} users`);
-      }
-    } catch (err) {
-      console.error('[Cron] Announcement error:', err);
-    }
-  });
-
-  console.log(`⏰ Price refresh cron running every ${intervalMinutes} minutes`);
-  console.log(`⏰ DCA reminder cron running every minute`);
-
-  // Fetch prices immediately on startup
-  fetchAndCachePrices().catch(console.error);
+  // Run once on startup so prices are fresh immediately.
+  void runScheduledWork(windowMinutes);
 }
