@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useStore } from '@/store/useStore';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Layers, DollarSign, CalendarCheck, Info, ChevronDown, ChevronUp, Copy, Trash2 } from 'lucide-react';
+import { Layers, DollarSign, CalendarCheck, Info, ChevronDown, ChevronUp, Copy, Trash2, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { useGoals, useCreateGoal, useUpdateGoal, useDeleteGoal, GoalPayload } from '@/hooks/useGoals';
 import { useAssets } from '@/hooks/useAssets';
@@ -112,6 +113,7 @@ function GoalCard({
   onDuplicate,
   onToggleComplete,
   onProjections,
+  highlight = false,
 }: {
   goal: Goal;
   onEdit: () => void;
@@ -119,13 +121,17 @@ function GoalCard({
   onDuplicate: () => void;
   onToggleComplete: () => void;
   onProjections: () => void;
+  highlight?: boolean;
 }) {
   const { format } = useCurrencyFormatter();
   const pct = goal.progressPct ?? 0;
   const done = goal.isCompleted || pct >= 100;
 
   return (
-    <div className={`bg-gray-900 border rounded-xl p-5 flex flex-col gap-4 transition-opacity ${done ? 'border-green-500/30 opacity-75' : 'border-gray-800'}`}>
+    <div
+      id={`goal-${goal.id}`}
+      className={`bg-gray-900 border rounded-xl p-5 flex flex-col gap-4 transition-all scroll-mt-24 ${highlight ? 'border-brand-500 ring-2 ring-brand-500' : done ? 'border-green-500/30 opacity-75' : 'border-gray-800'}`}
+    >
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -185,11 +191,37 @@ function GoalCard({
         <div className="space-y-2">
           <div className="flex justify-between text-xs mb-1">
             <span className="text-gray-500">This month: {format(goal.currentValue ?? 0)} / {format(goal.targetMonthlyAmount)}</span>
-            <span className="text-gray-500 font-mono">{pct}% months hit</span>
+            <span className="text-gray-500 font-mono" title="Share of all tracked months in which you met your monthly target">{pct}% of all months hit</span>
           </div>
           {goal.monthlyHistory && (
             <MonthlyBarsChart history={goal.monthlyHistory} target={goal.targetMonthlyAmount} />
           )}
+          {goal.pace && (() => {
+            const { status, deltaMonths, deltaUsd } = goal.pace!;
+            const Icon = status === 'ahead' ? TrendingUp : status === 'behind' ? TrendingDown : Minus;
+            const color =
+              status === 'ahead'
+                ? 'text-green-600 dark:text-green-400'
+                : status === 'behind'
+                ? 'text-red-600 dark:text-red-400'
+                : 'text-gray-600 dark:text-gray-400';
+            const months = Math.abs(deltaMonths).toFixed(1);
+            const label =
+              status === 'on_track'
+                ? 'On pace'
+                : `${months} ${months === '1.0' ? 'month' : 'months'} ${status} of pace`;
+            const sub =
+              status === 'on_track'
+                ? 'tracking your monthly commitment'
+                : `${deltaUsd >= 0 ? '+' : '-'}${format(Math.abs(deltaUsd))} vs. expected by now`;
+            return (
+              <div className="flex items-center gap-1.5 pt-1" title={`Across ${goal.pace!.completedMonths} completed months. The current month is not counted yet.`}>
+                <Icon size={14} className={color} aria-hidden="true" />
+                <span className={`text-xs font-medium ${color}`}>{label}</span>
+                <span className="text-xs text-gray-500">. {sub}</span>
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -499,11 +531,29 @@ export default function Goals() {
   const [editGoal, setEditGoal] = useState<Goal | null>(null);
   const [deleteGoal, setDeleteGoal] = useState<Goal | null>(null);
   const [projectionsGoal, setProjectionsGoal] = useState<Goal | null>(null);
+  const [highlightId, setHighlightId] = useState<string | null>(null);
 
   const { data: goals = [], isLoading } = useGoals();
   const updateGoal = useUpdateGoal();
   const deleteGoalMutation = useDeleteGoal();
   const createGoal = useCreateGoal();
+
+  const searchParams = useSearchParams();
+
+  // Deep link: ?goal=<id> selects the right tab, scrolls to the card, and highlights it.
+  useEffect(() => {
+    const targetId = searchParams.get('goal');
+    if (!targetId || goals.length === 0) return;
+    const target = goals.find(g => g.id === targetId);
+    if (!target) return;
+    setActiveTab(target.type);
+    setHighlightId(targetId);
+    const t = setTimeout(() => {
+      document.getElementById(`goal-${targetId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+    const clear = setTimeout(() => setHighlightId(null), 2600);
+    return () => { clearTimeout(t); clearTimeout(clear); };
+  }, [searchParams, goals]);
 
   const filtered = useMemo(() => goals.filter(g => g.type === activeTab), [goals, activeTab]);
   const active = filtered.filter(g => !g.isCompleted && (g.progressPct ?? 0) < 100);
@@ -597,6 +647,7 @@ export default function Goals() {
                   <GoalCard
                     key={goal.id}
                     goal={goal}
+                    highlight={goal.id === highlightId}
                     onEdit={() => { setEditGoal(goal); setShowModal(true); }}
                     onDelete={() => setDeleteGoal(goal)}
                     onDuplicate={() => handleDuplicate(goal)}
@@ -617,6 +668,7 @@ export default function Goals() {
                   <GoalCard
                     key={goal.id}
                     goal={goal}
+                    highlight={goal.id === highlightId}
                     onEdit={() => { setEditGoal(goal); setShowModal(true); }}
                     onDelete={() => setDeleteGoal(goal)}
                     onDuplicate={() => handleDuplicate(goal)}

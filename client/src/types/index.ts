@@ -228,6 +228,14 @@ export interface Goal {
   currentValue:        number | null;
   progressPct:         number | null;
   monthlyHistory:      { month: string; invested: number }[] | null;
+  pace:                {
+    completedMonths: number;
+    expectedToDate:  number;
+    actualToDate:    number;
+    deltaUsd:        number;
+    deltaMonths:     number;
+    status:          'ahead' | 'behind' | 'on_track';
+  } | null;
 }
 
 export interface ApiResponse<T> {

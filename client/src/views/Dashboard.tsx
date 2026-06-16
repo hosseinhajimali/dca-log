@@ -6,6 +6,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useGoals } from '@/hooks/useGoals';
@@ -234,7 +235,7 @@ function GoalsSummary({ goals }: { goals: Goal[] }) {
             return (
               <button
                 key={goal.id}
-                onClick={() => router.push('/app/goals')}
+                onClick={() => router.push(`/app/goals?goal=${goal.id}`)}
                 className="text-left p-4 rounded-xl border border-gray-800 hover:border-gray-600 hover:bg-gray-800/50 transition-all duration-150 hover:-translate-y-px space-y-3"
               >
                 <div className="flex items-start justify-between gap-2">
@@ -279,7 +280,7 @@ function GoalsSummary({ goals }: { goals: Goal[] }) {
                   <div className="space-y-1.5">
                     <div className="flex justify-between text-xs text-gray-500">
                       <span>This month: {format(goal.currentValue ?? 0)} / {format(goal.targetMonthlyAmount)}</span>
-                      <span className="font-mono text-brand-400 font-semibold">{pct}% months hit</span>
+                      <span className="font-mono text-brand-400 font-semibold" title="Share of all tracked months in which you met your monthly target">{pct}% of all months hit</span>
                     </div>
                     <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
                       <div
@@ -293,10 +294,15 @@ function GoalsSummary({ goals }: { goals: Goal[] }) {
                   </div>
                 )}
 
-                {goal.deadline && (
-                  <p className={`text-xs ${(goal.daysUntil ?? Infinity) < 0 ? 'text-red-400' : (goal.daysUntil ?? Infinity) <= 7 ? 'text-yellow-400' : 'text-gray-600'}`}>
-                    {deadlineLabel(goal.daysUntil ?? null, goal.deadline)}
-                  </p>
+                {(goal.deadline || goal.pace) && (
+                  <div className="flex items-center justify-between gap-2">
+                    {goal.deadline ? (
+                      <p className={`text-xs ${(goal.daysUntil ?? Infinity) < 0 ? 'text-red-400' : (goal.daysUntil ?? Infinity) <= 7 ? 'text-yellow-400' : 'text-gray-600'}`}>
+                        {deadlineLabel(goal.daysUntil ?? null, goal.deadline)}
+                      </p>
+                    ) : <span />}
+                    {goal.pace && <PaceChip pace={goal.pace} />}
+                  </div>
                 )}
               </button>
             );
@@ -304,6 +310,27 @@ function GoalsSummary({ goals }: { goals: Goal[] }) {
         </div>
       )}
     </div>
+  );
+}
+
+function PaceChip({ pace }: { pace: NonNullable<Goal['pace']> }) {
+  const Icon = pace.status === 'ahead' ? TrendingUp : pace.status === 'behind' ? TrendingDown : Minus;
+  const color =
+    pace.status === 'ahead'
+      ? 'text-green-600 dark:text-green-400'
+      : pace.status === 'behind'
+      ? 'text-red-600 dark:text-red-400'
+      : 'text-gray-600 dark:text-gray-400';
+  const months = Math.abs(pace.deltaMonths).toFixed(1);
+  const label = pace.status === 'on_track' ? 'On pace' : `${months}mo ${pace.status}`;
+  return (
+    <span
+      className={`inline-flex items-center gap-1 text-xs font-medium ${color}`}
+      title={`Across ${pace.completedMonths} completed months, you are ${pace.status === 'on_track' ? 'on pace with' : pace.status + ' of'} your monthly commitment. The current month is not counted yet.`}
+    >
+      <Icon size={12} aria-hidden="true" />
+      {label}
+    </span>
   );
 }
 

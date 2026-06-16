@@ -57,6 +57,14 @@ export async function listGoals(req: AuthRequest, res: Response, next: NextFunct
       let currentValue: number | null = null;
       let progressPct: number | null = null;
       let monthlyHistory: { month: string; invested: number }[] | null = null;
+      let pace: {
+        completedMonths: number;
+        expectedToDate: number;
+        actualToDate: number;
+        deltaUsd: number;
+        deltaMonths: number;
+        status: 'ahead' | 'behind' | 'on_track';
+      } | null = null;
 
       if (goal.type === 'ACCUMULATION' && goal.assetId && goal.targetQty) {
         const assetTxs = transactions.filter((t) => t.assetId === goal.assetId);
@@ -88,6 +96,30 @@ export async function listGoals(req: AuthRequest, res: Response, next: NextFunct
         progressPct = history.length > 0 ? Math.round((hitCount / history.length) * 100) : 0;
         currentValue = monthlyInvested.get(now.toISOString().slice(0, 7)) ?? 0;
         monthlyHistory = history.map(({ month, invested }) => ({ month, invested }));
+
+        // ── Pace check ─────────────────────────────────────────────────────
+        // Cumulative, over COMPLETED months only (the current, in-progress
+        // month is excluded so the number doesn't swing mid-month; it is
+        // already surfaced separately via `currentValue`). Buys only, to match
+        // the chart above. Requires a startDate to have a meaningful baseline.
+        if (goal.startDate) {
+          const target = goal.targetMonthlyAmount;
+          const currentKey = now.toISOString().slice(0, 7);
+          // Completed-month history excludes the start month only if the goal
+          // started this month (no full month elapsed yet) and the current month.
+          const completed = history.filter((h) => h.month < currentKey);
+          const completedMonths = completed.length;
+          if (completedMonths > 0) {
+            const expectedToDate = completedMonths * target;
+            const actualToDate = completed.reduce((s, h) => s + h.invested, 0);
+            const deltaUsd = actualToDate - expectedToDate;
+            const deltaMonths = deltaUsd / target;
+            // On track when within 5% of one month's commitment either way.
+            const status: 'ahead' | 'behind' | 'on_track' =
+              Math.abs(deltaUsd) < target * 0.05 ? 'on_track' : deltaUsd > 0 ? 'ahead' : 'behind';
+            pace = { completedMonths, expectedToDate, actualToDate, deltaUsd, deltaMonths, status };
+          }
+        }
       }
 
       return {
@@ -109,6 +141,7 @@ export async function listGoals(req: AuthRequest, res: Response, next: NextFunct
         currentValue,
         progressPct,
         monthlyHistory,
+        pace,
       };
     });
 
