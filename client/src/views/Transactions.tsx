@@ -6,7 +6,7 @@ import { useTransactions, useCreateTransaction, useUpdateTransaction, useDeleteT
 import { useAssets } from '@/hooks/useAssets';
 import { useDcaPlans } from '@/hooks/useDcaPlans';
 import { Badge } from '@/components/ui/Badge';
-import { useCurrencyFormatter, formatDate, formatQuantity } from '@/lib/format';
+import { useCurrencyFormatter, formatDate, formatQuantity, normalizeNumeric, parseNum } from '@/lib/format';
 import { Transaction, Asset, DcaPlan } from '@/types';
 import { api } from '@/lib/api';
 import { useAssetPrice } from '@/hooks/usePrices';
@@ -133,7 +133,7 @@ function TxFields({ form, setForm, assets, plans, lockAsset }: TxFieldsProps) {
   const { data: currentPrice } = useAssetPrice(selectedSymbol);
 
   const selectedPlan = plans.find(p => p.id === form.dcaPlanId) ?? null;
-  const amountUsd = parseFloat(form.amountUsd) || 0;
+  const amountUsd = parseNum(form.amountUsd) || 0;
   const amountWarning = (() => {
     if (!selectedPlan || amountUsd <= 0) return null;
     if (selectedPlan.maxBudgetUsd && amountUsd > selectedPlan.maxBudgetUsd)
@@ -144,9 +144,17 @@ function TxFields({ form, setForm, assets, plans, lockAsset }: TxFieldsProps) {
   })();
 
   const recalcAmount = (qty: string, price: string) => {
-    const q = parseFloat(qty), p = parseFloat(price);
+    const q = parseNum(qty), p = parseNum(price);
     return q > 0 && p > 0 ? (q * p).toFixed(2) : '';
   };
+
+  // Normalize formatted/pasted numbers (e.g. "$83,500.36") into a plain decimal.
+  const onNumericPaste =
+    (apply: (v: string) => void) =>
+    (e: React.ClipboardEvent<HTMLInputElement>) => {
+      e.preventDefault();
+      apply(normalizeNumeric(e.clipboardData.getData('text')));
+    };
 
   return (
     <div className="space-y-4">
@@ -199,28 +207,33 @@ function TxFields({ form, setForm, assets, plans, lockAsset }: TxFieldsProps) {
 
       <div>
         <label className="block text-xs text-gray-400 mb-1.5">{isSell ? 'Quantity sold *' : 'Quantity received *'}</label>
-        <input type="number" required min="0" step="any" value={form.quantity}
+        <input type="text" inputMode="decimal" required value={form.quantity}
           onChange={e => {
             const qty = e.target.value;
             setForm(f => ({ ...f, quantity: qty, amountUsd: recalcAmount(qty, f.pricePerUnit) }));
           }}
+          onPaste={onNumericPaste(qty =>
+            setForm(f => ({ ...f, quantity: qty, amountUsd: recalcAmount(qty, f.pricePerUnit) })))}
           placeholder="0.00153" className={cls} />
       </div>
 
       <div>
         <label className="block text-xs text-gray-400 mb-1.5">Price per unit (USD) *</label>
-        <input type="number" required min="0" step="any" value={form.pricePerUnit}
+        <input type="text" inputMode="decimal" required value={form.pricePerUnit}
           onChange={e => {
             const price = e.target.value;
             setForm(f => ({ ...f, pricePerUnit: price, amountUsd: recalcAmount(f.quantity, price) }));
           }}
+          onPaste={onNumericPaste(price =>
+            setForm(f => ({ ...f, pricePerUnit: price, amountUsd: recalcAmount(f.quantity, price) })))}
           placeholder={currentPrice != null ? currentPrice.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '65000'} className={cls} />
       </div>
 
       <div>
         <label className="block text-xs text-gray-400 mb-1.5">{isSell ? 'Amount received (USD)' : 'Amount spent (USD)'}</label>
-        <input type="number" min="0" step="0.01" value={form.amountUsd}
+        <input type="text" inputMode="decimal" value={form.amountUsd}
           onChange={e => setForm(f => ({ ...f, amountUsd: e.target.value }))}
+          onPaste={onNumericPaste(v => setForm(f => ({ ...f, amountUsd: v })))}
           placeholder="100" className={cls} />
         {amountWarning && (
           <p className="text-xs text-yellow-500 mt-1">{amountWarning}</p>
@@ -282,9 +295,9 @@ function CreateModal({ assets, onClose }: {
       type: form.type,
       assetId: form.assetId,
       dcaPlanId: form.dcaPlanId || undefined,
-      amountUsd: parseFloat(form.amountUsd),
-      quantity: parseFloat(form.quantity),
-      pricePerUnit: parseFloat(form.pricePerUnit),
+      amountUsd: parseNum(form.amountUsd),
+      quantity: parseNum(form.quantity),
+      pricePerUnit: parseNum(form.pricePerUnit),
       purchasedAt: new Date(form.purchasedAt).toISOString(),
       exchange: form.exchange || undefined,
       notes: form.notes || undefined,
@@ -357,9 +370,9 @@ function EditModal({ tx, assets, onClose }: EditModalProps) {
       id: tx.id,
       data: {
         type: form.type,
-        amountUsd: parseFloat(form.amountUsd),
-        quantity: parseFloat(form.quantity),
-        pricePerUnit: parseFloat(form.pricePerUnit),
+        amountUsd: parseNum(form.amountUsd),
+        quantity: parseNum(form.quantity),
+        pricePerUnit: parseNum(form.pricePerUnit),
         purchasedAt: new Date(form.purchasedAt).toISOString(),
         exchange: form.exchange || undefined,
         notes: form.notes || undefined,

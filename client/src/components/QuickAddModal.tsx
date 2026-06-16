@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { DcaPlan } from '@/types';
 import { toast } from '@/lib/toast';
-import { utcTimeToLocal } from '@/lib/format';
+import { utcTimeToLocal, normalizeNumeric, parseNum } from '@/lib/format';
 
 interface AssetRow {
   assetId: string;
@@ -25,13 +25,13 @@ interface QuickAddModalProps {
 export function QuickAddModal({ plan, onClose }: QuickAddModalProps) {
   const qc = useQueryClient();
 
-  const nextDate = plan.nextPurchaseDate
-    ? new Date(plan.nextPurchaseDate).toISOString().slice(0, 10)
-    : new Date().toISOString().slice(0, 10);
+  // Default to today. A plan's nextPurchaseDate can be in the past when the
+  // plan is overdue, which made Quick Purchase show a stale date.
+  const today = new Date().toISOString().slice(0, 10);
   // scheduledTime is stored as UTC on the server, convert to local for display
   const scheduledTime = utcTimeToLocal(plan.scheduledTime ?? '08:00');
 
-  const [date, setDate] = useState(nextDate);
+  const [date, setDate] = useState(today);
   const [time, setTime] = useState(scheduledTime);
   const [exchange, setExchange] = useState('');
   const [rows, setRows] = useState<AssetRow[]>([]);
@@ -110,21 +110,29 @@ export function QuickAddModal({ plan, onClose }: QuickAddModalProps) {
       const updated = { ...r, [field]: value };
       if (field === 'qty' || field === 'price') {
         // qty or price changed → recompute amountUsd
-        const q = parseFloat(updated.qty);
-        const p = parseFloat(updated.price);
+        const q = parseNum(updated.qty);
+        const p = parseNum(updated.price);
         if (!isNaN(q) && q > 0 && !isNaN(p) && p > 0) {
           updated.amountUsd = String(+(q * p).toFixed(2));
         }
       } else if (field === 'amountUsd') {
         // total changed → recompute qty from price
-        const usd = parseFloat(updated.amountUsd);
-        const p = parseFloat(updated.price);
+        const usd = parseNum(updated.amountUsd);
+        const p = parseNum(updated.price);
         if (!isNaN(usd) && usd > 0 && !isNaN(p) && p > 0) {
           updated.qty = String(+(usd / p).toFixed(8));
         }
       }
       return updated;
     }));
+
+  // Normalize on paste so "$83,500.36" lands as "83500.36" in the field.
+  const handleNumericPaste =
+    (assetId: string, field: 'price' | 'qty' | 'amountUsd') =>
+    (e: React.ClipboardEvent<HTMLInputElement>) => {
+      e.preventDefault();
+      updateRow(assetId, field, normalizeNumeric(e.clipboardData.getData('text')));
+    };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,17 +142,17 @@ export function QuickAddModal({ plan, onClose }: QuickAddModalProps) {
     if (checked.length === 0) { setSubmitError('Select at least one asset.'); return; }
 
     for (const row of checked) {
-      const q = parseFloat(row.qty);
+      const q = parseNum(row.qty);
       if (!row.qty || isNaN(q) || q <= 0) {
         setSubmitError(`Enter a valid quantity for ${row.symbol}.`);
         return;
       }
-      const p = parseFloat(row.price);
+      const p = parseNum(row.price);
       if (!row.price || isNaN(p) || p <= 0) {
         setSubmitError(`Enter a valid price for ${row.symbol}.`);
         return;
       }
-      const usd = parseFloat(row.amountUsd);
+      const usd = parseNum(row.amountUsd);
       if (!row.amountUsd || isNaN(usd) || usd <= 0) {
         setSubmitError(`Enter a valid amount for ${row.symbol}.`);
         return;
@@ -156,9 +164,9 @@ export function QuickAddModal({ plan, onClose }: QuickAddModalProps) {
       const purchasedAt = new Date(`${date}T${time}:00`).toISOString();
 
       for (const row of checked) {
-        const price = parseFloat(row.price);
-        const quantity = parseFloat(row.qty);
-        const amountUsd = parseFloat(row.amountUsd);
+        const price = parseNum(row.price);
+        const quantity = parseNum(row.qty);
+        const amountUsd = parseNum(row.amountUsd);
         await api.post('/transactions', {
           assetId: row.assetId,
           dcaPlanId: plan.id,
@@ -191,7 +199,7 @@ export function QuickAddModal({ plan, onClose }: QuickAddModalProps) {
 
   const totalUsd = rows
     .filter(r => r.checked)
-    .reduce((sum, r) => sum + (parseFloat(r.amountUsd) || 0), 0);
+    .reduce((sum, r) => sum + (parseNum(r.amountUsd) || 0), 0);
 
   const amountWarning = (() => {
     if (totalUsd <= 0) return null;
@@ -258,31 +266,31 @@ export function QuickAddModal({ plan, onClose }: QuickAddModalProps) {
                   </span>
                 </div>
                 <input
-                  type="number"
-                  min="0.000001"
-                  step="any"
+                  type="text"
+                  inputMode="decimal"
                   value={row.qty}
                   onChange={e => updateRow(row.assetId, 'qty', e.target.value)}
+                  onPaste={handleNumericPaste(row.assetId, 'qty')}
                   disabled={!row.checked}
                   placeholder="0.00000000"
                   className="bg-gray-800 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-brand-500 placeholder-gray-600 disabled:opacity-40 w-full"
                 />
                 <input
-                  type="number"
-                  min="0.000001"
-                  step="any"
+                  type="text"
+                  inputMode="decimal"
                   value={row.price}
                   onChange={e => updateRow(row.assetId, 'price', e.target.value)}
+                  onPaste={handleNumericPaste(row.assetId, 'price')}
                   disabled={!row.checked}
                   placeholder="0.00"
                   className="bg-gray-800 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-brand-500 placeholder-gray-600 disabled:opacity-40 w-full"
                 />
                 <input
-                  type="number"
-                  min="0.01"
-                  step="any"
+                  type="text"
+                  inputMode="decimal"
                   value={row.amountUsd}
                   onChange={e => updateRow(row.assetId, 'amountUsd', e.target.value)}
+                  onPaste={handleNumericPaste(row.assetId, 'amountUsd')}
                   disabled={!row.checked}
                   placeholder="0.00"
                   className="bg-gray-800 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-brand-500 placeholder-gray-600 disabled:opacity-40 w-full"

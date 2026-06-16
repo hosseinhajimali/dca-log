@@ -54,3 +54,35 @@ export function formatQuantity(qty: number): string {
   if (qty < 1) return qty.toFixed(4);
   return qty.toLocaleString('en-US', { maximumFractionDigits: 4 });
 }
+
+// Turn a pasted/typed value like "$83,500.36" or "83.500,36" into a plain
+// decimal string ("83500.36"). Strips currency symbols and spaces, then works
+// out which separator is the decimal point.
+export function normalizeNumeric(raw: string): string {
+  let s = (raw ?? '').toString().trim().replace(/[^0-9.,-]/g, '');
+  const hasDot = s.includes('.');
+  const hasComma = s.includes(',');
+  if (hasDot && hasComma) {
+    // Whichever separator comes last is the decimal one.
+    if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
+      s = s.replace(/\./g, '').replace(/,/g, '.'); // comma decimal (EU)
+    } else {
+      s = s.replace(/,/g, ''); // dot decimal (US): commas are thousands
+    }
+  } else if (hasComma) {
+    const parts = s.split(',');
+    // A single comma not grouping 3 digits is a decimal ("83,5"); otherwise
+    // treat commas as thousands separators ("83,500").
+    if (parts.length === 2 && parts[1].length !== 3) {
+      s = parts[0] + '.' + parts[1];
+    } else {
+      s = s.replace(/,/g, '');
+    }
+  }
+  return s;
+}
+
+// parseFloat that first normalizes formatted/pasted numeric strings.
+export function parseNum(s: string): number {
+  return parseFloat(normalizeNumeric(s));
+}
