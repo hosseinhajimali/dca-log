@@ -20,7 +20,7 @@ async function ensureLocalUser() {
   });
   if (existing) return existing;
   return prisma.user.create({
-    data: { email: LOCAL_USER_EMAIL, name: 'Local User', isAdmin: true },
+    data: { email: LOCAL_USER_EMAIL, name: 'Local User' },
     select: SAFE_USER_SELECT,
   });
 }

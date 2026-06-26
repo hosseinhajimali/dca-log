@@ -123,9 +123,6 @@ export function NotificationBell() {
                     } else if (n.metadata?.planId) {
                       router.push(`/app/plans/${n.metadata.planId}`);
                       setOpen(false);
-                    } else if (n.type === 'NEW_FEEDBACK') {
-                      router.push('/app/admin?tab=feedback');
-                      setOpen(false);
                     }
                   }}
                 >

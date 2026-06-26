@@ -6,9 +6,8 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, RefreshCw, ArrowLeftRight, FlaskConical,
   TrendingUp, Target, FileText, Settings, HelpCircle,
-  ShieldCheck, X, Sliders, type LucideIcon,
+  X, Sliders, type LucideIcon,
 } from 'lucide-react';
-import { useStore } from '@/store/useStore';
 import { useTheme } from '@/hooks/useTheme';
 
 const NAV: { to: string; label: string; Icon: LucideIcon; exact?: boolean }[] = [
@@ -47,7 +46,6 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const { user } = useStore();
   const { theme } = useTheme();
 
   useEffect(() => {
@@ -93,9 +91,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           {NAV.map(({ to, label, Icon, exact }) => (
             <NavItem key={to} to={to} label={label} Icon={Icon} exact={exact} onClick={onClose} />
           ))}
-          {user?.isAdmin && (
-            <NavItem to="/app/admin" label="Admin" Icon={ShieldCheck} onClick={onClose} />
-          )}
         </nav>
 
         <div className="px-4 py-4 border-t border-gray-800">
