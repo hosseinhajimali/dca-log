@@ -48,3 +48,9 @@ coverage/
 # Next.js
 .next/
 out/
+
+# Internal working notes (not for publication)
+OPEN_SOURCE_CHECKLIST.md
+
+# Local data backups (contain real personal/financial data, never publish)
+backups/

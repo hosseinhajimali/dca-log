@@ -23,10 +23,9 @@ export function useNotifications() {
       const res = await api.get<{ data: NotificationsResponse }>('/notifications');
       return res.data.data;
     },
-    // No timed polling: an open tab no longer pings the database on a timer,
-    // so the Neon compute can stay suspended while idle. Instead we refetch
-    // when the user returns to the app. staleTime avoids refetching on every
-    // rapid focus change.
+    // Poll once a minute and refetch when the user returns to the app, so new
+    // notifications appear promptly. The local database is always on.
+    refetchInterval: 60_000, // poll every minute
     refetchOnWindowFocus: true,
     staleTime: 60_000,
   });

@@ -3,19 +3,17 @@ import { fetchAndCachePrices } from './priceService';
 import { prisma } from '../lib/prisma';
 import { dispatchAnnouncement } from '../controllers/announcementsController';
 
-// How often all scheduled work runs, in minutes.
-// Kept intentionally infrequent so the database can auto-suspend (scale to
-// zero) between runs. Previously the reminder and announcement checks ran
-// every minute, which kept the Neon compute awake 24/7 and burned the entire
-// monthly CU-hour allowance. CRON_INTERVAL_MINUTES is the new control;
-// PRICE_REFRESH_INTERVAL is honoured as a fallback for older deployments.
+// How often all scheduled work runs, in minutes: price refresh, DCA reminders,
+// and announcements. Default is 5 minutes, which is fine for a local always-on
+// database. Raise CRON_INTERVAL_MINUTES if you host on a scale-to-zero DB (e.g.
+// Neon) and want the compute to suspend between runs to save cost.
 function getIntervalMinutes(): number {
   const raw =
     process.env.CRON_INTERVAL_MINUTES ||
     process.env.PRICE_REFRESH_INTERVAL ||
-    '30';
+    '5';
   const parsed = parseInt(raw, 10);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 30;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 5;
 }
 
 // ─── DCA Reminder notifications ───────────────────────────────────────────────

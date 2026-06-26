@@ -9,9 +9,9 @@ export function useDashboard() {
       const res = await api.get<ApiResponse<DashboardStats>>('/dashboard/stats');
       return res.data.data;
     },
-    // Refetch when the user returns to the app rather than on a timer, so an
-    // idle open tab does not keep the Neon database awake. staleTime keeps it
-    // from refetching on every rapid focus change.
+    // Auto-refresh on a timer and when the user returns to the app. The local
+    // database is always on, so there's no cost to keeping the dashboard live.
+    refetchInterval: 1000 * 60 * 5, // every 5 min
     refetchOnWindowFocus: true,
     staleTime: 5 * 60_000,
   });

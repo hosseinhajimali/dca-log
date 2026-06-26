@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLogin, useRegister } from '@/hooks/useAuth';
 import { useStore } from '@/store/useStore';
+import { api } from '@/lib/api';
 import { PublicNavbar } from '@/components/layout/PublicNavbar';
 import { PublicFooter } from '@/components/layout/PublicFooter';
 
@@ -20,11 +21,13 @@ function GoogleIcon() {
 
 const ERROR_MESSAGES: Record<string, string> = {
   google_failed: 'Google sign-in failed. Please try again.',
+  google_disabled: 'Google sign-in is not configured on this server.',
   auth_failed: 'Authentication failed. Please try again.',
 };
 
 export default function Login() {
   const token = useStore((s) => s.token);
+  const setAuth = useStore((s) => s.setAuth);
   const theme = useStore((s) => s.theme);
   const isLight = theme === 'light' || (theme === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches);
   const router = useRouter();
@@ -33,11 +36,38 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [oauthError, setOauthError] = useState<string | null>(null);
+  // While true, hide the login form: we may auto-enter in local mode.
+  const [checkingLocal, setCheckingLocal] = useState(true);
+  // Whether this server has Google sign-in configured.
+  const [googleEnabled, setGoogleEnabled] = useState(false);
 
   // Redirect if already logged in
   useEffect(() => {
     if (token) router.replace('/app');
   }, [token, router]);
+
+  // Local/single-user mode: skip login and auto-enter the app.
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      if (token) { setCheckingLocal(false); return; }
+      try {
+        const cfg = await api.get('/auth/config');
+        if (active) setGoogleEnabled(Boolean(cfg.data?.data?.googleEnabled));
+        if (active && cfg.data?.data?.localMode) {
+          const res = await api.post('/auth/local-session');
+          const { user, token: localToken } = res.data.data;
+          setAuth(user, localToken);
+          router.replace('/app');
+          return;
+        }
+      } catch {
+        // No config or request failed: fall back to the normal login form.
+      }
+      if (active) setCheckingLocal(false);
+    })();
+    return () => { active = false; };
+  }, [token, setAuth, router]);
 
   // Read OAuth error from URL
   useEffect(() => {
@@ -64,6 +94,9 @@ export default function Login() {
     window.location.href = `${apiUrl}/api/auth/google`;
   };
 
+  // Don't flash the login form while we check for local mode or while redirecting.
+  if (checkingLocal || token) return null;
+
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
       <PublicNavbar />
@@ -72,22 +105,26 @@ export default function Login() {
       <div className="w-full max-w-sm">
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl space-y-5">
 
-          {/* Google button */}
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            className="w-full flex items-center justify-center gap-2.5 bg-white hover:bg-gray-100 active:bg-gray-200 text-gray-800 font-medium text-sm py-2.5 rounded-lg transition-colors"
-          >
-            <GoogleIcon />
-            Continue with Google
-          </button>
+          {/* Google button (only when configured on the server) */}
+          {googleEnabled && (
+            <>
+              <button
+                type="button"
+                onClick={handleGoogleSignIn}
+                className="w-full flex items-center justify-center gap-2.5 bg-white hover:bg-gray-100 active:bg-gray-200 text-gray-800 font-medium text-sm py-2.5 rounded-lg transition-colors"
+              >
+                <GoogleIcon />
+                Continue with Google
+              </button>
 
-          {/* Divider */}
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-gray-800" />
-            <span className="text-xs text-gray-600">or</span>
-            <div className="flex-1 h-px bg-gray-800" />
-          </div>
+              {/* Divider */}
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-gray-800" />
+                <span className="text-xs text-gray-600">or</span>
+                <div className="flex-1 h-px bg-gray-800" />
+              </div>
+            </>
+          )}
 
           {/* Tab toggle */}
           <div className="flex rounded-lg bg-gray-800 p-1">

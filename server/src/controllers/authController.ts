@@ -4,6 +4,46 @@ import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { signToken } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
+import { LOCAL_MODE, LOCAL_USER_EMAIL } from '../lib/localMode';
+
+// Fields safe to return to the client (no passwordHash / googleId).
+const SAFE_USER_SELECT = {
+  id: true, email: true, name: true, currency: true, avatar: true,
+  theme: true, isAdmin: true, monthlyDisposableIncome: true, createdAt: true,
+} as const;
+
+// Find or create the single shared user used in local/single-user mode.
+async function ensureLocalUser() {
+  const existing = await prisma.user.findUnique({
+    where: { email: LOCAL_USER_EMAIL },
+    select: SAFE_USER_SELECT,
+  });
+  if (existing) return existing;
+  return prisma.user.create({
+    data: { email: LOCAL_USER_EMAIL, name: 'Local User', isAdmin: true },
+    select: SAFE_USER_SELECT,
+  });
+}
+
+// Public: lets the client know whether to show login or auto-enter the app,
+// and whether Google sign-in is configured on this server.
+export function getAuthConfig(_req: Request, res: Response) {
+  const googleEnabled = Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+  res.json({ success: true, data: { localMode: LOCAL_MODE, googleEnabled } });
+}
+
+// Public, but only works when LOCAL_MODE=true. Issues a normal JWT for the
+// shared local user so the rest of the auth flow is unchanged.
+export async function localSession(_req: Request, res: Response, next: NextFunction) {
+  try {
+    if (!LOCAL_MODE) return next(new AppError(403, 'Local mode is not enabled'));
+    const user = await ensureLocalUser();
+    const token = signToken(user.id);
+    res.json({ success: true, data: { user, token } });
+  } catch (err) {
+    next(err);
+  }
+}
 
 const registerSchema = z.object({
   email: z.string().email(),

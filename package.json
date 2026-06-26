@@ -15,7 +15,8 @@
     "db:down": "docker compose down",
     "db:reset": "docker compose down -v && docker compose up -d",
     "db:migrate": "npm run db:migrate --workspace=server",
-    "db:studio": "npm run db:studio --workspace=server"
+    "db:studio": "npm run db:studio --workspace=server",
+    "backup": "npm run backup --workspace=server"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
