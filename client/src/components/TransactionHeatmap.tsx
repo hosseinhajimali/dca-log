@@ -69,7 +69,7 @@ interface TooltipData {
   y: number;
 }
 
-function HeatmapTooltip({ data, formatAmount }: { data: TooltipData; formatAmount: (n: number) => string }) {
+function HeatmapTooltip({ data, formatAmount, formatQty }: { data: TooltipData; formatAmount: (n: number) => string; formatQty: (n: number) => string }) {
   const { day, currentPrices, x, y } = data;
   const d = new Date(day.date + 'T00:00:00');
   const dateLabel = formatDate(d, 'EEEE, MMMM d yyyy');
@@ -108,7 +108,7 @@ function HeatmapTooltip({ data, formatAmount }: { data: TooltipData; formatAmoun
                 </div>
               </div>
               <div className="flex items-center justify-between text-gray-400">
-                <span>{a.quantity < 1 ? a.quantity.toPrecision(4) : a.quantity.toLocaleString(undefined, { maximumFractionDigits: 4 })} {a.symbol}</span>
+                <span>{formatQty(a.quantity)} {a.symbol}</span>
                 <span>@ {formatAmount(a.avgPrice)}</span>
               </div>
               <div className="flex items-center justify-between">
@@ -139,7 +139,7 @@ export default function TransactionHeatmap({ hideFilters = false }: { hideFilter
   const [year, setYear] = useState<number>(new Date().getFullYear());
   const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
-  const { format: formatAmount } = useCurrencyFormatter();
+  const { format: formatAmount, formatQty } = useCurrencyFormatter();
 
   const { data, isLoading } = useTransactionHeatmap(year, selectedAssets.length > 0 ? selectedAssets : undefined);
 
@@ -298,7 +298,7 @@ export default function TransactionHeatmap({ hideFilters = false }: { hideFilter
         </div>
       </div>
 
-      {tooltip && <HeatmapTooltip data={tooltip} formatAmount={formatAmount} />}
+      {tooltip && <HeatmapTooltip data={tooltip} formatAmount={formatAmount} formatQty={formatQty} />}
 
       {/* legend */}
       <div className="flex items-center justify-end gap-2 mt-3">

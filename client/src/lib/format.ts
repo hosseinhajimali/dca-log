@@ -4,8 +4,10 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: '$', EUR: '€', CZK: 'Kč', GBP: '£', JPY: '¥', CHF: 'Fr',
 };
 
+const MASK = '****';
+
 export function useCurrencyFormatter() {
-  const { currency, exchangeRates } = useStore();
+  const { currency, exchangeRates, hideBalances } = useStore();
 
   const convert = (usdAmount: number): number => {
     if (currency === 'USD') return usdAmount;
@@ -14,15 +16,18 @@ export function useCurrencyFormatter() {
   };
 
   const format = (usdAmount: number, opts?: { decimals?: number }): string => {
-    const converted = convert(usdAmount);
     const symbol = CURRENCY_SYMBOLS[currency] ?? currency;
+    if (hideBalances) return `${symbol}${MASK}`;
+    const converted = convert(usdAmount);
     const decimals = opts?.decimals ?? 2;
     return `${symbol}${converted.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
   };
 
   const formatPct = (pct: number): string => `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`;
 
-  return { format, formatPct, convert };
+  const formatQty = (qty: number): string => (hideBalances ? MASK : formatQuantity(qty));
+
+  return { format, formatPct, formatQty, convert, hideBalances };
 }
 
 export function formatDate(dateStr: string): string {

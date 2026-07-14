@@ -15,7 +15,7 @@ import { usePlanStats, PlanStats, useDeleteDcaPlan, useDuplicateDcaPlan } from '
 import { toast } from '@/lib/toast';
 import { StatCard } from '@/components/ui/StatCard';
 import { Badge } from '@/components/ui/Badge';
-import { useCurrencyFormatter, formatDate, formatQuantity } from '@/lib/format';
+import { useCurrencyFormatter, formatDate } from '@/lib/format';
 import { PlanRuleSetsPanel } from '@/views/DcaPlans';
 
 const FREQ_LABELS: Record<string, string> = {
@@ -29,7 +29,7 @@ export default function PlanDetail() {
   const router = useRouter();
   const qc = useQueryClient();
   const { data, isLoading, error } = usePlanStats(id!);
-  const { format, formatPct } = useCurrencyFormatter();
+  const { format, formatPct, formatQty } = useCurrencyFormatter();
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
@@ -256,7 +256,7 @@ export default function PlanDetail() {
                     })()}
                   </td>
                   <td className="px-5 py-3.5 font-mono text-gray-300">
-                    {formatQuantity(stat.totalQuantity)}
+                    {formatQty(stat.totalQuantity)}
                     <span className="text-gray-600 text-xs ml-1">{stat.asset.symbol}</span>
                   </td>
                   <td className="px-5 py-3.5 font-mono text-gray-300">{format(stat.totalInvested)}</td>
@@ -328,7 +328,7 @@ export default function PlanDetail() {
                     </td>
                     <td className="px-5 py-3.5 font-mono text-gray-300">{format(tx.amountUsd)}</td>
                     <td className="px-5 py-3.5 font-mono text-gray-400">
-                      {formatQuantity(tx.quantity)}
+                      {formatQty(tx.quantity)}
                     </td>
                     <td className="px-5 py-3.5 font-mono text-gray-400">{format(tx.pricePerUnit)}</td>
                   </tr>

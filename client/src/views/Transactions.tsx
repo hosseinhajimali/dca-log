@@ -6,7 +6,7 @@ import { useTransactions, useCreateTransaction, useUpdateTransaction, useDeleteT
 import { useAssets } from '@/hooks/useAssets';
 import { useDcaPlans } from '@/hooks/useDcaPlans';
 import { Badge } from '@/components/ui/Badge';
-import { useCurrencyFormatter, formatDate, formatQuantity, normalizeNumeric, parseNum } from '@/lib/format';
+import { useCurrencyFormatter, formatDate, normalizeNumeric, parseNum } from '@/lib/format';
 import { Transaction, Asset, DcaPlan } from '@/types';
 import { api } from '@/lib/api';
 import { useAssetPrice } from '@/hooks/usePrices';
@@ -946,7 +946,7 @@ export default function Transactions() {
   const { data, isLoading } = useTransactions({ assetId: assetFilter || undefined, type: typeFilter || undefined, page, limit: 20, sortBy, sortOrder });
   const { data: assets = [] } = useAssets();
   const deleteTx = useDeleteTransaction();
-  const { format } = useCurrencyFormatter();
+  const { format, formatQty } = useCurrencyFormatter();
 
   const [deletingTx, setDeletingTx] = useState<Transaction | null>(null);
 
@@ -1064,7 +1064,7 @@ export default function Transactions() {
                       <span className="text-gray-500 text-xs ml-2 hidden sm:inline">{tx.asset.name}</span>
                     </td>
                     <td className="px-5 py-3.5 font-mono text-gray-200">{format(tx.amountUsd)}</td>
-                    <td className="px-5 py-3.5 font-mono text-gray-300 hidden md:table-cell">{formatQuantity(tx.quantity)}</td>
+                    <td className="px-5 py-3.5 font-mono text-gray-300 hidden md:table-cell">{formatQty(tx.quantity)}</td>
                     <td className="px-5 py-3.5 font-mono text-gray-400 hidden lg:table-cell">{format(tx.pricePerUnit)}</td>
                     <td className="px-5 py-3.5 hidden lg:table-cell">
                       {tx.exchange

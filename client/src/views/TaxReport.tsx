@@ -5,7 +5,7 @@ import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Transaction, ApiResponse } from '@/types';
-import { useCurrencyFormatter, formatDate, formatQuantity } from '@/lib/format';
+import { useCurrencyFormatter, formatDate } from '@/lib/format';
 import { toCSVString, downloadFile } from '@/lib/exportUtils';
 
 // ─── Data fetching ────────────────────────────────────────────────────────────
@@ -172,7 +172,7 @@ const currentYear = new Date().getFullYear();
 
 export default function TaxReport() {
   const { data: allTx = [], isLoading } = useAllTransactions();
-  const { format } = useCurrencyFormatter();
+  const { format, formatQty } = useCurrencyFormatter();
 
   // Available years derived from data
   const availableYears = useMemo(() => {
@@ -378,12 +378,12 @@ export default function TaxReport() {
                           <p className="text-xs text-gray-500 mt-0.5">{s.name}</p>
                         </td>
                         <td className="px-5 py-3.5 font-mono text-gray-300">
-                          {s.qtyBought > 0 ? formatQuantity(s.qtyBought) : <span className="text-gray-600">—</span>}
+                          {s.qtyBought > 0 ? formatQty(s.qtyBought) : <span className="text-gray-600">—</span>}
                         </td>
                         <td className="px-5 py-3.5 font-mono text-gray-300">
                           {s.amountSpent > 0 ? format(s.amountSpent) : <span className="text-gray-600">—</span>}
                         </td>
-                        <td className="px-5 py-3.5 font-mono text-gray-400">{formatQuantity(s.totalQty)}</td>
+                        <td className="px-5 py-3.5 font-mono text-gray-400">{formatQty(s.totalQty)}</td>
                         <td className="px-5 py-3.5 font-mono text-gray-400">{format(s.totalCost)}</td>
                         <td className="px-5 py-3.5 font-mono text-gray-200 font-medium">{format(s.avgCost)}</td>
                         <td className="px-5 py-3.5 text-gray-500">{s.txCount}</td>
@@ -447,7 +447,7 @@ export default function TaxReport() {
                             {e.tx.asset.symbol}
                           </span>
                         </td>
-                        <td className="px-5 py-3.5 font-mono text-gray-300">{formatQuantity(e.tx.quantity)}</td>
+                        <td className="px-5 py-3.5 font-mono text-gray-300">{formatQty(e.tx.quantity)}</td>
                         <td className="px-5 py-3.5 font-mono text-gray-400">{format(e.tx.pricePerUnit)}</td>
                         <td className="px-5 py-3.5 font-mono text-gray-300">{format(e.tx.amountUsd)}</td>
                         <td className="px-5 py-3.5 font-mono text-brand-400 font-medium">{format(e.avgCost)}</td>

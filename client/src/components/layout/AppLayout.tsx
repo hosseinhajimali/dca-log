@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Menu, UserCircle, LogOut, Settings } from 'lucide-react';
+import { Menu, UserCircle, LogOut, Settings, Eye, EyeOff } from 'lucide-react';
 import { Sidebar } from './Sidebar';
 import { NotificationBell } from './NotificationBell';
 import { Toaster } from '@/components/ui/Toaster';
@@ -18,6 +18,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const setUser = useStore((s) => s.setUser);
   const user   = useStore((s) => s.user);
   const logout = useStore((s) => s.logout);
+  const hideBalances = useStore((s) => s.hideBalances);
+  const toggleHideBalances = useStore((s) => s.toggleHideBalances);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -68,6 +70,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex-1" />
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={toggleHideBalances}
+              className="text-gray-400 hover:text-gray-200 transition-colors p-1.5 rounded-lg hover:bg-gray-800"
+              aria-label={hideBalances ? 'Show balances' : 'Hide balances'}
+              title={hideBalances ? 'Show balances' : 'Hide balances'}
+            >
+              {hideBalances ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
             <NotificationBell />
             <div ref={menuRef} className="relative flex items-center ms-1">
               <button

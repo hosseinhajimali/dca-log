@@ -16,7 +16,7 @@ import { useStore } from '@/store/useStore';
 import { StatCard } from '@/components/ui/StatCard';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { Badge } from '@/components/ui/Badge';
-import { useCurrencyFormatter, formatDate, formatQuantity } from '@/lib/format';
+import { useCurrencyFormatter, formatDate } from '@/lib/format';
 import FearGreedWidget from '@/components/ui/FearGreedWidget';
 import TransactionHeatmap from '@/components/TransactionHeatmap';
 import { ActivePlanSummary, Goal } from '@/types';
@@ -203,7 +203,7 @@ const GOAL_TYPE_LABEL: Record<string, string> = {
 };
 
 function GoalsSummary({ goals }: { goals: Goal[] }) {
-  const { format } = useCurrencyFormatter();
+  const { format, formatQty } = useCurrencyFormatter();
   const router = useRouter();
   const active = goals.filter(g => !g.isCompleted && (g.progressPct ?? 0) < 100);
 
@@ -257,7 +257,7 @@ function GoalsSummary({ goals }: { goals: Goal[] }) {
                 {goal.type === 'ACCUMULATION' && goal.targetQty != null && (
                   <div className="space-y-1.5">
                     <div className="flex justify-between text-xs text-gray-500">
-                      <span>{formatQuantity(goal.currentValue ?? 0)} / {formatQuantity(goal.targetQty)} {goal.asset?.symbol}</span>
+                      <span>{formatQty(goal.currentValue ?? 0)} / {formatQty(goal.targetQty)} {goal.asset?.symbol}</span>
                       <span className="font-mono text-brand-400 font-semibold">{pct.toFixed(1)}%</span>
                     </div>
                     <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
@@ -367,7 +367,7 @@ export default function Dashboard() {
   const { data: goals = [] } = useGoals();
   const { data: assets = [] } = useAssets();
   const { data: priceMap = {} } = useAssetPrices(assets.map((a) => a.symbol));
-  const { format, formatPct } = useCurrencyFormatter();
+  const { format, formatPct, formatQty } = useCurrencyFormatter();
   const router = useRouter();
   const theme = useStore((s) => s.theme);
   const user = useStore((s) => s.user);
@@ -475,7 +475,7 @@ export default function Dashboard() {
             <div className="mt-3 pt-3 border-t border-gray-800 flex flex-wrap gap-x-4 gap-y-1.5">
               {valueEquivalents.map((e) => (
                 <span key={e.symbol} className="text-xs text-gray-500 tabular whitespace-nowrap">
-                  ≈ {formatQuantity(e.qty)}{' '}
+                  ≈ {formatQty(e.qty)}{' '}
                   <span className="font-mono font-semibold" style={e.color ? { color: e.color } : { color: '#9ca3af' }}>
                     {e.symbol}
                   </span>
@@ -590,12 +590,13 @@ export default function Dashboard() {
               <BarChart data={chartData} barCategoryGap="30%">
                 <CartesianGrid strokeDasharray="3 3" stroke={isLight ? '#e8ecf1' : '#1f2937'} vertical={false} />
                 <XAxis dataKey="month" tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => format(Number(v), { decimals: 0 })} />
                 <Tooltip
                   contentStyle={{ background: isLight ? '#ffffff' : '#111827', border: `1px solid ${isLight ? '#e8ecf1' : '#1f2937'}`, borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                   labelStyle={{ color: isLight ? '#475569' : '#9ca3af' }}
                   itemStyle={{ color: '#0ecb81' }}
                   cursor={{ fill: isLight ? '#f1f5f9' : '#1f2937' }}
+                  formatter={(v: number) => [format(v), 'invested']}
                 />
                 <Bar dataKey="invested" fill="#0ecb81" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -686,7 +687,7 @@ export default function Dashboard() {
                       <p className="text-xs text-gray-500 mt-0.5">{stat.asset.name}</p>
                     </td>
                     <td className="px-5 py-3.5 font-mono text-gray-300">
-                      {formatQuantity(stat.totalQuantity)}
+                      {formatQty(stat.totalQuantity)}
                       <span className="text-gray-600 text-xs ml-1">{stat.asset.symbol}</span>
                     </td>
                     <td className="px-5 py-3.5 font-mono text-gray-300">{format(stat.totalInvested)}</td>

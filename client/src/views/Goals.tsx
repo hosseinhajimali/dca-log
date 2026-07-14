@@ -10,7 +10,7 @@ import { useGoals, useCreateGoal, useUpdateGoal, useDeleteGoal, GoalPayload } fr
 import { useAssets } from '@/hooks/useAssets';
 import { Goal, GoalType } from '@/types';
 import type { LucideIcon } from 'lucide-react';
-import { useCurrencyFormatter, formatQuantity } from '@/lib/format';
+import { useCurrencyFormatter } from '@/lib/format';
 import PlanProjectionsModal from '@/components/PlanProjectionsModal';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -123,7 +123,7 @@ function GoalCard({
   onProjections: () => void;
   highlight?: boolean;
 }) {
-  const { format } = useCurrencyFormatter();
+  const { format, formatQty } = useCurrencyFormatter();
   const pct = goal.progressPct ?? 0;
   const done = goal.isCompleted || pct >= 100;
 
@@ -167,7 +167,7 @@ function GoalCard({
         <div className="space-y-2">
           <div className="flex justify-between text-xs">
             <span className="text-gray-500">
-              {formatQuantity(goal.currentValue ?? 0)} / {formatQuantity(goal.targetQty)} {goal.asset?.symbol}
+              {formatQty(goal.currentValue ?? 0)} / {formatQty(goal.targetQty)} {goal.asset?.symbol}
             </span>
             <span className={`font-mono font-semibold ${done ? 'text-green-400' : 'text-brand-400'}`}>{pct.toFixed(1)}%</span>
           </div>

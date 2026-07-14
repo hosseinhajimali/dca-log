@@ -11,6 +11,7 @@ interface AppState {
   currency: string;
   exchangeRates: Record<string, number>;
   theme: Theme;
+  hideBalances: boolean;
 
   setAuth: (user: User, token: string) => void;
   setUser: (user: User) => void;
@@ -18,6 +19,7 @@ interface AppState {
   setCurrency: (currency: string) => void;
   setExchangeRates: (rates: Record<string, number>) => void;
   setTheme: (theme: Theme) => void;
+  toggleHideBalances: () => void;
 }
 
 export const useStore = create<AppState>()(
@@ -28,6 +30,7 @@ export const useStore = create<AppState>()(
       currency: 'USD',
       exchangeRates: {},
       theme: 'system' as Theme,
+      hideBalances: false,
 
       setAuth: (user, token) => {
         localStorage.setItem('dcalog_token', token);
@@ -48,10 +51,12 @@ export const useStore = create<AppState>()(
       setExchangeRates: (rates) => set({ exchangeRates: rates }),
 
       setTheme: (theme) => set({ theme }),
+
+      toggleHideBalances: () => set((s) => ({ hideBalances: !s.hideBalances })),
     }),
     {
       name: 'dcalog-store',
-      partialize: (state) => ({ user: state.user, token: state.token, currency: state.currency, theme: state.theme }),
+      partialize: (state) => ({ user: state.user, token: state.token, currency: state.currency, theme: state.theme, hideBalances: state.hideBalances }),
     }
   )
 );
