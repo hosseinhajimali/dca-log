@@ -10,6 +10,8 @@ import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useGoals } from '@/hooks/useGoals';
+import { useAssets } from '@/hooks/useAssets';
+import { useAssetPrices } from '@/hooks/usePrices';
 import { useStore } from '@/store/useStore';
 import { StatCard } from '@/components/ui/StatCard';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
@@ -363,6 +365,8 @@ function calcMonthlyUsd(plans: ActivePlanSummary[], field: 'amountUsd' | 'sugges
 export default function Dashboard() {
   const { data, isLoading, error } = useDashboard();
   const { data: goals = [] } = useGoals();
+  const { data: assets = [] } = useAssets();
+  const { data: priceMap = {} } = useAssetPrices(assets.map((a) => a.symbol));
   const { format, formatPct } = useCurrencyFormatter();
   const router = useRouter();
   const theme = useStore((s) => s.theme);
@@ -388,6 +392,17 @@ export default function Dashboard() {
   const { portfolio, assetStats, activePlans, activePlanList, monthlyData } = data;
   const isProfitable = portfolio.totalPnl >= 0;
   const isEmpty = assetStats.length === 0 && activePlans === 0 && portfolio.totalInvested === 0;
+
+  // "Current Value" expressed as an equivalent quantity of each tracked asset.
+  // totalCurrentValue is stored in USD and prices are USD, so qty = value / price
+  // is currency-independent (no display-currency conversion needed).
+  const valueEquivalents = assets
+    .map((a) => {
+      const price = priceMap[a.symbol.toUpperCase()];
+      if (!price || price <= 0) return null;
+      return { symbol: a.symbol, color: a.color, qty: portfolio.totalCurrentValue / price };
+    })
+    .filter((x): x is { symbol: string; color: string | null | undefined; qty: number } => x !== null);
 
   // Pie chart data, use currentValue when price is known, fall back to totalInvested
   const rawPieData = assetStats.filter((a) => a.currentValue > 0 || a.totalInvested > 0);
@@ -451,7 +466,24 @@ export default function Dashboard() {
       {/* Stats row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard label="Total Invested" value={format(portfolio.totalInvested)} />
-        <StatCard label="Current Value"  value={format(portfolio.totalCurrentValue)} />
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Current Value</p>
+          <p className="text-2xl font-semibold text-gray-100 mt-1.5 tracking-tight tabular">
+            {format(portfolio.totalCurrentValue)}
+          </p>
+          {valueEquivalents.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-gray-800 flex flex-wrap gap-x-4 gap-y-1.5">
+              {valueEquivalents.map((e) => (
+                <span key={e.symbol} className="text-xs text-gray-500 tabular whitespace-nowrap">
+                  ≈ {formatQuantity(e.qty)}{' '}
+                  <span className="font-mono font-semibold" style={e.color ? { color: e.color } : { color: '#9ca3af' }}>
+                    {e.symbol}
+                  </span>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
         <StatCard
           label="Total P&L"
           value={format(portfolio.totalPnl)}
