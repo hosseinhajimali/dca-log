@@ -237,7 +237,11 @@ export default function PlanProjectionsModal({
   const [growthOption, setGrowthOption] = useState(25);
   const [customRate, setCustomRate] = useState('');
 
-  const effectiveRate = growthOption === -1 ? (parseFloat(customRate) || 0) : growthOption;
+  // Clamp custom rate to a sane band. Negative rates model a bear case (falling
+  // prices, so fixed DCA buys more); the floor stays well above the -1200%/yr
+  // point where (1 + r) would hit zero and the projection math breaks.
+  const rawRate = growthOption === -1 ? (parseFloat(customRate) || 0) : growthOption;
+  const effectiveRate = Math.max(-90, Math.min(rawRate, 500));
   const totalMonths = totalProjectionMonths(goal.deadline);
   const target = isAccumulation ? (goal.targetQty ?? 0) : (goal.targetValue ?? 0);
   const currentVal = goal.currentValue ?? 0;
@@ -325,7 +329,7 @@ export default function PlanProjectionsModal({
                 <div className="flex items-center gap-1">
                   <input
                     type="number"
-                    min="0"
+                    min="-90"
                     max="500"
                     step="1"
                     value={customRate}
