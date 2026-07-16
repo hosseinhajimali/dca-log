@@ -20,6 +20,7 @@ import {
   useAssignSellRuleSet, useUnassignSellRuleSet,
 } from '@/hooks/useRuleSets';
 import { toast } from '@/lib/toast';
+import { BuyViewModal, SellViewModal } from '@/views/RuleSets';
 
 const FREQ_LABELS: Record<DcaFrequency, string> = {
   DAILY: 'Daily', WEEKLY: 'Weekly', BIWEEKLY: 'Bi-weekly', MONTHLY: 'Monthly', CUSTOM: 'Custom',
@@ -584,6 +585,8 @@ export function PlanRuleSetsPanel({ plan }: { plan: DcaPlan }) {
   const [addModal, setAddModal] = useState<'buying' | 'selling' | null>(null);
   const [removeConfirm, setRemoveConfirm] = useState<{ kind: 'buying' | 'selling'; ruleSetId: string; label: string } | null>(null);
   const [backtestSet, setBacktestSet] = useState<BuyingRuleSet | null>(null);
+  const [viewBuySet, setViewBuySet] = useState<BuyingRuleSet | null>(null);
+  const [viewSellSet, setViewSellSet] = useState<SellRuleSet | null>(null);
 
   const { data: allBuyingSets = [] } = useBuyingRuleSets();
   const { data: allSellSets = [] } = useSellRuleSets();
@@ -646,6 +649,12 @@ export function PlanRuleSetsPanel({ plan }: { plan: DcaPlan }) {
           initialFrequency={plan.frequency}
           initialIntervalDays={plan.intervalDays ?? undefined}
         />
+      )}
+      {viewBuySet && (
+        <BuyViewModal set={viewBuySet} onClose={() => setViewBuySet(null)} />
+      )}
+      {viewSellSet && (
+        <SellViewModal set={viewSellSet} onClose={() => setViewSellSet(null)} />
       )}
       {removeConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
@@ -739,6 +748,8 @@ export function PlanRuleSetsPanel({ plan }: { plan: DcaPlan }) {
                                   Set default
                                 </button>
                             )}
+                            <button onClick={() => setViewBuySet(prs.ruleSet)}
+                                    title="View rule set" className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-600 hover:text-brand-400 hover:bg-brand-500/10 transition-colors"><Eye size={13} /></button>
                             <button onClick={() => setBacktestSet(prs.ruleSet)}
                                     title="Backtest rule set" className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-600 hover:text-green-400 hover:bg-green-500/10 transition-colors"><FlaskConical size={13} /></button>
                             <button onClick={() => setRemoveConfirm({ kind: 'buying', ruleSetId: prs.ruleSetId, label: prs.ruleSet.label })}
@@ -793,6 +804,8 @@ export function PlanRuleSetsPanel({ plan }: { plan: DcaPlan }) {
                                 Set default
                               </button>
                           )}
+                          <button onClick={() => setViewSellSet(prs.ruleSet)}
+                                  title="View rule set" className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-600 hover:text-brand-400 hover:bg-brand-500/10 transition-colors"><Eye size={13} /></button>
                           <button onClick={() => setRemoveConfirm({ kind: 'selling', ruleSetId: prs.ruleSetId, label: prs.ruleSet.label })}
                                   title="Remove" className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={13} /></button>
                         </div>

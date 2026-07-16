@@ -352,7 +352,7 @@ function FormModal({ title, onClose, children }: { title: string; onClose: () =>
 
 // ─── View modal ───────────────────────────────────────────────────────────────
 
-function BuyViewModal({ set, onClose }: { set: BuyingRuleSet; onClose: () => void }) {
+export function BuyViewModal({ set, onClose }: { set: BuyingRuleSet; onClose: () => void }) {
   useEffect(() => {
     const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', h);
@@ -420,7 +420,7 @@ function BuyViewModal({ set, onClose }: { set: BuyingRuleSet; onClose: () => voi
   );
 }
 
-function SellViewModal({ set, onClose }: { set: SellRuleSet; onClose: () => void }) {
+export function SellViewModal({ set, onClose }: { set: SellRuleSet; onClose: () => void }) {
   useEffect(() => {
     const h = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', h);
