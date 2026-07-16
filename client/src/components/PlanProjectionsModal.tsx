@@ -86,10 +86,19 @@ function buildAccumulationProjection(
 ): ProjectionResult {
   const r = annualRatePct / 100 / 12;
 
-  const planData = plans.map((plan, i) => {
+  // Only plans that actually allocate to the goal's asset belong in this projection.
+  // Plans without an allocation contribute nothing and would otherwise show up as
+  // misleading "not allocated" rows equal to the current balance.
+  const relevantPlans = plans.filter(plan =>
+    plan.allocations.some(a => a.assetId === goalAssetId),
+  );
+
+  const planData = relevantPlans.map((plan, i) => {
     const alloc = plan.allocations.find(a => a.assetId === goalAssetId);
     const contrib = alloc ? (alloc.allocationPct / 100) * monthlyAmount(plan) : 0;
-    return { plan, contrib, color: LINE_COLORS[i % LINE_COLORS.length], key: plan.id };
+    // Respect the goal asset's own color; fall back to the palette if unset.
+    const color = alloc?.asset?.color ?? LINE_COLORS[i % LINE_COLORS.length];
+    return { plan, contrib, color, key: plan.id };
   });
 
   const unitAccum: Record<string, number> = {};
@@ -453,6 +462,8 @@ export default function PlanProjectionsModal({
                       {projection.plans.map((p) => {
                         const gap = gapLabel(p.projectedFinal);
                         const reaches = p.projectedFinal >= target;
+                        const pct = target > 0 ? (p.projectedFinal / target) * 100 : 0;
+                        const barPct = Math.max(0, Math.min(pct, 100));
                         return (
                           <tr key={p.chartKey} className="hover:bg-gray-700/50 transition-colors">
                             <td className="px-4 py-3">
@@ -468,7 +479,20 @@ export default function PlanProjectionsModal({
                               {p.monthlyContrib > 0 ? format(p.monthlyContrib) : <span className="text-gray-600">not allocated</span>}
                             </td>
                             <td className="px-4 py-3 text-right text-gray-200 font-mono">
-                              {formatValue(p.projectedFinal)}
+                              <div className="flex flex-col items-end gap-1">
+                                <span>{formatValue(p.projectedFinal)}</span>
+                                <div className="w-full max-w-[120px] flex items-center gap-1.5">
+                                  <div className="flex-1 h-1.5 rounded-full bg-gray-700 overflow-hidden">
+                                    <div
+                                      className="h-full rounded-full transition-all"
+                                      style={{ width: `${barPct}%`, background: p.color }}
+                                    />
+                                  </div>
+                                  <span className="text-[10px] text-gray-500 tabular-nums w-8 text-right">
+                                    {pct.toFixed(0)}%
+                                  </span>
+                                </div>
+                              </div>
                             </td>
                             <td className={`px-4 py-3 text-right font-mono ${gap.cls}`}>
                               {gap.text}
