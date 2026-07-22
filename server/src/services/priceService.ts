@@ -38,12 +38,32 @@ interface CryptoMarketData {
   athDate:    Date   | null;
 }
 
+// Resolve symbol → CoinGecko id, preferring the id stored on the asset in the
+// DB and falling back to the hardcoded table for legacy/seed assets.
+async function resolveCoingeckoIds(
+  symbols: string[]
+): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  const assets = await prisma.asset.findMany({
+    where: { symbol: { in: symbols } },
+    select: { symbol: true, coingeckoId: true },
+    distinct: ['symbol'],
+  });
+  const dbIds = new Map(assets.map((a) => [a.symbol, a.coingeckoId ?? null]));
+  for (const symbol of symbols) {
+    const id = dbIds.get(symbol) || COINGECKO_IDS[symbol];
+    if (id) map.set(symbol, id);
+  }
+  return map;
+}
+
 // Uses /coins/markets, returns price + ATH in one call
 async function fetchCryptoMarkets(
   symbols: string[]
 ): Promise<Map<string, CryptoMarketData>> {
   const result = new Map<string, CryptoMarketData>();
-  const ids = symbols.map((s) => COINGECKO_IDS[s]).filter(Boolean).join(',');
+  const symbolToId = await resolveCoingeckoIds(symbols);
+  const ids = [...new Set(symbolToId.values())].join(',');
   if (!ids) return result;
 
   try {
@@ -64,14 +84,15 @@ async function fetchCryptoMarkets(
       ath_date: string | null;
     }>;
 
-    // Build reverse map: coingecko-id → symbol
-    const idToSymbol = Object.fromEntries(
-      Object.entries(COINGECKO_IDS).map(([sym, id]) => [id, sym])
-    );
+    // Build reverse map: coingecko-id → symbols[] (one id may back several
+    // symbols, e.g. XAU and PAXG both track pax-gold).
+    const idToSymbols = new Map<string, string[]>();
+    for (const [sym, id] of symbolToId) {
+      idToSymbols.set(id, [...(idToSymbols.get(id) ?? []), sym]);
+    }
 
     for (const coin of data) {
-      const symbol = idToSymbol[coin.id];
-      if (symbol && symbols.includes(symbol)) {
+      for (const symbol of idToSymbols.get(coin.id) ?? []) {
         result.set(symbol, {
           priceUsd:  coin.current_price,
           change24h: coin.price_change_percentage_24h ?? null,
