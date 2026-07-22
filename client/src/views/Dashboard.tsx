@@ -676,15 +676,15 @@ export default function Dashboard() {
                 {assetStats.map((stat) => (
                   <tr key={stat.asset.id} className="hover:bg-gray-700/50 transition-colors border-b border-gray-700 last:border-0">
                     <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold font-mono"
+                      <span className="font-bold font-mono"
                         style={stat.asset.color ? { color: stat.asset.color } : undefined}
                       >{stat.asset.symbol}</span>
-                        <Badge variant={stat.asset.assetType === 'CRYPTO' ? 'blue' : stat.asset.assetType === 'METAL' ? 'yellow' : 'gray'}>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <p className="text-xs text-gray-500">{stat.asset.name}</p>
+                        <Badge size="sm" variant={stat.asset.assetType === 'CRYPTO' ? 'blue' : stat.asset.assetType === 'METAL' ? 'yellow' : 'gray'}>
                           {stat.asset.assetType}
                         </Badge>
                       </div>
-                      <p className="text-xs text-gray-500 mt-0.5">{stat.asset.name}</p>
                     </td>
                     <td className="px-5 py-3.5 font-mono text-gray-300">
                       {formatQty(stat.totalQuantity)}

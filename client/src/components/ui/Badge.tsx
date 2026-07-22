@@ -1,6 +1,7 @@
 interface BadgeProps {
   children: React.ReactNode;
   variant?: 'green' | 'red' | 'blue' | 'yellow' | 'gray';
+  size?: 'sm' | 'md';
 }
 
 const variants = {
@@ -11,9 +12,14 @@ const variants = {
   gray:   'bg-gray-500/10 text-gray-400 border-gray-500/20',
 };
 
-export function Badge({ children, variant = 'gray' }: BadgeProps) {
+const sizes = {
+  sm: 'px-1.5 py-px text-[10px] font-medium tracking-wide',
+  md: 'px-2 py-0.5 text-xs font-medium',
+};
+
+export function Badge({ children, variant = 'gray', size = 'md' }: BadgeProps) {
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium border ${variants[variant]}`}>
+    <span className={`inline-flex items-center rounded-md border ${sizes[size]} ${variants[variant]}`}>
       {children}
     </span>
   );
