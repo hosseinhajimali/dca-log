@@ -86,7 +86,7 @@ function ActivePlanCard({ plan, onClick }: { plan: ActivePlanSummary; onClick: (
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left p-4 rounded-xl border transition-all duration-150 hover:border-gray-600 hover:bg-gray-800/50 hover:shadow-sm hover:-translate-y-px cursor-pointer ${urgencyColors[urgency]}`}
+      className={`w-full text-left p-4 rounded-xl border transition-all duration-150 hover:bg-gray-800/50 cursor-pointer ${urgencyColors[urgency]}`}
     >
       {/* Asset symbols */}
       <div className="flex items-center justify-between gap-1.5 flex-wrap mb-2">
@@ -238,7 +238,7 @@ function GoalsSummary({ goals }: { goals: Goal[] }) {
               <button
                 key={goal.id}
                 onClick={() => router.push(`/app/goals?goal=${goal.id}`)}
-                className="text-left p-4 rounded-xl border border-gray-800 hover:border-gray-600 hover:bg-gray-800/50 transition-all duration-150 hover:-translate-y-px space-y-3"
+                className="text-left p-4 rounded-xl border border-gray-800 hover:bg-gray-800/50 transition-all duration-150 space-y-3"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
